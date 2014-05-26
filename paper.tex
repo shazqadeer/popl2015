@@ -1,0 +1,93 @@
+\documentclass [preprint]{sigplanconf}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{xspace}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+\usepackage{url}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{color}
+\usepackage{fancyvrb}
+\usepackage{mathpartir}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{shapes.symbols}
+\usetikzlibrary{shapes}
+
+\newtheorem{theorem}{Theorem}
+
+\theoremstyle{remark}
+\newtheorem{example}{Example}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\newcommand{\civl}{{\sc civl}\xspace}
+\newcommand{\boogie}{{\sc boogie}\xspace}
+\newcommand{\zthree}{{\sc Z3}\xspace}
+\newcommand{\casm}{{\sc casm}\xspace}
+\newcommand{\why}{{\sc why}\xspace}
+
+\makeatletter
+\let\@copyrightspace\relax
+\makeatother
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country} 
+\copyrightyear{20yy} 
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm} 
+\doi{nnnnnnn.nnnnnnn}
+
+
+\title{CIVL: A language for automated, modular reasoning about concurrency}
+%\subtitle{Subtitle Text, if any}
+\authorinfo{}{}{}
+%\authorinfo{Chris Hawblitzel \and Shaz Qadeer}{Microsoft}{}
+
+\maketitle
+
+\input{macros}
+
+\begin{abstract}
+We present \civl, a language for automated and modular reasoning about concurrency.  
+\civl provides 
+local assertions for reasoning about interference among concurrently-executing actions,
+linear variables for reasoning about disjointness of resources, 
+and modules for abstraction and compositional verification.
+We present a proof system for \civl programs based on linear typing and compilation to a 
+collection of sequential verification conditions.
+We have implemented \civl as an extension to the \boogie intermediate verification language,
+using \zthree to discharge the verification conditions.
+We present our experience using \civl for verification of concurrent benchmark programs.
+We also report on the use of \civl as an intermediate verification language 
+for programs written in \casm, a verifiable concurrent assembly language.
+\end{abstract}
+
+% \input{intro}
+% \input{overview}
+%\input{formal}
+\input{syntaxFig}
+% \input{civl}
+% \input{casm}
+% \input{related}
+
+\bibliographystyle{abbrv}
+\bibliography{paper}
+
+\end{document}
