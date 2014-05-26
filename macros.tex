@@ -3,7 +3,12 @@
 \newcommand{\Var}{\mathit{Var}}
 \newcommand{\Value}{\mathit{Value}}
 \newcommand{\Expr}{\mathit{Expr}}
+\newcommand{\BExpr}{\mathit{BExpr}}
+\newcommand{\GatedAction}{\mathit{GAct}}
 \newcommand{\Program}{\mathit{Program}}
+\newcommand{\Prog}{\mathit{Prog}}
+\newcommand{\ProcName}{\mathit{ProcName}}
+\newcommand{\Proc}{\mathit{Proc}}
 \newcommand{\Vinfo}{\mathit{Vinfo}}
 \newcommand{\Vstore}{\mathit{Vstore}}
 \newcommand{\Vinfos}{\overrightarrow{\mathit{Vinfo}}}
@@ -13,10 +18,16 @@
 \newcommand{\blockheader}{\mathit{bh}}
 \newcommand{\Thread}{\mathit{Thread}}
 \newcommand{\Label}{\mathit{Label}}
-\newcommand{\stmt}{\mathit{stmt}}
+\newcommand{\Body}{\mathit{Body}}
+\newcommand{\AtomName}{\mathit{AtomName}}
+\newcommand{\moverType}{\mathit{moverType}}
+\newcommand{\Stmt}{\mathit{Stmt}}
 \newcommand{\yieldorborder}[1]{\mathit{yield\_or\_border}\ #1}
+\newcommand{\ite}[3]{{\mathit{if}\ (#1)\;}{\mathit{then}\ #2;\;}{\mathit{else}\ #3;}}
+\newcommand{\while}[3]{{\mathit{while}\ (#1)\;}{\ #2;\;}}
 \newcommand{\yield}[1]{\mathit{yield}\ #1}
 \newcommand{\async}[1]{\mathit{async}\ #1}
+\newcommand{\atomic}[1]{\mathit{atomic}\ \{#1\}}
 \newcommand{\parcall}[2]{#1 | #2}
 \newcommand{\border}[1]{\mathit{border}\ #1}
 \newcommand{\assert}[1]{\mathit{assert}\ #1}
@@ -66,6 +77,7 @@
 
 \newcommand{\ProcessProgram}{\mathit{ProcessProgram}}
 \newcommand{\ProcessModule}{\mathit{ProcessModule}}
+
 \newcommand{\InterfereStatic}{\mathit{InterfereStatic}}
 \newcommand{\InterfereDynamic}{\mathit{InterfereDynamic}}
 \newcommand{\Interfere}{\mathit{Interfere}}
