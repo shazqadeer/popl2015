@@ -1,0 +1,41 @@
+\begin{figure}
+\setlength{\tabcolsep}{3pt}
+{\bf Program Syntax} \\
+\begin{tabular}{rclcl}
+&& $\Globals$ & $\subseteq$ &$\Var$ \\
+&& $\Locals$ & $\subseteq$ & $\Var$ \\
+$t$ & $\in$ & $\Type$ \\
+$x,y,a$ & $\in$ & $\Var$ \\
+$v$ &  $\in$ & $\Value$ \\
+$e$ & $\in$ & $\Expr$ \\
+$\phi,\tau$ & $\in$ & $\BExpr$ \\
+$P$ & $\in$ & $\ProcName$ \\
+$A$ & $\in$ & $\AtomName$ \\
+$\Body$ & = & $\ProcName \rightarrow \Stmt$ \\
+\end{tabular}\\
+\begin{tabular}{rclcl}
+$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\
+$Pr$ & $\in$ & $\Proc$ &::= & $P\ \mathit{requires}\ \phi\
+\mathit{ensures}\ \tau\ \mathit{impl}\ \alpha\ \mathit{moves}\ m$ \\
+$\Prog$ & $\in$ & $\Program$ & ::= & $\varsG, \TS$ \\
+$T$ & $\in$ & $\Thread$ & ::=  & $\varsL, s$ \\
+&&$\Vinfo$ & ::= & $x:t=v$ \\
+$\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
+\end{tabular}
+\begin{tabular}{rclcl}
+$m \in \moverType$ &::= &$\mathit{none} \mid \mathit{left} \mid \mathit{right} \mid \mathit{both}$ \\
+$s \in \Stmt$ &::= & $\skipstmt \mid \assert{e} \mid x := e \mid \transfer{\xs}{\ys} \mid \havoc{\xs} \mid$ \\
+                  & & $s;\;s \mid P() \mid A() \mid \async{P()} \mid \parcall{P()}{P()}$ \\
+                  & & $\atomic{s} \mid \yield{e} \mid \ite{e}{s}{s} \mid$ \\ 
+                  & & $\while{e}{s} \mid \async{P()} \mid \parcall{P()}{P()}$ \\
+\end{tabular}
+\\
+\setlength{\tabcolsep}{6pt}
+\caption{Syntax}
+\label{fig:syntax}
+\end{figure}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "draft"
+%%% End: 
