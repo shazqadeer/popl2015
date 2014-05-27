@@ -61,7 +61,8 @@ $
 $
 \inferrule
 {
-T_0 = (\varsL, \parcall{P_1}{P_2})
+T_0 = (\varsL, \parcall{P_1}{P_2}) \\
+\joinLabel\ \mathit{fresh}\ 
 }
 {(\varsG, \bodies, \TS) \trans (\varsG, \bodies, \TS[0 := (\varsL,
   \Body(P_1);\join{\joinLabel})] \cdot (\varsL, \Body(P_2); \join{\joinLabel}))}
@@ -72,8 +73,7 @@ $
 \inferrule
 {
 {T_0 = (\varsL, \join{\joinLabel})} \\ 
-{T_i = (\varsL', \join{\joinLabel})} \\
-\joinLabel\ \mathit{fresh}\ 
+{T_i = (\varsL', \join{\joinLabel})} 
 }
 {(\varsG, \bodies, \TS) \trans (\varsG, \bodies, 
 \TS[0 := (\varsL,\skipstmt), i := (\varsL,\skipstmt)] }
