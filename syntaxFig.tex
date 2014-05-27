@@ -8,32 +8,38 @@
 {\bf Program Syntax} \\
 \begin{tabular}{rclcl}
 & & $\Globals$ & $\subseteq$ &$\Var$ \\
-& & $\Locals$ & $\subseteq$ & $\Var$ \\
+$w$ & $\in$ & $\Locals$ & $\subseteq$ & $\Var$ \\
 $t$ & $\in$ & $\Type$ \\
 $x,y$ & $\in$ & $\Var$ \\
 $v$ &  $\in$ & $\Value$ \\
-$e,\alpha,\beta,\gamma$ & $\in$ & $\VExpr$ \\
-$\mathit{le}$ & $\in$ & $\LExpr$ \\
+$\joinLabel$ & $\in$ & $\JoinLabels$ \\
+$e,\alpha,\beta,\gamma,\tau$ & $\in$ & $\VExpr$ \\
+$\locExpr$ & $\in$ & $\LExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\AtomName$ \\
 \end{tabular}\\
 \begin{tabular}{rclcl}
 $\bodies$ & $\in$ & $\Body$ & = & $\ProcName \rightarrow \Stmt$ \\
-$\specs$ & $\in$ & $\Spec$ & = & $\AtomName \rightarrow \Spec$ \\
-$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
+$\specs$ & $\in$ & $\Spec$ & = & $\AtomName \rightarrow \AtomicAction$ \\
+$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\gamma,\alpha,\beta)\ \mathit{moves}\ m$ \\
+%$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
 $Pr$ & $\in$ & $\Proc$ &::= & $P\ \mathit{requires}\ \phi\
-\mathit{ensures}\ \tau\ \mathit{refines}\ \alpha\ \mathit{moves}\ m$ \\
+\mathit{ensures}\ \tau\ \mathit{refines}\ A\ $ \\
 $\Prog$ & $\in$ & $\Program$ & ::= & $\varsG, \TS$ \\
 $T$ & $\in$ & $\Thread$ & ::=  & $\varsL, \stmt$ \\
 &&$\Vinfo$ & ::= & $x:t=v$ \\
 $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
 \end{tabular}
 \begin{tabular}{rclcl}
-$m \in \moverType$ &::= &$\mathit{none} \mid \mathit{left} \mid \mathit{right} \mid \mathit{both}$ \\
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid x := e \mid$ \\
-                  & & $s;\;s \mid P \mid A \mid \async{P()} \mid \parcall{P()}{P()}$ \\
-                  & & $\atomic{s} \mid \yield{e} \mid \ite{e}{s}{s} \mid \while{e}{s}$ \\ 
+$m \in \moverType$ &::= &$\mathit{non} \mid \mathit{left} \mid \mathit{right} \mid \mathit{both}$ \\
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid s;\;s \mid A \mid \call{P} \mid $ \\
+                  & & $\async{P} \mid \parcall{P}{P} \mid \join{\joinLabel} \mid \noyield{s} \mid$\\
+                  & & $\yield{e} \mid \ite{\locExpr}{s}{s} \mid \while{\locExpr}{s}$ \\ 
 \end{tabular}\\
+{\bf Type checking syntax} \\
+\begin{tabular}{rclcl}
+$\vartypes$ & $\in$ & $\VarTypes$ & = & $\Var\rightarrow\Type$ \\
+\end{tabular} \\
 \setlength{\tabcolsep}{6pt}
 \caption{Syntax}
 \label{fig:syntax}
