@@ -94,6 +94,15 @@ $
 $
 \inferrule
 {
+\\
+}
+{\bodies \vdash (\vars, \noyield{\stmt}) \trans (\vars, \stmt)}
+\;{(\textsc{NoYield})}
+$
+\medskip
+$
+\inferrule
+{
 \vars \vdash e \rightarrow \mathit{true}
 }
 {(\vars, \assert{e}) \trans (\vars, \skipstmt)}
