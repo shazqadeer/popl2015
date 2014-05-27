@@ -1,0 +1,156 @@
+\begin{figure}
+\scriptsize{
+$
+\inferrule
+{
+{\hspace*{1cm}} \\
+\bodies \vdash T_i = (\_, \yield{\_};) \mathit{or} \bodies \vdash T_i = (\_, \join{\_};)\\
+{\hspace*{1cm}} 
+}
+{
+\yielding{T_i}
+}
+\;(\textsc{Yielding})
+$
+\medskip
+$
+\inferrule
+{
+\forall i \neq k.\ \yielding{T_i} \\
+(\varsG, T_k) \trans (\varsG', T_k') 
+}
+{(\varsG, \TS) \trans (\varsG', \TS[k := T_0][0 := T_k'])}
+\;(\textsc{Program})
+$
+\medskip
+$
+\inferrule
+{
+bs \vdash (\varsG \cdot \varsL, s) \trans (\varsG' \cdot \varsL', s')
+}
+{(\varsG, (\varsL, s)) \trans (\varsG', (\varsL', s'))}
+\;{(\textsc{Combine})}
+$
+\medskip
+$
+\inferrule
+{
+\vars \vdash e \rightarrow \mathit{true}
+}
+{\bodies \vdash (\vars, \ite{e}{s_1}{s_2}) \trans (\vars, s_1)}
+\;{(\textsc{Then})}
+$
+\medskip
+$
+\inferrule
+{
+\vars \vdash e \rightarrow \mathit{false}
+}
+{\bodies \vdash (\vars, \ite{e}{s_1}{s_2}) \trans (\vars, s_2)}
+\;{(\textsc{Else})}
+$
+\medskip
+$
+\inferrule
+{
+T_0 = (\varsL, \call{P})
+}
+{(\varsG, \bodies, \TS) \trans (\varsG, \bodies, \TS[0 := (\varsL,
+  \Body(P))]))}
+\;{(\textsc{Call})}
+$
+\medskip
+$
+\inferrule
+{
+T_0 = (\varsL, \parcall{P_1}{P_2})
+}
+{(\varsG, \bodies, \TS) \trans (\varsG, \bodies, \TS[0 := (\varsL,
+  \Body(P_1);\join{\joinLabel})] \cdot (\varsL, \Body(P_2); \join{\joinLabel}))}
+\;{(\textsc{Parallel})}
+$
+\medskip
+$
+\inferrule
+{
+{T_0 = (\varsL, \join{\joinLabel})} \\ 
+{T_i = (\varsL', \join{\joinLabel})} \\
+\joinLabel\ \mathit{fresh}\ 
+}
+{(\varsG, \bodies, \TS) \trans (\varsG, \bodies, 
+\TS[0 := (\varsL,\skipstmt), i := (\varsL,\skipstmt)] }
+\;{(\textsc{Join-Done})}
+$
+\medskip
+$
+\inferrule
+{
+\\
+}
+{\bodies \vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
+\;{(\textsc{Skip})}
+$
+\medskip
+$
+\inferrule
+{
+\vars \vdash e \rightarrow \mathit{true}
+}
+{(\vars, \assert{e}) \trans (\vars, \skipstmt)}
+\;{(\textsc{Assert})}
+$
+\medskip
+$
+\inferrule
+{
+T_0 = (\varsL, \async{P})
+}
+{(\varsG, \bodies, \TS) \trans (\varsG, \bodies, \TS\cdot (\varsL, \Body(P)))}
+\;{(\textsc{Async})}
+$
+\medskip
+$
+\inferrule
+{
+w:t=v \in \varsL \\
+\varsG \cdot \varsL \vdash \locExpr \rightarrow v'
+}
+{(\varsG \cdot \varsL, w := \locExpr) \trans (\varsG \cdot \varsL[w := v'], \skipstmt)}
+\;{(\textsc{Assignment})}
+$
+\medskip
+$
+\inferrule
+{
+\specs(A) = (\gamma,\alpha,\beta)\ \mathit{moves}\ m \\
+\varsG \cdot \varsL \vdash \gamma \\
+(\varsG \cdot \varsL, \varsG' \cdot \varsL') \vdash \alpha \\
+}
+{
+\bodies \vdash (\varsG \cdot \varsL, A) \trans (\varsG' \cdot \varsL',A)
+}
+\;{(\textsc{Atomic-Wait})}
+$
+\medskip
+$
+\inferrule
+{
+\specs(A) = (\gamma,\alpha,\beta)\ \mathit{moves} m \\
+\varsG \cdot \varsL \vdash \gamma \\
+(\varsG \cdot \varsL, \varsG' \cdot \varsL') \vdash \beta \\
+}
+{
+\bodies \vdash (\varsG \cdot \varsL, A) \trans (\varsG' \cdot \varsL',\skipstmt)
+}
+\;{(\textsc{Atomic-Move})}
+$
+}
+\caption{Operational semantics}
+\label{fig:operational-semantics}
+\end{figure}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "draft"
+%%% End: 
