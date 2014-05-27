@@ -4,7 +4,11 @@
 \newcommand{\Value}{\mathit{Value}}
 \newcommand{\Expr}{\mathit{Expr}}
 \newcommand{\BExpr}{\mathit{BExpr}}
+\newcommand{\VExpr}{\mathit{VarExpr}}
+\newcommand{\LExpr}{\mathit{LocalExpr}}
+\newcommand{\Spec}{\mathit{Spec}}
 \newcommand{\GatedAction}{\mathit{GAct}}
+\newcommand{\Entry}{\mathit{Entry}}
 \newcommand{\Program}{\mathit{Program}}
 \newcommand{\Prog}{\mathit{Prog}}
 \newcommand{\ProcName}{\mathit{ProcName}}
@@ -22,9 +26,10 @@
 \newcommand{\AtomName}{\mathit{AtomName}}
 \newcommand{\moverType}{\mathit{moverType}}
 \newcommand{\Stmt}{\mathit{Stmt}}
+\newcommand{\stmt}{\mathit{s}}
 \newcommand{\yieldorborder}[1]{\mathit{yield\_or\_border}\ #1}
-\newcommand{\ite}[3]{{\mathit{if}\ (#1)\;}{\mathit{then}\ #2;\;}{\mathit{else}\ #3;}}
-\newcommand{\while}[3]{{\mathit{while}\ (#1)\;}{\ #2;\;}}
+\newcommand{\ite}[3]{{\mathit{if}\ (#1)\;}{\mathit{then}\ {#2}}{\mathit{else}\ {#3}}}
+\newcommand{\while}[2]{{\mathit{while}\ ({#1}) {#2}}}
 \newcommand{\yield}[1]{\mathit{yield}\ #1}
 \newcommand{\async}[1]{\mathit{async}\ #1}
 \newcommand{\atomic}[1]{\mathit{atomic}\ \{#1\}}
@@ -40,7 +45,9 @@
 \newcommand{\skipstmt}{\mathit{skip}}
 \newcommand{\transfer}[2]{#2 \leftarrow #1}
 \newcommand{\block}{b}
-\newcommand{\blocks}{\mathit{bs}}
+\newcommand{\bodies}{\mathit{bs}}
+\newcommand{\blocks}{\mathit{bls}}
+\newcommand{\specs}{\mathit{sp}}
 \newcommand{\ControlFlow}{\mathit{Control}}
 \newcommand{\cf}{\mathit{cf}}
 
