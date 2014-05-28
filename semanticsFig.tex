@@ -3,7 +3,7 @@
 $
 \inferrule
 {
-\bodies \vdash T_i = (\_, \yield{\_})\ \mathit{or}\ \bodies \vdash T_i = (\_, \join{\_})\\
+\bodies \vdash T_i = (\_, \yield{\_})\ \\
 }
 {
 \yielding{T_i}
@@ -61,28 +61,6 @@ $
 $
 \inferrule
 {
-T_0 = (\varsL, \parcall{P_1}{P_2}) \\
-\joinLabel\ \mathit{fresh}\ 
-}
-{(\varsG, \bodies, \TS) \trans (\varsG, \bodies, \TS[0 := (\varsL,
-  \Body(P_1);\join{\joinLabel})] \cdot (\varsL, \Body(P_2); \join{\joinLabel}))}
-\;{(\textsc{Parallel})}
-$
-\medskip
-$
-\inferrule
-{
-{T_0 = (\varsL, \join{\joinLabel})} \\ 
-{T_i = (\varsL', \join{\joinLabel})} 
-}
-{(\varsG, \bodies, \TS) \trans (\varsG, \bodies, 
-\TS[0 := (\varsL,\skipstmt), i := (\varsL,\skipstmt)] }
-\;{(\textsc{Join-Done})}
-$
-\medskip
-$
-\inferrule
-{
 \\
 }
 {\bodies \vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
@@ -134,7 +112,7 @@ $
 (\varsG \cdot \varsL, \varsG' \cdot \varsL') \vdash \alpha \\
 }
 {
-\bodies \vdash (\varsG \cdot \varsL, A) \trans (\varsG' \cdot \varsL',A)
+\bodies, \realz \vdash (\varsG \cdot \varsL, A) \trans (\varsG' \cdot \varsL',A)
 }
 \;{(\textsc{Atomic-Wait})}
 $
@@ -147,7 +125,7 @@ $
 (\varsG \cdot \varsL, \varsG' \cdot \varsL') \vdash \beta \\
 }
 {
-\bodies \vdash (\varsG \cdot \varsL, A) \trans (\varsG' \cdot \varsL',\skipstmt)
+\bodies, \realz \vdash (\varsG \cdot \varsL, A) \trans (\varsG' \cdot \varsL',\skipstmt)
 }
 \;{(\textsc{Atomic-Move})}
 $

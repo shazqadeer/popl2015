@@ -7,25 +7,31 @@
 \setlength{\tabcolsep}{3pt}
 {\bf Program Syntax} \\
 \begin{tabular}{rclcl}
-& & $\Globals$ & $\subseteq$ &$\Var$ \\
+$z$ & $\in$ & $\Globals$ & $\subseteq$ &$\Var$ \\
 $w$ & $\in$ & $\Locals$ & $\subseteq$ & $\Var$ \\
 $t$ & $\in$ & $\Type$ \\
 $x,y$ & $\in$ & $\Var$ \\
 $v$ &  $\in$ & $\Value$ \\
-$\joinLabel$ & $\in$ & $\JoinLabels$ \\
+%$\joinLabel$ & $\in$ & $\JoinLabels$ \\
 $e,\alpha,\beta,\gamma,\tau$ & $\in$ & $\VExpr$ \\
 $\locExpr$ & $\in$ & $\LExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\AtomName$ \\
+$B$ & $\in$ & $\AtomicSpecName$ \\
 \end{tabular}\\
 \begin{tabular}{rclcl}
-$\bodies$ & $\in$ & $\Body$ & = & $\ProcName \rightarrow \Stmt$ \\
-$\specs$ & $\in$ & $\Spec$ & = & $\AtomName \rightarrow \AtomicAction$ \\
+$\bodies$ & $\in$ & $\Body$ & = & $\ProcName \rightarrow \ProcBody$ \\
+$\realz$ & $\in$ & $\Realz$ & = & $\AtomName \rightarrow \AtomicAction$ \\
+$\specs$ & $\in$ & $\Spec$ & = & $\AtomicSpecName \rightarrow \AtomicAction$ \\
 $\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\gamma,\alpha,\beta)\ \mathit{moves}\ m$ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
 $Pr$ & $\in$ & $\Proc$ &::= & $P\ \mathit{requires}\ \phi\
-\mathit{ensures}\ \tau\ \mathit{refines}\ A\ $ \\
+\mathit{ensures}\ \tau\ \mid $ \\
+& & & & $P\ \mathit{requires}\ \phi\
+\mathit{ensures}\ \tau\  \mathit{refines}\ B\ $ \\
 $\Prog$ & $\in$ & $\Program$ & ::= & $\varsG, \TS$ \\
+& & $\ProgSpec$ & ::= &$\mathit{hide}\
+{\overrightarrow{z}}\ \mathit{in}\ \Prog\ \mathit{satisfies}\ \specs$\\  
 $T$ & $\in$ & $\Thread$ & ::=  & $\varsL, \stmt$ \\
 &&$\Vinfo$ & ::= & $x:t=v$ \\
 $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
@@ -33,8 +39,10 @@ $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
 \begin{tabular}{rclcl}
 $m \in \moverType$ &::= &$\mathit{non} \mid \mathit{left} \mid \mathit{right} \mid \mathit{both}$ \\
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid s;\;s \mid A \mid \call{P} \mid $ \\
-                  & & $\async{P} \mid \parcall{P}{P} \mid \join{\joinLabel} \mid \noyield{s} \mid$\\
-                  & & $\yield{e} \mid \ite{\locExpr}{s}{s} \mid \while{\locExpr}{s}$ \\ 
+                  & & $\async{P} \mid \noyield{s} \mid \yield{e} \mid $\\
+                  & & $\ite{\locExpr}{s}{s} \mid \while{\locExpr}{s}$
+                  \\ 
+$\ProcBody$ & ::= & $\yield{e}; \stmt$ \\ 
 \end{tabular}\\
 {\bf Type checking syntax} \\
 \begin{tabular}{rclcl}
@@ -45,6 +53,13 @@ $\vartypes$ & $\in$ & $\VarTypes$ & = & $\Var\rightarrow\Type$ \\
 \label{fig:syntax}
 \end{figure}
 
+
+% Try noyield in syntax first. 
+% Procedure calls starts with a yield. 
+% Parallel goes away
+% All procedure bodies begin with a yield
+% async yield
+% async a
 
 %%% Local Variables: 
 %%% mode: latex
