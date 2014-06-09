@@ -13,36 +13,39 @@ $t$ & $\in$ & $\Type$ \\
 $x,y$ & $\in$ & $\Var$ \\
 $v$ &  $\in$ & $\Value$ \\
 %$\joinLabel$ & $\in$ & $\JoinLabels$ \\
-$e,\alpha,\beta,\gamma,\tau$ & $\in$ & $\VExpr$ \\
+$e, g, \rho$ & $\in$ & $\StateExpr$ \\
+$\alpha, \tau$ & $\in$ & $\TransExpr$ \\
 $\locExpr$ & $\in$ & $\LExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\AtomName$ \\
-$B$ & $\in$ & $\AtomicSpecName$ \\
 \end{tabular}\\
 \begin{tabular}{rclcl}
-$\bodies$ & $\in$ & $\Body$ & = & $\ProcName \rightarrow \ProcBody$ \\
-$\realz$ & $\in$ & $\Realz$ & = & $\AtomName \rightarrow \AtomicAction$ \\
+$\bodies$ & $\in$ & $\Body$ & = & $\ProcName \rightarrow \Stmt$ \\
 $\specs$ & $\in$ & $\Spec$ & = & $\AtomicSpecName \rightarrow \AtomicAction$ \\
-$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\gamma,\alpha,\beta)\ \mathit{moves}\ m$ \\
+$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(g, \alpha)\ $ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
-$Pr$ & $\in$ & $\Proc$ &::= & $P\ \mathit{requires}\ \phi\
-\mathit{ensures}\ \tau\ \mid $ \\
-& & & & $P\ \mathit{requires}\ \phi\
-\mathit{ensures}\ \tau\  \mathit{refines}\ B\ $ \\
+$Pr$ & $\in$ & $\Proc$ &::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+                                                        \mathit{requires}\ \rho\
+                                                        \mathit{ensures}\ \tau\ \mid $\\
+& & & & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+                     \mathit{requires}\ \rho\
+                     \mathit{ensures}\ \tau\
+                     \mathit{refines}\ A\
+                     \mathit{moves}\ m$\\
 $\Prog$ & $\in$ & $\Program$ & ::= & $\varsG, \TS$ \\
-& & $\ProgSpec$ & ::= &$\mathit{hide}\
-{\overrightarrow{z}}\ \mathit{in}\ \Prog\ \mathit{satisfies}\ \specs$\\  
 $T$ & $\in$ & $\Thread$ & ::=  & $\varsL, \stmt$ \\
 &&$\Vinfo$ & ::= & $x:t=v$ \\
 $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
 \end{tabular}
 \begin{tabular}{rclcl}
 $m \in \moverType$ &::= &$\mathit{non} \mid \mathit{left} \mid \mathit{right} \mid \mathit{both}$ \\
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid s;\;s \mid A \mid \call{P} \mid $ \\
-                  & & $\async{P} \mid \noyield{s} \mid \yield{e} \mid $\\
-                  & & $\ite{\locExpr}{s}{s} \mid \while{\locExpr}{s}$
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid s;\;s \mid
+\assert{le} \mid \call{A} \mid \call{P} \mid $ \\
+                  & & $\async{P} \mid \ablock{e}{s} \mid \yield{e} \mid $\\
+                  & & $\ite{\locExpr}{s}{s} \mid
+                  \while{\locExpr}{e}{s} \mid $ \\
+                  & & $\termwhile{\locExpr}{e}{s}$
                   \\ 
-$\ProcBody$ & ::= & $\yield{e}; \stmt$ \\ 
 \end{tabular}\\
 {\bf Type checking syntax} \\
 \begin{tabular}{rclcl}

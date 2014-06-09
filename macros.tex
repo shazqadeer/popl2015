@@ -4,6 +4,8 @@
 \newcommand{\Value}{\mathit{Value}}
 \newcommand{\Expr}{\mathit{Expr}}
 \newcommand{\BExpr}{\mathit{BExpr}}
+\newcommand{\StateExpr}{\mathit{StateExpr}}
+\newcommand{\TransExpr}{\mathit{TransExpr}}
 \newcommand{\VExpr}{\mathit{VarExpr}}
 \newcommand{\LExpr}{\mathit{LocalExpr}}
 \newcommand{\Spec}{\mathit{Spec}}
@@ -30,7 +32,7 @@
 \newcommand{\Label}{\mathit{Label}}
 \newcommand{\Body}{\mathit{Body}}
 \newcommand{\AtomName}{\mathit{AtomName}}
-\newcommand{\moverType}{\mathit{moverType}}
+\newcommand{\moverType}{\mathit{MoverType}}
 \newcommand{\Stmt}{\mathit{Stmt}}
 \newcommand{\stmt}{\mathit{s}}
 \newcommand{\ProcBody}{\mathit{ProcBody}}
@@ -39,12 +41,14 @@
 
 \newcommand{\yieldorborder}[1]{\mathit{yield\_or\_border}\ #1}
 \newcommand{\ite}[3]{{\mathit{if}\ {#1}\ }{\mathit{then}\ {#2}\ }{\mathit{else}\ {#3}\ }}
-\newcommand{\while}[2]{{\mathit{while}\ {#1}\ {#2}\ }}
+\newcommand{\while}[3]{ {\mathit{while}\ (#1)}\ {(\mathit{inv}\ {#2})}\ \{{#3}\}\ }
+\newcommand{\termwhile}[3]{ {\mathit{while}\ (#1)}\ {(\mathit{inv}\ {#2})}\ \mathit{(terminates)}\ \{{#3}\}\ }
 \newcommand{\yield}[1]{\mathit{yield}\ #1}
 \newcommand{\join}[1]{\mathit{join}\ #1}
 \newcommand{\async}[1]{\mathit{async}\ #1}
 \newcommand{\call}[1]{\mathit{call}\ #1}
 \newcommand{\noyield}[1]{\mathit{noyield}\ {#1}\ }
+\newcommand{\ablock}[2]{\mathit{ablock}\ {(#1)}\ \{{#2}\}\ }
 \newcommand{\parcall}[2]{\mathit{call}\ {#1} || {#2}\ }
 \newcommand{\border}[1]{\mathit{border}\ #1}
 \newcommand{\assert}[1]{\mathit{assert}\ #1}
