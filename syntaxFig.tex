@@ -13,25 +13,24 @@ $t$ & $\in$ & $\Type$ \\
 $x,y$ & $\in$ & $\Var$ \\
 $v$ &  $\in$ & $\Value$ \\
 %$\joinLabel$ & $\in$ & $\JoinLabels$ \\
-$e, g, \rho$ & $\in$ & $\StateExpr$ \\
-$\alpha, \tau$ & $\in$ & $\TransExpr$ \\
+$e, \tau, \phi$ & $\in$ & $\StateExpr$ \\
+$\alpha, \beta$ & $\in$ & $\TransExpr$ \\
 $\locExpr$ & $\in$ & $\LExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\AtomName$ \\
 \end{tabular}\\
 \begin{tabular}{rclcl}
 $\bodies$ & $\in$ & $\Body$ & = & $\ProcName \rightarrow \Stmt$ \\
-$\specs$ & $\in$ & $\Spec$ & = & $\AtomicSpecName \rightarrow \AtomicAction$ \\
-$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(g, \alpha)\ $ \\
+$\specs$ & $\in$ & $\Spec$ & = & $\AtomName \rightarrow \TransExpr$ \\
+%$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\tau, \alpha)\ $ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
 $Pr$ & $\in$ & $\Proc$ &::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
-                                                        \mathit{requires}\ \rho\
-                                                        \mathit{ensures}\ \tau\ \mid $\\
+                                                        \mathit{requires}\ \phi\
+                                                        \mathit{ensures}\ \beta\ \mid $\\
 & & & & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
-                     \mathit{requires}\ \rho\
-                     \mathit{ensures}\ \tau\
-                     \mathit{refines}\ A\
-                     \mathit{moves}\ m$\\
+                     \mathit{requires}\ \phi\
+                     \mathit{ensures}\ \beta\
+                     \mathit{refines}\ (m, \tau, \alpha)$\\
 $\Prog$ & $\in$ & $\Program$ & ::= & $\varsG, \TS$ \\
 $T$ & $\in$ & $\Thread$ & ::=  & $\varsL, \stmt$ \\
 &&$\Vinfo$ & ::= & $x:t=v$ \\
@@ -39,32 +38,20 @@ $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
 \end{tabular}
 \begin{tabular}{rclcl}
 $m \in \moverType$ &::= &$\mathit{non} \mid \mathit{left} \mid \mathit{right} \mid \mathit{both}$ \\
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid s;\;s \mid
-\assert{le} \mid \call{A} \mid \call{P} \mid $ \\
-                  & & $\async{P} \mid \ablock{e}{s} \mid \yield{e} \mid $\\
-                  & & $\ite{\locExpr}{s}{s} \mid
-                  \while{\locExpr}{e}{s} \mid $ \\
-                  & & $\termwhile{\locExpr}{e}{s}$
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid
+\assert{le} \mid $ \\
+                  & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
+                  & & $s;\;s \mid \yield{e} \mid \ablock{e}{s} \mid \ite{\locExpr}{s}{s} \mid$ \\
+                  & & $\while{\locExpr}{e}{s} \mid \termwhile{\locExpr}{e}{s}$
                   \\ 
 \end{tabular}\\
-{\bf Type checking syntax} \\
-\begin{tabular}{rclcl}
-$\vartypes$ & $\in$ & $\VarTypes$ & = & $\Var\rightarrow\Type$ \\
-\end{tabular} \\
 \setlength{\tabcolsep}{6pt}
 \caption{Syntax}
 \label{fig:syntax}
 \end{figure}
 
 
-% Try noyield in syntax first. 
-% Procedure calls starts with a yield. 
-% Parallel goes away
-% All procedure bodies begin with a yield
-% async yield
-% async a
-
 %%% Local Variables: 
 %%% mode: latex
-%%% TeX-master: "draft"
+%%% TeX-master: "paper"
 %%% End: 
