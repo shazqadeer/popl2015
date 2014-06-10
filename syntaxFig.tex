@@ -20,20 +20,22 @@ $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\AtomName$ \\
 \end{tabular}\\
 \begin{tabular}{rclcl}
-$\bodies$ & $\in$ & $\Body$ & = & $\ProcName \rightarrow \Stmt$ \\
-$\specs$ & $\in$ & $\Spec$ & = & $\AtomName \rightarrow \TransExpr$ \\
+$\bodies \in \Body$ & = & $\ProcName \rightarrow \Stmt$ \\
+$\specs \in \Spec$ & = & $\AtomName \rightarrow \TransExpr$ \\
 %$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\tau, \alpha)\ $ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
-$Pr$ & $\in$ & $\Proc$ &::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+$Pr \in \Proc$ &::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
                                                         \mathit{requires}\ \phi\
                                                         \mathit{ensures}\ \beta\ \mid $\\
-& & & & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
-                     \mathit{requires}\ \phi\
-                     \mathit{ensures}\ \beta\
+& & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+                     \mathit{requires}\ \phi\ $\\
+& &                     $\hspace*{0.8cm} \mathit{ensures}\ \beta\
                      \mathit{refines}\ (m, \tau, \alpha)$\\
-$\Prog$ & $\in$ & $\Program$ & ::= & $\varsG, \TS$ \\
-$T$ & $\in$ & $\Thread$ & ::=  & $\varsL, \stmt$ \\
-&&$\Vinfo$ & ::= & $x:t=v$ \\
+\end{tabular}
+\begin{tabular}{rclcl}
+$\Prog \in \Program$ & ::= & $\varsG, \TS$ \\
+$T \in \Thread$ & ::=  & $\varsL, \stmt$ \\
+$\Vinfo$ & ::= & $x:t=v$ \\
 $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
 \end{tabular}
 \begin{tabular}{rclcl}
@@ -41,9 +43,17 @@ $m \in \moverType$ &::= &$\mathit{non} \mid \mathit{left} \mid \mathit{right} \m
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid
 \assert{le} \mid $ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-                  & & $s;\;s \mid \yield{e} \mid \ablock{e}{s} \mid \ite{\locExpr}{s}{s} \mid$ \\
+                  & & $s;\;s \mid \yield{e} \mid \ablock{e}{s} \mid$\\
+                 & & $\ite{\locExpr}{s}{s} \mid$ \\
                   & & $\while{\locExpr}{e}{s} \mid \termwhile{\locExpr}{e}{s}$
                   \\ 
+\end{tabular}\\
+\begin{tabular}{rclcl}
+$\YieldingStmt \in \mathit{YieldingStmt}$ &::= &$\yield{e} \mid \YieldingStmt;s$ \\
+$\YieldingThread \in \mathit{YieldingThread}$ &::= &$\varsL, \YieldingStmt$ \\
+$\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;s$ \\
+$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$[]_{Locals}, \StmtCtxt$ \\
+$\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads$ \\
 \end{tabular}\\
 \setlength{\tabcolsep}{6pt}
 \caption{Syntax}
