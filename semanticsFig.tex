@@ -89,28 +89,13 @@ $
 $
 \inferrule
 {
-\specs(A) = (\gamma,\alpha,\beta)\ \mathit{moves}\ m \\
-\varsG \cdot \varsL \vdash \gamma \\
+\specs(A) = \alpha\ \\
 (\varsG \cdot \varsL, \varsG' \cdot \varsL') \vdash \alpha \\
-}
-{
-\bodies;\specs \vdash (\varsG \cdot \varsL, \call{A}) \trans (\varsG' \cdot \varsL', \call{A})
-}
-\;{(\textsc{Atomic-Wait})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\specs(A) = (\gamma,\alpha,\beta)\ \mathit{moves}\ m \\
-\varsG \cdot \varsL \vdash \gamma \\
-(\varsG \cdot \varsL, \varsG' \cdot \varsL') \vdash \beta \\
 }
 {
 \bodies;\specs \vdash (\varsG \cdot \varsL, \call{A}) \trans (\varsG' \cdot \varsL',\skipstmt)
 }
-\;{(\textsc{Atomic-Move})}
+\;{(\textsc{Atomic})}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -190,5 +175,5 @@ $
 
 %%% Local Variables: 
 %%% mode: latex
-%%% TeX-master: "draft"
+%%% TeX-master: "paper"
 %%% End: 
