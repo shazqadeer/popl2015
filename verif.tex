@@ -1,0 +1,59 @@
+\subsection{Verification}
+
+Consider a procedure $P$ with an atomic action specification $(m, \tau, \alpha)$, i.e., $P\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ \mathit{refines}\ (m, \tau, \alpha)$. In this section, we describe the verification conditions generated to verify that $\bodies{P}$ is a correct refinement. Intuitively speaking, we generate verification checks that ensure that every sequence of state transitions performed by $\bodies{P}$ refines an execution of the {\em specification automaton} in Figure~\ref{fig:refChkAut}. In a concurrent execution, state transitions performed by a particular execution instance of the statement $\bodies{P}$ are interleaved with actions performed by other threads. This fact is taken into account in the checks below in the atomic block expressions $e$ labeling atomic blocks $\ablock{e,r}{s}$. The refinement check type $r$ indicates which state transition in the {\em specification automaton} the atomic block $\ablock{e,r}{s}$ maps to. In our tool implementation, the $r$ annotation is not needed. It is included in our formalization for ease of exposition. 
+
+%% Draw two-state automaton with state and edge labels. 
+
+{\bf Explain:} Thus, the check performed is not only thread-modular, but also procedure-modular. 
+
+In the following, $\anAction$ stands for an atomic action specification of the form $(m, \tau, \alpha)$ or $\emptyAction$, representing that an atomic block is in the body of a procedure that does not have a refinement specification. 
+
+%%\Ablocks(bs, \TS \cdot T) = \Ablocks(bs, \TS) \cup \Ablocks(bs, T);
+$$
+\begin{array}{lcl}
+\Ablocks(bs) & = & \bigcup_{s \in domain(bs)} \Ablocks(bs, s) \\
+\Ablocks(bs, \ws, \phi, \beta, \anAction, s_1; s_2) & = &\Ablocks(bs, \ws, \phi, \beta, \anAction, s_1) \cup \\
+                                                                                    & &  \Ablocks(bs, \ws, \phi, \beta, \anAction, s_2) \\
+ \Ablocks(bs, \ws, \phi, \beta, \anAction, \while{\locExpr}{e}{s} ) & = & \Ablocks(bs,\ws, \phi, \beta, \anAction,  s) \\
+\Ablocks(bs, \ws, \phi, \beta, \anAction, \termwhile{\locExpr}{e}{s} ) & = & \Ablocks(bs, \ws, \phi, \beta, \anAction,  s) \\
+\Ablocks(bs, \ws, \phi, \beta, \anAction, \ite{\locExpr}{s_1}{s_2}) & = & \Ablocks(bs, \ws, \phi, \beta, \anAction, s_1) \cup
+                                                                                                          \Ablocks(bs, \ws, \phi, \beta, \anAction, s_2) \\
+\Ablocks(\call{P}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P) ) \\ 
+                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ \\
+\Ablocks(\call{P_{A}}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P_{A}) ) \\ 
+                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\  \mathit{refines}\ (m, \tau, \alpha)\\
+\Ablocks(\async{P}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P) ) \\ 
+                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ \\
+\Ablocks(\async{P_{A}}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P_{A}) ) \\ 
+                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\  \mathit{refines}\ (m, \tau, \alpha)\\
+\Ablocks(\overrightarrow{w},  \phi, \beta, \anAction,\ablock{e,r}{s}) & = & \{(\overrightarrow{w},  \phi, \beta, \emptyAction, \ablock{e,r}{s}) \} \\ 
+\Ablocks(\_, \_, \_, \_, \skipstmt) & = & \emptyset \\
+\Ablocks(\_, \_, \_, \_, \assert{le})& = & \emptyset \\
+\Ablocks(\_, \_, \_, \_,  w := \locExpr) & = & \emptyset \\
+\Ablocks(\_, \_, \_, \_, \call{A}) & = & \emptyset \\
+\end{array}
+$$
+
+For two statements $s_1$ and $s_2$, we say $s_1$ {\em refines} $s_2$
+{\em subject to $e$}, written $\impl{e}{s_1}{s_2}$, iff for each global
+stores $\varsG$ and $\varsG'$ and local stores $\varsL$ and $\varsL'$,
+if $\varsG \cdot \varsL \vdash e$ and $(\varsG \cdot \varsL, s_1)
+\trans (\varsG' \cdot \varsL')$, then $(\varsG \cdot \varsL, s_2)
+\trans (\varsG' \cdot \varsL')$. Whether $\impl{e}{s_1}{s_2}$ can be
+expressed in a straightforward manner a sequential verification
+problem.
+
+For each $(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \ablock{e,r}{s}) \in \Ablocks(\Prog)$, we perform a refinement check described as follows:
+\begin{itemize}
+\item If $r = \mathit{act}$, then this atomic block is meant to refine the atomic specification of the procedure it belongs to. We then check that 
+(i) $e \implies \tau$ and 
+(ii) $\impl{e}{s}{\alpha}$
+\item If $r = \mathit{pre}$, then this atomic block maps to a self loop before the atomic specification action and we check $\impl{e}{s}{\mathit{havoc }\ \overrightarrow{w}, \hiddenVars}$. 
+\item If $r = \mathit{pre}$, then this atomic block maps to a self loop before the atomic specification action and we check $\impl{e}{s}{\mathit{havoc }\ \overrightarrow{w}, \hiddenVars}$. 
+\end{itemize}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "paper"
+%%% End: 
+

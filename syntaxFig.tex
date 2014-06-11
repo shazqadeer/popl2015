@@ -17,6 +17,7 @@ $e, \tau, \phi$ & $\in$ & $\StateExpr$ \\
 $\alpha, \beta$ & $\in$ & $\TransExpr$ \\
 $\locExpr$ & $\in$ & $\LExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
+$P_{A}$ & $\in$ & $\AtomicProcName$ & $\subseteq$ & $\ProcName$ \\
 $A$ & $\in$ & $\AtomName$ \\
 \end{tabular}\\
 \begin{tabular}{rclcl}
@@ -24,10 +25,10 @@ $\bodies \in \Body$ & = & $\ProcName \rightarrow \Stmt$ \\
 $\specs \in \Spec$ & = & $\AtomName \rightarrow \TransExpr$ \\
 %$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\tau, \alpha)\ $ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
-$Pr \in \Proc$ &::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+$\proc \in \Proc$&::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
                                                         \mathit{requires}\ \phi\
                                                         \mathit{ensures}\ \beta\ \mid $\\
-& & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+                     & ::= & $P_{A}\ \mathit{modifies}\ \overrightarrow{w}\ 
                      \mathit{requires}\ \phi\ $\\
 & &                     $\hspace*{0.8cm} \mathit{ensures}\ \beta\
                      \mathit{refines}\ (m, \tau, \alpha)$\\
@@ -40,10 +41,11 @@ $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
 \end{tabular}
 \begin{tabular}{rclcl}
 $m \in \moverType$ &::= &$\mathit{non} \mid \mathit{left} \mid \mathit{right} \mid \mathit{both}$ \\
+$r \in \refType$ &::= &$\mathit{pre} \mid \mathit{act} \mid \mathit{post} $ \\
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid
 \assert{le} \mid $ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-                  & & $s;\;s \mid \yield{e} \mid \ablock{e}{s} \mid$\\
+                  & & $s;\;s \mid \yield{e} \mid \ablock{e,r}{s} \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
                   & & $\while{\locExpr}{e}{s} \mid \termwhile{\locExpr}{e}{s}$
                   \\ 
