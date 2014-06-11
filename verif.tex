@@ -6,30 +6,24 @@ Consider a procedure $P$ with an atomic action specification $(m, \tau, \alpha)$
 
 {\bf Explain:} Thus, the check performed is not only thread-modular, but also procedure-modular. 
 
-In the following, $\anAction$ stands for an atomic action specification of the form $(m, \tau, \alpha)$ or $\emptyAction$, representing that an atomic block is in the body of a procedure that does not have a refinement specification. 
+In the following, $\anAction$ stands for an atomic action specification of the form $(m, \tau, \alpha)$ or $\emptyAction$, representing that an atomic block is in the body of a procedure that does not have a refinement specification, $\hiddenVars$ represents the variables hidden.
 
 $$
-\begin{array}{lcl}
-\Ablocks(bs) & = & \bigcup_{s \in domain(bs)} \Ablocks(bs, s) \\
-\Ablocks(bs, \ws, \phi, \beta, \anAction, s_1; s_2) & = &\Ablocks(bs, \ws, \phi, \beta, \anAction, s_1) \cup \\
-                                                                                    & &  \Ablocks(bs, \ws, \phi, \beta, \anAction, s_2) \\
- \Ablocks(bs, \ws, \phi, \beta, \anAction, \while{\locExpr}{e}{s} ) & = & \Ablocks(bs,\ws, \phi, \beta, \anAction,  s) \\
-\Ablocks(bs, \ws, \phi, \beta, \anAction, \termwhile{\locExpr}{e}{s} ) & = & \Ablocks(bs, \ws, \phi, \beta, \anAction,  s) \\
-\Ablocks(bs, \ws, \phi, \beta, \anAction, \ite{\locExpr}{s_1}{s_2}) & = & \Ablocks(bs, \ws, \phi, \beta, \anAction, s_1) \cup
-                                                                                                          \Ablocks(bs, \ws, \phi, \beta, \anAction, s_2) \\
-\Ablocks(\call{P}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P) ) \\ 
-                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ \\
-\Ablocks(\call{P_{A}}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P_{A}) ) \\ 
-                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\  \mathit{refines}\ (m, \tau, \alpha)\\
-\Ablocks(\async{P}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P) ) \\ 
-                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ \\
-\Ablocks(\async{P_{A}}) & = & \Ablocks(\overrightarrow{w},  \phi, \beta, (m, \tau, \alpha), \bodies(P_{A}) ) \\ 
-                          &    & \mbox{if\ } \proc\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\  \mathit{refines}\ (m, \tau, \alpha)\\
-\Ablocks(\overrightarrow{w},  \phi, \beta, \anAction,\ablock{e,r}{s}) & = & \{(\overrightarrow{w},  \phi, \beta, \emptyAction, \ablock{e,r}{s}) \} \\ 
-\Ablocks(\_, \_, \_, \_, \skipstmt) & = & \emptyset \\
-\Ablocks(\_, \_, \_, \_, \assert{le})& = & \emptyset \\
-\Ablocks(\_, \_, \_, \_,  w := \locExpr) & = & \emptyset \\
-\Ablocks(\_, \_, \_, \_, \call{A}) & = & \emptyset \\
+\begin{array}{l}
+\Ablocks(bs)   =   \bigcup_{P \in \ProcName} \Ablocks(bs, \bodies(P)) \\
+\Ablocks(bs, \procName, s_1; s_2)   =  \Ablocks(bs, \procName, s_1) \cup 
+                                                                                         \Ablocks(bs, \procName, s_2) \\
+ \Ablocks(bs, \procName, \while{\locExpr}{e}{s} )   =   \Ablocks(bs,\procName  s) \\
+\Ablocks(bs, \procName, \termwhile{\locExpr}{e}{s} )   =   \Ablocks(bs, \procName,  s) \\
+\Ablocks(bs, \procName, \ite{\locExpr}{s_1}{s_2})   =   \\
+\hspace*{2.5cm} \Ablocks(bs, \procName, s_1) \cup \Ablocks(bs, \procName, s_2) \\
+\Ablocks(bs, \procName, \call{P'})   =   \Ablocks(bs, P', \bodies(P') ) \\ 
+\Ablocks(bs, \procName, \async{P'})   =   \Ablocks(bs, P', \bodies(P') ) \\ 
+\Ablocks(bs, \procName \ablock{e,r}{s})   =   \{(\procName, \ablock{e,r}{s}) \} \\ 
+\Ablocks(bs, \procName, \skipstmt)   =   \emptyset \\
+\Ablocks(bs, \procName, \assert{le})  =   \emptyset \\
+\Ablocks(bs, \procName, w := \locExpr)   =   \emptyset \\
+\Ablocks(bs, \procName, \call{A})   =   \emptyset \\
 \end{array}
 $$
 

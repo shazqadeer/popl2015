@@ -21,17 +21,19 @@ $P_{A}$ & $\in$ & $\AtomicProcName$ & $\subseteq$ & $\ProcName$ \\
 $A$ & $\in$ & $\AtomName$ \\
 \end{tabular}\\
 \begin{tabular}{rclcl}
-$\bodies \in \Body$ & = & $\ProcName \rightarrow \Stmt$ \\
 $\specs \in \Spec$ & = & $\AtomName \rightarrow \TransExpr$ \\
+$\bodies \in \Body$ & = & $\ProcName \rightarrow \Stmt$ \\
+$\procSpecs \in \ProcSpec$ & = & $\ProcName \rightarrow (\Locals,\StateExpr,\TransExpr)$
+$\procRefSpecs \in \ProcRefSpec$ & = & $\AtomicProcName \rightarrow (\moverType,\StateExpr,\TransExpr)$
 %$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\tau, \alpha)\ $ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
-$\proc \in \Proc$&::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
-                                                        \mathit{requires}\ \phi\
-                                                        \mathit{ensures}\ \beta\ \mid $\\
-                     & ::= & $P_{A}\ \mathit{modifies}\ \overrightarrow{w}\ 
-                     \mathit{requires}\ \phi\ $\\
-& &                     $\hspace*{0.8cm} \mathit{ensures}\ \beta\
-                     \mathit{refines}\ (m, \tau, \alpha)$\\
+% $\proc \in \Proc$&::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+%                                                         \mathit{requires}\ \phi\
+%                                                         \mathit{ensures}\ \beta\ \mid $\\
+%                      & ::= & $P_{A}\ \mathit{modifies}\ \overrightarrow{w}\ 
+%                      \mathit{requires}\ \phi\ $\\
+% & &                     $\hspace*{0.8cm} \mathit{ensures}\ \beta\
+%                      \mathit{refines}\ (m, \tau, \alpha)$\\
 \end{tabular}
 \begin{tabular}{rclcl}
 $\Prog \in \Program$ & ::= & $\varsG, \TS$ \\
@@ -61,6 +63,15 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdo
 \caption{Syntax}
 \label{fig:syntax}
 \end{figure}
+
+For procedures, we informally write $P\ \mathit{modifies}\
+\overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ $
+if $\procSpecs(P) = (\overrightarrow{w}, \phi, \beta)$. Similarly, for
+abstract-atomic procedures, we write $P_{A}\ \mathit{modifies}\
+\overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\
+\mathit{refines}\ (m, \tau, \alpha)$ if $\procSpecs(P) =
+(\overrightarrow{w}, \phi, \beta)$ and $\procRefSpecs(P) = (m, \tau,
+\alpha)$. 
 
 
 %%% Local Variables: 
