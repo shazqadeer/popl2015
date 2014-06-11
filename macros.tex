@@ -4,8 +4,8 @@
 \newcommand{\Value}{\mathit{Value}}
 \newcommand{\Expr}{\mathit{Expr}}
 \newcommand{\BExpr}{\mathit{BExpr}}
-\newcommand{\StateExpr}{\mathit{StateExpr}}
-\newcommand{\TransExpr}{\mathit{TransExpr}}
+\newcommand{\StateExpr}{\mathit{StExpr}}
+\newcommand{\TransExpr}{\mathit{TrExpr}}
 \newcommand{\VExpr}{\mathit{VarExpr}}
 \newcommand{\LExpr}{\mathit{LocalExpr}}
 \newcommand{\Spec}{\mathit{Spec}}
@@ -19,7 +19,7 @@
 \newcommand{\ProgSpec}{\mathit{ProgSpec}}
 \newcommand{\procName}{\mathit{P}}
 \newcommand{\ProcName}{\mathit{ProcName}}
-\newcommand{\AtomicProcName}{\mathit{AtomicProcName}}
+\newcommand{\AtomicProcName}{\mathit{AtProcName}}
 \newcommand{\Proc}{\mathit{Proc}}
 \newcommand{\proc}{\mathit{Pr}}
 \newcommand{\Vinfo}{\mathit{Vinfo}}
@@ -34,10 +34,10 @@
 \newcommand{\Thread}{\mathit{Thread}}
 \newcommand{\Label}{\mathit{Label}}
 \newcommand{\Body}{\mathit{Body}}
-\newcommand{\ProcSpec}{\mathit{ProcSpecs}}
-\newcommand{\ProcRefSpec}{\mathit{ProcRefSpecs}}
+\newcommand{\ProcSpec}{\mathit{ProcSp}}
+\newcommand{\ProcRefSpec}{\mathit{RefSp}}
 \newcommand{\AtomName}{\mathit{AtomName}}
-\newcommand{\moverType}{\mathit{MoverType}}
+\newcommand{\moverType}{\mathit{MvType}}
 \newcommand{\refType}{\mathit{RefChkType}}
 \newcommand{\Stmt}{\mathit{Stmt}}
 \newcommand{\stmt}{\mathit{s}}
@@ -64,7 +64,7 @@
 \newcommand{\havoc}[1]{\mathit{havoc}\ #1}
 \newcommand{\goto}[1]{\mathit{goto}\ #1}
 \newcommand{\fork}[1]{\mathit{par}\ #1}
-\newcommand{\impl}[3]{ \{ {#1}\ \}  {#2} \preceq {#3} }
+\newcommand{\impl}[3]{ \{ {#1} \}  {#2} \preceq {#3} }
 \newcommand{\skipstmt}{\mathit{skip}}
 \newcommand{\transfer}[2]{#2 \leftarrow #1}
 \newcommand{\block}{b}

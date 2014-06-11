@@ -23,14 +23,14 @@ $A$ & $\in$ & $\AtomName$ \\
 \begin{tabular}{rclcl}
 $\specs \in \Spec$ & = & $\AtomName \rightarrow \TransExpr$ \\
 $\bodies \in \Body$ & = & $\ProcName \rightarrow \Stmt$ \\
-$\procSpecs \in \ProcSpec$ & = & $\ProcName \rightarrow (\Locals,\StateExpr,\TransExpr)$
+$\procSpecs \in \ProcSpec$ & = & $\ProcName \rightarrow (\Locals,\StateExpr,\TransExpr)$\\
 $\procRefSpecs \in \ProcRefSpec$ & = & $\AtomicProcName \rightarrow (\moverType,\StateExpr,\TransExpr)$
 %$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\tau, \alpha)\ $ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
-% $\proc \in \Proc$&::= & $P\ \mathit{modifies}\ \overrightarrow{w}\ 
+% $\proc \in \Proc$&::= & $P\ \mathit{modifies}\ \vec{w}\ 
 %                                                         \mathit{requires}\ \phi\
 %                                                         \mathit{ensures}\ \beta\ \mid $\\
-%                      & ::= & $P_{A}\ \mathit{modifies}\ \overrightarrow{w}\ 
+%                      & ::= & $P_{A}\ \mathit{modifies}\ \vec{w}\ 
 %                      \mathit{requires}\ \phi\ $\\
 % & &                     $\hspace*{0.8cm} \mathit{ensures}\ \beta\
 %                      \mathit{refines}\ (m, \tau, \alpha)$\\
@@ -65,12 +65,12 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdo
 \end{figure}
 
 For procedures, we informally write $P\ \mathit{modifies}\
-\overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ $
-if $\procSpecs(P) = (\overrightarrow{w}, \phi, \beta)$. Similarly, for
+\vec{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ $
+if $\procSpecs(P) = (\vec{w}, \phi, \beta)$. Similarly, for
 abstract-atomic procedures, we write $P_{A}\ \mathit{modifies}\
-\overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\
+\vec{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\
 \mathit{refines}\ (m, \tau, \alpha)$ if $\procSpecs(P) =
-(\overrightarrow{w}, \phi, \beta)$ and $\procRefSpecs(P) = (m, \tau,
+(\vec{w}, \phi, \beta)$ and $\procRefSpecs(P) = (m, \tau,
 \alpha)$. 
 
 
