@@ -33,17 +33,21 @@ $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \ite{e}{s_1}{ s_2}) =  \\
 \hspace*{0.3cm} \ite{e}{\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_1)}{\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_2)}$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \while{e}{le}{s}) =  \\
 \assert{e}; \\
-\while{le}{e}{}\\
- \hspace*{0.7cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
+\while{le}{e}{}
+ \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
 $\SeqProcStmt(\_, \_, \_, \_, \yield{e}) =  \assert{e}; \havoc{\vec{x}}; \assume{e}$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \termwhile{e}{le}{s}) =  \\
 \assert{e}; \\
-\while{le}{e}{}\\
- \hspace*{0.7cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
+\while{le}{e}{}
+ \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \ablock{e,r}{s}) =  \assert{e}; s$\\
-$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \call{P}) =  \assert{\phi}; \havoc{\vec{w}}; \assume{\beta}$\\
-where $\procSpecs(P) = (\vec{w}, \phi, \beta)$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \call{P}) =  \mathit{snapshot};\ \assert{\phi}; \havoc{\vec{w}}; \assume{\beta}$\\
+where procedure $P$ has the specification $\procSpecs(P) = (\vec{w}, \phi, \beta)$\\
 {\bf Insert machinery here about snapshotting the pre state}.\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \call{A}) =  \mathit{snapshot};\ \havoc{gl}; \assume{\alpha}$\\
+where atomic primitive $A$ has the specification $\specs(A) = \alpha$.\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \async{P}) =  \assert{\phi} $\\
+where procedure $P$ has the specification $\procSpecs(P) = (\vec{w}, \phi, \beta)$\\
 For all other types of statements $s$, $\SeqProcStmt(\_, \_, \_, \_,s) =  s$\\
 
 \subsubsection{Verifying Non-Interference}
