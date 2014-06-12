@@ -40,8 +40,8 @@ $\SeqProcStmt(\_, \_, \_, \_, \yield{e}) =  \assert{e}; \havoc{\vec{x}}; \assume
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \termwhile{e}{le}{s}) =  \\
 \while{le}{e}{}
  \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)};\\
-\assert{e}; \\
-$
+\assert{e}; 
+$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \ablock{e,r}{s}) =  \assert{e}; s$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \call{P}) =  \mathit{snapshot};\ \assert{\phi}; \havoc{\vec{w}}; \assume{\beta}$\\
 where procedure $P$ has the specification $\procSpecs(P) = (\vec{w}, \phi, \beta)$\\
