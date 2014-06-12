@@ -97,11 +97,11 @@ $$P_{A}\ \mathit{modifies}\
 % 5. usual recursion for everything else
 
 \noindent
-$\Visit(s_1; s_2) = ( \Visit(s_1).\stm; \Visit(s_2).\stm, \Visit(s_1).\coll \cup \Visit(s_2).\coll)$\\
+$\Visit(s_1; s_2) = \\ \hspace*{0.7cm} (\Visit(s_1).\stm; \Visit(s_2).\stm, \Visit(s_1).\coll \cup \Visit(s_2).\coll)$\\
 $\Visit(\ite{e}{s_1}{ s_2}) = $  \\
 \hspace*{1.3cm}$( \ite{e}{\Visit(s_1).\stm}{\Visit(s_2).\stm}, \\
 \hspace*{3.3cm}\Visit(s_1).\coll \cup \Visit(s_2).\coll)$\\
-$\Visit(\termwhile{l}{e}{s}) = ( \while{l}{e}{\Visit(s).\stm}, \{ \Visit(s).\stm \} )$\\
+$\Visit(\termwhile{l}{e}{s}) = ( \while{l}{e}{\Visit(s).\stm}, \{\Visit(s).\stm\} )$\\
 $\Visit(\while{l}{e}{s}) = ( \while{l}{e}{\Visit(s).\stm}, \emptyset)$\\
 $\Visit(\assert{le}) = (\assume{le}, \emptyset)$\\
 $\Visit(\yield{e}) = (\assume{false}, \emptyset)$\\
