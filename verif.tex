@@ -34,8 +34,17 @@ $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \ite{e}{s_1}{ s_2}) =  \\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \while{e}{le}{s}) =  \\
 \assert{e}; \\
 \while{le}{e}{}\\
- \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
+ \hspace*{0.7cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
 $\SeqProcStmt(\_, \_, \_, \_, \yield{e}) =  \assert{e}; \havoc{\vec{x}}; \assume{e}$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \termwhile{e}{le}{s}) =  \\
+\assert{e}; \\
+\while{le}{e}{}\\
+ \hspace*{0.7cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \ablock{e,r}{s}) =  \assert{e}; s$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \call{P}) =  \assert{\phi}; \havoc{\vec{w}}; \assume{\beta}$\\
+where $\procSpecs(P) = (\vec{w}, \phi, \beta)$\\
+{\bf Insert machinery here about snapshotting the pre state}.\\
+For all other types of statements $s$, $\SeqProcStmt(\_, \_, \_, \_,s) =  s$\\
 
 \subsubsection{Verifying Non-Interference}
 For a yielding thread $Y[l, \yield{e}]$, the modification of state performed by another thread $T$ as it steps from one $yield$ statement to another must preserve $e$. To facilitate modular checking, we instead check a sufficient condition for this. Instead of verifying that the entire sequence of statements executed by $T$ from one $yield$ statement to another, we check that all atomic blocks $\ablock{e,r}{s}$ in the program preserve $e$.
