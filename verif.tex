@@ -20,11 +20,22 @@ We omit such hints in the formalization; Section~\ref{sec:civl} describes how th
 \subsection{Verifying Sequential Correctness}
 For $m \in \Vstore$, let $ \vec{x}(m) = \{ x  |   x : t = v \in m \} $. 
 
+Consider a program context $\ProgCtxt = \YieldingThreads \cdot T[\varsL][s] \cdot \YieldingThreads$. In the following, we describe the task of verifying $\ProgCtxt$'s sequential correctness. Specifically, it expresses the execution of the currently active thread $T$, assuming that all other threads preserve $T_a$'s yield conditions.
 
-The $\yield{e}$ and $\ablock{e,r}{s}$ annotations must have the following property during the execution of a thread. Starting from any state satisfying the $\yield{e_1}$ statement, all $e$s in atomic blocks $\ablock{e,r}{s}$ executed until the next yield statement $\yield{e_2}$ is reached, and $e_2$ must be satisfied. All of these checks can be encoded into a single sequential program by modifying the original program such that every $\yield{e}$ statement is replaced with one that sets the state non-deterministically to any state that satisfies $e$. More precisely, given the set of procedure names $\ProcName$ and $\bodies$, we verify the sequential program $\SeqVer(\bodies)$.   
+The $\yield{e}$ and $\ablock{e,r}{s}$ annotations must have the following property during the execution of a thread. Starting from any state satisfying the $\yield{e_1}$ statement, all $e$s in atomic blocks $\ablock{e,r}{s}$ executed until the next yield statement $\yield{e_2}$ is reached, and $e_2$ must be satisfied. All of these checks can be encoded into a single sequential program by modifying the original program such that every $\yield{e}$ statement is replaced with one that sets the state non-deterministically to any state that satisfies $e$. More precisely, to verify the sequential correctness of the program $\varsG, \bodies, \specs, \YieldingThreads \cdot T[\varsL][s] \cdot \YieldingThreads$, we verify the sequential program $\SeqVer \varsG, \varsL, \bodies, \specs, s$
 
-$ \SeqVer(s_1; s_2) = \SeqVer(s_1); \SeqVer(s_2)$
-
+\noindent
+$\SeqVer \varsG, \varsL, \bodies, \specs, s = \varsG, \varsL, \bodies, \specs,
+                                                                         \SeqProcStmt(\varsG, \varsL, \bodies, \specs,s)$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_1; s_2) =  \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_1); \\
+                                                                                      \hspace*{4.3cm}   \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_2)$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \ite{e}{s_1}{ s_2}) =  \\
+\hspace*{0.3cm} \ite{e}{\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_1)}{\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_2)}$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \while{e}{le}{s}) =  \\
+\assert{e}; \\
+\while{le}{e}{}\\
+ \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
+$\SeqProcStmt(\_, \_, \_, \_, \yield{e}) =  \assert{e}; \havoc{\vec{x}}; \assume{e}$\\
 
 \subsubsection{Verifying Non-Interference}
 For a yielding thread $Y[l, \yield{e}]$, the modification of state performed by another thread $T$ as it steps from one $yield$ statement to another must preserve $e$. To facilitate modular checking, we instead check a sufficient condition for this. Instead of verifying that the entire sequence of statements executed by $T$ from one $yield$ statement to another, we check that all atomic blocks $\ablock{e,r}{s}$ in the program preserve $e$.
