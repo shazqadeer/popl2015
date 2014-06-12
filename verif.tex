@@ -1,5 +1,41 @@
 \subsection{Verification}
+\label{sec:verification}
 
+Section~\ref{sec:overview} briefly described the verification process for \civl, based on generating verification conditions for sequential correctness and non-interference.
+If a program is well-typed and all verification conditions are satisfied, then the program is guaranteed to run without getting stuck (in particular, with no assertion failures).
+
+To avoid introducing a separate formal language for sequential programs, we reuse the syntax from Figure~\ref{fig:syntax} to represent sequential programs, where each sequential program contains exactly one thread.
+The generated sequential programs only use ordinary sequential statements:
+$\skipstmt$, $w := \locExpr$, $\assert{}$, $\call{}$, $\ablock{}{}$, $\ite{}{}{}$, and $\while{}{}{}$;
+they do not use the concurrency-related statements $\yield$ and $\async{}$, .
+
+Sequential programs make use of additional statements  $\assume{e}$ and $\havoc{\vec{x}}$ with the semantics that $\assume{e}$ steps to $\skipstmt$ only if the program state satisfies $e$, and $\havoc{\vec{x}}$ steps to $\skipstmt$ and non-deterministically updates the values of the variables in $\vec{x}$. 
+
+In addition, the generated sequential programs use only ordinary variables, never linear variables.
+As a result of these properties, the sequential programs can be verified with off-the-shelf automated sequential verification tools like Boogie, as described further in Section~\ref{sec:civl}.
+(In practice, a sequential verification tool requires hints in the form of loop annotations, preconditions, and postconditions.
+We omit such hints in the formalization; Section~\ref{sec:civl} describes how the real \civl tool translates these annotations from the concurrent program into the sequential programs.)
+
+
+\subsection{Verifying Sequential Correctness}
+For $m \in \Vstore$, let $ \vec{x}(m) = \{ x  |   x : t = v \in m \} $. 
+
+
+The $\yield{e}$ and $\ablock{e,r}{s}$ annotations must have the following property during the execution of a thread. Starting from any state satisfying the $\yield{e_1}$ statement, all $e$s in atomic blocks $\ablock{e,r}{s}$ executed until the next yield statement $\yield{e_2}$ is reached, and $e_2$ must be satisfied. All of these checks can be encoded into a single sequential program by modifying the original program such that every $\yield{e}$ statement is replaced with one that sets the state non-deterministically to any state that satisfies $e$. More precisely, given the set of procedure names $\ProcName$ and $\bodies$, we verify the sequential program $\SeqVer(\bodies)$.   
+
+$ \SeqVer(s_1; s_2) = \SeqVer(s_1); \SeqVer(s_2)$
+
+
+\subsubsection{Verifying Non-Interference}
+For a yielding thread $Y[l, \yield{e}]$, the modification of state performed by another thread $T$ as it steps from one $yield$ statement to another must preserve $e$. To facilitate modular checking, we instead check a sufficient condition for this. Instead of verifying that the entire sequence of statements executed by $T$ from one $yield$ statement to another, we check that all atomic blocks $\ablock{e,r}{s}$ in the program preserve $e$.
+
+For every $(l,\yield{e_1}) \in \Yields l \bodies$ and $\ablock{e_2,r}{s} \in \Ablocks l$, we verify that $e$ remains preserved under 
+$$\ablock{e_2[\vec{x} \rightarrow \vec{x'}],  r}{s[\vec{x} \rightarrow \vec{x'}]}$$
+This can be expressed as the Hoare triple 
+$$\{ e_1 \vee e_2[\vec{x} \rightarrow \vec{x'}] \} \; s \; \{ e_1 \}$$
+Hoare triples can be verified by sequential verification tools in a straightforward manner. 
+
+\subsubsection{Verifying Refinement}
 Consider an abstract-atomic procedure $P_{A}$ with an atomic action specification $(m, \tau, \alpha)$, i.e., $$P\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ \mathit{refines}\ (m, \tau, \alpha)$$
 In this section, we describe the verification conditions generated to verify that $\bodies(P)$ is a correct refinement. Intuitively speaking, we generate verification checks that ensure that every sequence of state transitions performed by $\bodies(P)$ refines an execution of the {\em specification automaton} in Figure~\ref{fig:refChkAut}. In a concurrent execution, state transitions performed by a particular execution instance of the statement $\bodies{P}$ are interleaved with actions performed by other threads. This fact is taken into account in the checks below in the atomic block expressions $e$ labeling atomic blocks $\ablock{e,r}{s}$. The refinement check type $r$ indicates which state transition in the {\em specification automaton} the atomic block $\ablock{e,r}{s}$ maps to. In our tool implementation, the $r$ annotation is not needed. It is included in our formalization for ease of exposition. 
 
@@ -48,6 +84,36 @@ $$P_{A}\ \mathit{modifies}\
 \item If $r = \mathit{pre}$, then this atomic block maps to a self loop before the atomic specification action and we check $\impl{e}{s}{\mathit{havoc }\ \vec{w}, \hiddenVars}$. 
 \item If $r = \mathit{post}$, then this atomic block maps to a self loop before the atomic specification action and we check $\impl{e}{s}{\mathit{havoc }\ \hiddenVars}$. 
 \end{itemize}
+
+\subsubsection{Yield Type Checking}
+
+{\bf Termination Assumption:}
+% For a statement s, let s' denote the recursive computation that substitutes each occurrence of
+% 1. yield e and call P by assume false,
+% 2. async P by skip
+% 3. ablock {e} s by s'
+% 4. twhile {I} e s by while {I} e s'
+% 5. assert le by assume le
+% 5. usual recursion for everything else
+
+\noindent
+$\Visit(s_1; s_2) = ( \Visit(s_1).\stm; \Visit(s_2).\stm, \Visit(s_1).\coll \cup \Visit(s_2).\coll)$\\
+$\Visit(\ite{e}{s_1}{ s_2}) = $  \\
+\hspace*{1.3cm}$( \ite{e}{\Visit(s_1).\stm}{\Visit(s_2).\stm}, \\
+\hspace*{3.3cm}\Visit(s_1).\coll \cup \Visit(s_2).\coll)$\\
+$\Visit(\termwhile{l}{e}{s}) = ( \while{l}{e}{\Visit(s).\stm}, \{ \Visit(s).\stm \} )$\\
+$\Visit(\while{l}{e}{s}) = ( \while{l}{e}{\Visit(s).\stm}, \emptyset)$\\
+$\Visit(\assert{le}) = (\assume{le}, \emptyset)$\\
+$\Visit(\yield{e}) = (\assume{false}, \emptyset)$\\
+$\Visit(\call{P}) = (\assume{false}, \emptyset)$\\
+
+
+Then we require that the s' collected by applying the above to each occurrence of twhile {I} e s is terminating starting from a state satisfying I.  The requirement that we know nothing about the start state except that it satisfies the loop invariant is important.
+
+You can say informally what it means for a while loop annotated with a loop invariant to be terminating (there is a measure function blah blah) and then invoke this definition for each s' collected as above.  Note that the s' collected above are sequential code fragments.  
+
+Note also that there is redundancy when twhile loops are nested.  In that case, you really just need to do it for the top-level but you can just ignore this redundancy.
+
 
 %%% Local Variables: 
 %%% mode: latex
