@@ -119,6 +119,8 @@ $$P_{A}\ \mathit{modifies}\
 % 4. twhile {I} e s by while {I} e s'
 % 5. assert le by assume le
 % 5. usual recursion for everything else
+We accomplish termination checking by means of a recursively-defined function $\Visit$ which returns a tuple consisting of a statement and a set of statements. The statement returned by $\Visit$ is referred to as $\Visit(\_).\stm$ below, and the set of statements returned by $\Visit$ is referred to as $\Visit(\_).\coll$
+\\
 
 \noindent
 $\Visit(s_1; s_2) = \\ \hspace*{0.7cm} (\Visit(s_1).\stm; \Visit(s_2).\stm, \Visit(s_1).\coll \cup \Visit(s_2).\coll)$\\
