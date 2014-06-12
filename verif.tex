@@ -32,7 +32,7 @@ For a yielding thread $Y[l, \yield{e}]$, the modification of state performed by 
 For every $(l,\yield{e_1}) \in \Yields l \bodies$ and $\ablock{e_2,r}{s} \in \Ablocks l$, we verify that $e$ remains preserved under 
 $$\ablock{e_2[\vec{x} \rightarrow \vec{x'}],  r}{s[\vec{x} \rightarrow \vec{x'}]}$$
 This can be expressed as the Hoare triple 
-$$\{ e_1 \vee e_2[\vec{x} \rightarrow \vec{x'}] \} \; s \; \{ e_1 \}$$
+$$\{ e_1 \vee e_2[\vec{x} \rightarrow \vec{x'}] \} \; s[\vec{x} \rightarrow \vec{x'}] \; \{ e_1 \}$$
 Hoare triples can be verified by sequential verification tools in a straightforward manner. 
 
 \subsubsection{Verifying Refinement}
