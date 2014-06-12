@@ -32,14 +32,16 @@ $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_1; s_2) =  \SeqProcStmt(\var
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \ite{e}{s_1}{ s_2}) =  \\
 \hspace*{0.3cm} \ite{e}{\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_1)}{\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s_2)}$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \while{e}{le}{s}) =  \\
-\assert{e}; \\
 \while{le}{e}{}
- \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
+ \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)};\\
+\assert{e}$ 
+\\
 $\SeqProcStmt(\_, \_, \_, \_, \yield{e}) =  \assert{e}; \havoc{\vec{x}}; \assume{e}$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \termwhile{e}{le}{s}) =  \\
-\assert{e}; \\
 \while{le}{e}{}
- \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)}$\\
+ \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)};\\
+\assert{e}; \\
+$
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \ablock{e,r}{s}) =  \assert{e}; s$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \call{P}) =  \mathit{snapshot};\ \assert{\phi}; \havoc{\vec{w}}; \assume{\beta}$\\
 where procedure $P$ has the specification $\procSpecs(P) = (\vec{w}, \phi, \beta)$\\
