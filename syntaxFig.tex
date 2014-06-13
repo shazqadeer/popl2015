@@ -47,7 +47,7 @@ $r \in \refType$ &::= &$\mathit{pre} \mid \mathit{act} \mid \mathit{post} $ \\
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid
 \assert{le} \mid $ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-                  & & $s;\;s \mid \yield{e} \mid \ablock{e,r}{s} \mid$\\
+                  & & $s;\;s \mid \yield{e} \mid \ablock{e}{s}{r} \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
                   & & $\while{\locExpr}{e}{s} \mid \termwhile{\locExpr}{e}{s}$
                   \\ 

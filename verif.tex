@@ -1,12 +1,24 @@
+% Terminology
+% - Low-level program
+% - High-level program
+% - When a thread steps, what is that? A step? A state transition? An action?
+% - ablock/noyield: Atomic block
+% - abstract-atomic procedure
+% - atomic action specification (the atomic specification for a procedure)
+% - Relationship between executions of low-level and high-level program
+
 \subsection{Verification}
 \label{sec:verification}
 
 Section~\ref{sec:overview} briefly described the verification process for \civl, based on generating verification conditions for sequential correctness and non-interference.
-If a program is well-typed and all verification conditions are satisfied, then the program is guaranteed to run without getting stuck (in particular, with no assertion failures).
+If a program is well-typed and all verification conditions are satisfied, then the program is guaranteed to run without getting stuck (in particular, with no assertion failures). Furthermore, 
+
+{\bf What all is checked? Variables hidden. }
+{\bf Soundness theorem statement?}
 
 To avoid introducing a separate formal language for sequential programs, we reuse the syntax from Figure~\ref{fig:syntax} to represent sequential programs, where each sequential program contains exactly one thread.
 The generated sequential programs only use ordinary sequential statements:
-$\skipstmt$, $w := \locExpr$, $\assert{}$, $\call{}$, $\ablock{}{}$, $\ite{}{}{}$, and $\while{}{}{}$;
+$\skipstmt$, $w := \locExpr$, $\assert{}$, $\call{}$, $\ablock{}{}{}$, $\ite{}{}{}$, and $\while{}{}{}$;
 they do not use the concurrency-related statements $\yield$ and $\async{}$, .
 
 Sequential programs make use of additional statements  $\assume{e}$ and $\havoc{\vec{x}}$ with the semantics that $\assume{e}$ steps to $\skipstmt$ only if the program state satisfies $e$, and $\havoc{\vec{x}}$ steps to $\skipstmt$ and non-deterministically updates the values of the variables in $\vec{x}$. 
@@ -22,7 +34,7 @@ For $m \in \Vstore$, let $ \vec{x}(m) = \{ x  |   x : t = v \in m \} $.
 
 Consider a program context $\ProgCtxt = \YieldingThreads \cdot T[\varsL][s] \cdot \YieldingThreads$. In the following, we describe the task of verifying $\ProgCtxt$'s sequential correctness. Specifically, it expresses the execution of the currently active thread $T$, assuming that all other threads preserve $T_a$'s yield conditions.
 
-The $\yield{e}$ and $\ablock{e,r}{s}$ annotations must have the following property during the execution of a thread. Starting from any state satisfying the $\yield{e_1}$ statement, all $e$s in atomic blocks $\ablock{e,r}{s}$ executed until the next yield statement $\yield{e_2}$ is reached, and $e_2$ must be satisfied. All of these checks can be encoded into a single sequential program by modifying the original program such that every $\yield{e}$ statement is replaced with one that sets the state non-deterministically to any state that satisfies $e$. More precisely, to verify the sequential correctness of the program $\varsG, \bodies, \specs, \YieldingThreads \cdot T[\varsL][s] \cdot \YieldingThreads$, we verify the sequential program $\SeqVer \varsG, \varsL, \bodies, \specs, s$
+The $\yield{e}$ and $\ablock{e}{s}{r}$ annotations must have the following property during the execution of a thread. Starting from any state satisfying the $\yield{e_1}$ statement, all $e$s in atomic blocks $\ablock{e}{s}{r}$ executed until the next yield statement $\yield{e_2}$ is reached, and $e_2$ must be satisfied. All of these checks can be encoded into a single sequential program by modifying the original program such that every $\yield{e}$ statement is replaced with one that sets the state non-deterministically to any state that satisfies $e$. More precisely, to verify the sequential correctness of the program $\varsG, \bodies, \specs, \YieldingThreads \cdot T[\varsL][s] \cdot \YieldingThreads$, we verify the sequential program $\SeqVer \varsG, \varsL, \bodies, \specs, s$
 
 \noindent
 $\SeqVer \varsG, \varsL, \bodies, \specs, s = \varsG, \varsL, \bodies, \specs,
@@ -42,7 +54,7 @@ $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, \termwhile{e}{le}{s}) =  \\
  \hspace*{0.3cm}{\assert{e}; \havoc{\vec{x}}; \assume{e}; \SeqProcStmt(\varsG, \varsL, \bodies, \specs, l, s)};\\
 \assert{e}; 
 $\\
-$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \ablock{e,r}{s}) =  \assert{e}; s$\\
+$\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \ablock{e}{s}{r}) =  \assert{e}; s$\\
 $\SeqProcStmt(\varsG, \varsL, \bodies, \specs, \call{P}) =  \mathit{snapshot};\ \assert{\phi}; \havoc{\vec{w}}; \assume{\beta}$\\
 where procedure $P$ has the specification $\procSpecs(P) = (\vec{w}, \phi, \beta)$\\
 {\bf Insert machinery here about snapshotting the pre state}.\\
@@ -53,17 +65,21 @@ where procedure $P$ has the specification $\procSpecs(P) = (\vec{w}, \phi, \beta
 For all other types of statements $s$, $\SeqProcStmt(\_, \_, \_, \_,s) =  s$\\
 
 \subsubsection{Verifying Non-Interference}
-For a yielding thread $Y[l, \yield{e}]$, the modification of state performed by another thread $T$ as it steps from one $yield$ statement to another must preserve $e$. To facilitate modular checking, we instead check a sufficient condition for this. Instead of verifying that the entire sequence of statements executed by $T$ from one $yield$ statement to another, we check that all atomic blocks $\ablock{e,r}{s}$ in the program preserve $e$.
+For a yielding thread $Y[l, \yield{e}]$, the modification of state performed by another thread $T$ as it steps from one $yield$ statement to another must preserve $e$. To facilitate modular checking, we instead check a sufficient condition for this. Instead of verifying that the entire sequence of statements executed by $T$ from one $yield$ statement to another, we check that all atomic blocks $\ablock{e}{s}{r}$ in the program preserve $e$. Checking non-interference of an action with a yield requires combining the state of two different threads, each of which has its own local variables. To avoid conflicts between the two different sets of local variables, in the following, we rename the variables ...  
 
-For every $(l,\yield{e_1}) \in \Yields l \bodies$ and $\ablock{e_2,r}{s} \in \Ablocks l$, we verify that $e$ remains preserved under 
-$$\ablock{e_2[\vec{x} \rightarrow \vec{x'}],  r}{s[\vec{x} \rightarrow \vec{x'}]}$$
+
+For every $(l,\yield{e_1}) \in \Yields l \bodies$ and $\ablock{e_2}{s}{r} \in \Ablocks$, we verify that $e$ remains preserved under 
+$$\ablock{e_2[\vec{x} \rightarrow \vec{x'}]}{s[\vec{x} \rightarrow \vec{x'}]}{r}$$
 This can be expressed as the Hoare triple 
 $$\{ e_1 \wedge e_2[\vec{x} \rightarrow \vec{x'}] \} \; s[\vec{x} \rightarrow \vec{x'}] \; \{ e_1 \}$$
 Hoare triples can be verified by sequential verification tools in a straightforward manner. 
 
 \subsubsection{Verifying Refinement}
 Consider an abstract-atomic procedure $P_{A}$ with an atomic action specification $(m, \tau, \alpha)$, i.e., $$P\ \mathit{modifies}\ \overrightarrow{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ \mathit{refines}\ (m, \tau, \alpha)$$
-In this section, we describe the verification conditions generated to verify that $\bodies(P)$ is a correct refinement. Intuitively speaking, we generate verification checks that ensure that every sequence of state transitions performed by $\bodies(P)$ refines an execution of the {\em specification automaton} in Figure~\ref{fig:refChkAut}. In a concurrent execution, state transitions performed by a particular execution instance of the statement $\bodies{P}$ are interleaved with actions performed by other threads. This fact is taken into account in the checks below in the atomic block expressions $e$ labeling atomic blocks $\ablock{e,r}{s}$. The refinement check type $r$ indicates which state transition in the {\em specification automaton} the atomic block $\ablock{e,r}{s}$ maps to. In our tool implementation, the $r$ annotation is not needed. It is included in our formalization for ease of exposition. 
+In this section, we describe the verification conditions generated to verify that $\bodies(P)$ is a correct refinement. Intuitively speaking, we generate verification checks that ensure that every sequence of state transitions performed by $\bodies(P)$ refines an execution of the {\em specification automaton} in Figure~\ref{fig:refChkAut}. 
+{\bf A separate simulation-relation check verifies that the refinement type annotations of atomic block sequences for each control path through each abstract-atomic procedure follow the pattern $\mathit{pre}^* \mathit{act} \mathit{post}$.}
+
+In a concurrent execution, state transitions performed by a particular execution instance of the statement $\bodies{P}$ are interleaved with actions performed by other threads. This fact is taken into account in the checks below in the atomic block expressions $e$ labeling atomic blocks $\ablock{e}{s}{r}$. The refinement check type $r$ indicates which state transition in the {\em specification automaton} the atomic block $\ablock{e}{s}{r}$ maps to. In our tool implementation, the $r$ annotation is not needed. It is included in our formalization for ease of exposition. 
 
 %% Draw two-state automaton with state and edge labels. 
 
@@ -82,7 +98,7 @@ $$
 \hspace*{2.5cm} \Ablocks(bs, \procName, s_1) \cup \Ablocks(bs, \procName, s_2) \\
 \Ablocks(bs, \procName, \call{P'})   =   \Ablocks(bs, P', \bodies(P') ) \\ 
 \Ablocks(bs, \procName, \async{P'})   =   \Ablocks(bs, P', \bodies(P') ) \\ 
-\Ablocks(bs, \procName \ablock{e,r}{s})   =   \{(\procName, \ablock{e,r}{s}) \} \\ 
+\Ablocks(bs, \procName \ablock{e}{s}{r})   =   \{(\procName, \ablock{e}{s}{r}) \} \\ 
 \Ablocks(bs, \procName, \skipstmt)   =   \emptyset \\
 \Ablocks(bs, \procName, \assert{le})  =   \emptyset \\
 \Ablocks(bs, \procName, w := \locExpr)   =   \emptyset \\
@@ -99,7 +115,7 @@ if $\varsG \cdot \varsL \vdash e$ and $(\varsG \cdot \varsL, s_1)
 expressed in a straightforward manner a sequential verification
 problem.
 
-For each $(P_{A}, \ablock{e,r}{s}) \in \Ablocks(\Prog)$, we perform a refinement check as described below. Here 
+For each $(P_{A}, \ablock{e}{s}{r}) \in \Ablocks(\Prog)$, we perform a refinement check as described below. Here 
 $$P_{A}\ \mathit{modifies}\
 \vec{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\
 \mathit{refines}\ (m, \tau, \alpha)$$
