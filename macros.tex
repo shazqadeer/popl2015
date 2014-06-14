@@ -49,12 +49,12 @@
 
 \newcommand{\yieldorborder}[1]{\mathit{yield\_or\_border}\ #1}
 \newcommand{\ite}[3]{{\mathit{if}\ {#1}\ }{\mathit{then}\ {#2}\ }{\mathit{else}\ {#3}\ }}
-\newcommand{\while}[3]{ \mathit{while}\ \{{#2}\}\  {{#1}\ } {{#3}\ } }
-\newcommand{\termwhile}[3]{ \mathit{twhile}\ \{{#2}\}\  {{#1}\ } {{#3}\ } }
+\newcommand{\while}[3]{ \mathit{while}\ \{{#1}\}\  {{#2}\ } \mathit{do}\ {{#3}\ } }
+\newcommand{\termwhile}[3]{ \mathit{twhile}\ \{{#1}\}\  {{#2}\ } \mathit{do}\ {{#3}\ } }
 \newcommand{\yield}[1]{\mathit{yield}\ #1}
 \newcommand{\join}[1]{\mathit{join}\ #1}
 \newcommand{\async}[1]{\mathit{async}\ #1}
-\newcommand{\call}[1]{\mathit{call}\ #1}
+\newcommand{\call}[2]{\mathit{call}^{{#1}}\ #2}
 \newcommand{\noyield}[1]{\mathit{noyield}\ {#1}\ }
 \newcommand{\ablock}[3]{\mathit{ablock}^{#3}\ {\{#1\}}\ {#2}\ }
 \newcommand{\parcall}[2]{\mathit{call}\ {#1} || {#2}\ }
@@ -78,10 +78,14 @@
 \newcommand{\procRefSpecs}{\mathit{refSp}}
 \newcommand{\ControlFlow}{\mathit{Control}}
 \newcommand{\cf}{\mathit{cf}}
+\newcommand{\state}{\sigma}
+\newcommand{\unchangedExcept}[1]{\mathit{UnchangedExcept}_{ {#1} }}
 
 
 \newcommand{\varsG}{g}
 \newcommand{\varsL}{l}
+\newcommand{\true}{\mathit{true}}
+\newcommand{\false}{\mathit{false}}
 \newcommand{\vars}{\mathit{gl}}
 \newcommand{\PS}{\vec{\mathit{P}}}
 \newcommand{\TS}{\vec{\mathit{T}}}

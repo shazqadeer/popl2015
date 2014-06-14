@@ -13,7 +13,7 @@ $t$ & $\in$ & $\Type$ \\
 $x,y$ & $\in$ & $\Var$ \\
 $v$ &  $\in$ & $\Value$ \\
 %$\joinLabel$ & $\in$ & $\JoinLabels$ \\
-$e, \tau, \phi$ & $\in$ & $\StateExpr$ \\
+$e, \tau, \phi, \rho$ & $\in$ & $\StateExpr$ \\
 $\alpha, \beta$ & $\in$ & $\TransExpr$ \\
 $\locExpr$ & $\in$ & $\LExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
@@ -23,7 +23,7 @@ $A$ & $\in$ & $\AtomName$ \\
 \begin{tabular}{rclcl}
 $\specs \in \Spec$ & = & $\AtomName \rightarrow \TransExpr$ \\
 $\bodies \in \Body$ & = & $\ProcName \rightarrow \Stmt$ \\
-$\procSpecs \in \ProcSpec$ & = & $\ProcName \rightarrow (\Locals,\StateExpr,\TransExpr)$\\
+$\procSpecs \in \ProcSpec$ & = & $\ProcName \rightarrow (\Locals,\StateExpr,\StateExpr)$\\
 $\procRefSpecs \in \ProcRefSpec$ & = & $\AtomicProcName \rightarrow (\moverType,\StateExpr,\TransExpr)$
 %$\atomicAction$ & $\in$ & $\AtomicAction$ & ::= & $(\tau, \alpha)\ $ \\
 %$\alpha$ & $\in$ & $\GatedAction$ & ::= & $\phi\ \rhd\ \tau$ \\ % Goes away
@@ -36,7 +36,7 @@ $\procRefSpecs \in \ProcRefSpec$ & = & $\AtomicProcName \rightarrow (\moverType,
 %                      \mathit{refines}\ (m, \tau, \alpha)$\\
 \end{tabular}
 \begin{tabular}{rclcl}
-$\Prog \in \Program$ & ::= & $\varsG, \TS$ \\
+$\Prog \in \Program$ & ::= & $\varsG, \specs, \bodies, \TS$ \\
 $T \in \Thread$ & ::=  & $\varsL, \stmt$ \\
 $\Vinfo$ & ::= & $x:t=v$ \\
 $\varsG,\varsL,\vars$ & $\in$ & $\Vstore$ & ::= & $\Vinfos$ \\
@@ -46,10 +46,10 @@ $m \in \moverType$ &::= &$\mathit{non} \mid \mathit{left} \mid \mathit{right} \m
 $r \in \refType$ &::= &$\mathit{pre} \mid \mathit{act} \mid \mathit{post} $ \\
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid w := \locExpr \mid
 \assert{le} \mid $ \\
-                  & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
+                  & & $\call{A} \mid \call{r}{P} \mid \async{P} \mid $\\
                   & & $s;\;s \mid \yield{e} \mid \ablock{e}{s}{r} \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
-                  & & $\while{\locExpr}{e}{s} \mid \termwhile{\locExpr}{e}{s}$
+                  & & $\while{e}{\locExpr}{s} \mid \termwhile{e}{\locExpr}{s}$
                   \\ 
 \end{tabular}\\
 \begin{tabular}{rclcl}
@@ -65,12 +65,12 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdo
 \end{figure}
 
 For procedures, we informally write $P\ \mathit{modifies}\
-\vec{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\ $
-if $\procSpecs(P) = (\vec{w}, \phi, \beta)$. Similarly, for
+\vec{w}\ \mathit{requires}\ \rho\ \mathit{ensures}\ \phi\ $
+if $\procSpecs(P) = (\vec{w}, \phi, \tau)$. Similarly, for
 abstract-atomic procedures, we write $P_{A}\ \mathit{modifies}\
-\vec{w}\ \mathit{requires}\ \phi\ \mathit{ensures}\ \beta\
+\vec{w}\ \mathit{requires}\ \rho\ \mathit{ensures}\ \phi\
 \mathit{refines}\ (m, \tau, \alpha)$ if $\procSpecs(P) =
-(\vec{w}, \phi, \beta)$ and $\procRefSpecs(P) = (m, \tau,
+(\vec{w}, \rho, \phi)$ and $\procRefSpecs(P) = (m, \tau,
 \alpha)$. 
 
 

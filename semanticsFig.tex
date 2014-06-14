@@ -103,7 +103,7 @@ $
 \inferrule
 {
 }
-{\bodies;\specs \vdash (\vars, \call{P}) \trans (\vars, \bodies(P))}
+{\bodies;\specs \vdash (\vars, \call{r}{P}) \trans (\vars, \bodies(P))}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -153,7 +153,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\bodies;\specs \vdash (\vars, \while{\locExpr}{e}{s}) \trans (\vars, \skipstmt)}
+{\bodies;\specs \vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
 $
 \medskip
@@ -163,11 +163,12 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\bodies;\specs \vdash (\vars, \while{\locExpr}{e}{s}) \trans (\vars, s;\while{\locExpr}{e}{s})}
+{\bodies;\specs \vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, s;\while{e}{\locExpr}{s})}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%
 }
+{{\bf \\ twhile rules here??}}
 \caption{Operational semantics}
 \label{fig:operational-semantics}
 \end{figure}
