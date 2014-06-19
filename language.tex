@@ -73,8 +73,184 @@ abstract-atomic procedures, we write $P_{A}\ \mathit{modifies}\
 (\vec{w}, \rho, \phi)$ and $\procRefSpecs(P) = (m, \tau,
 \alpha)$. 
 
+\begin{figure}
+\scriptsize{
+$
+\hspace{5cm}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\bodies;\specs \vdash (\varsG \cdot \varsL, s) \trans (\varsG' \cdot \varsL', s')
+}
+{\bodies;\specs \vdash (\varsG, \ProgCtxt[\varsL][s]) \trans (\varsG', \ProgCtxt[\varsL'][s'])}
+\;(\textsc{Program-Step})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\bodies;\specs \vdash (\varsG \cdot \varsL, s) \fails
+}
+{\bodies;\specs \vdash (\varsG, \ProgCtxt[\varsL][s]) \fails}
+\;(\textsc{Program-Fail})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T' = (\varsL, \bodies(P))
+}
+{\bodies;\specs \vdash (\varsG, \ProgCtxt[\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsL][\skipstmt] \cdot T')}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\\
+}
+{\bodies;\specs \vdash (\varsG, \YieldingThreads \cdot (\varsL, \skipstmt) \cdot \YieldingThreads') \trans (\varsG, \YieldingThreads \cdot \YieldingThreads')}
+\;(\textsc{Thread-End})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\\
+}
+{\bodies;\specs \vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
+\;{(\textsc{Skip})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+w:t=v \in \varsL \\
+\varsG \cdot \varsL \vdash \locExpr \rightarrow v'
+}
+{\bodies;\specs \vdash (\varsG \cdot \varsL, w := \locExpr) \trans (\varsG \cdot \varsL[w := v'], \skipstmt)}
+\;{(\textsc{Assignment})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \mathit{true}
+}
+{\bodies;\specs \vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
+\;{(\textsc{Assert-True})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \mathit{false}
+}
+{\bodies;\specs \vdash (\vars, \assert{\locExpr}) \fails}
+\;{(\textsc{Assert-False})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\specs(A) = \alpha\ \\
+(\varsG \cdot \varsL, \varsG' \cdot \varsL') \vdash \alpha \\
+}
+{
+\bodies;\specs \vdash (\varsG \cdot \varsL, \call{A}) \trans (\varsG' \cdot \varsL',\skipstmt)
+}
+\;{(\textsc{Atomic})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\bodies;\specs \vdash (\vars, \call{r}{P}) \trans (\vars, \bodies(P))}
+\;{(\textsc{Call})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\\
+}
+{\bodies;\specs \vdash (\vars, \yield{e}) \trans (\vars, \skipstmt)}
+\;{(\textsc{Yield})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\\
+}
+{\bodies;\specs \vdash (\vars, \ablock{e}{\stmt}{r}) \trans (\vars, \stmt)}
+\;{(\textsc{AtomicBlock})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \mathit{true}
+}
+{\bodies;\specs \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
+\;{(\textsc{If-True})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \mathit{false}
+}
+{\bodies;\specs \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
+\;{(\textsc{If-False})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \mathit{false}
+}
+{\bodies;\specs \vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, \skipstmt)}
+\;{(\textsc{While-False})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \mathit{true}
+}
+{\bodies;\specs \vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, s;\while{e}{\locExpr}{s})}
+\;{(\textsc{While-True})}
+$
+%%%%%%%%%%%%%%%%%%%%
+}
+{{\bf \\ twhile rules here??}}
+\caption{Operational semantics}
+\label{fig:operational-semantics}
+\end{figure}
 
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "paper"
 %%% End: 
+
+
