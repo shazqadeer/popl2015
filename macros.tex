@@ -3,23 +3,18 @@
 \newcommand{\Var}{\mathit{Var}}
 \newcommand{\Value}{\mathit{Value}}
 \newcommand{\Expr}{\mathit{Expr}}
-\newcommand{\BExpr}{\mathit{BExpr}}
-\newcommand{\StateExpr}{\mathit{StExpr}}
-\newcommand{\TransExpr}{\mathit{TrExpr}}
-\newcommand{\VExpr}{\mathit{VarExpr}}
-\newcommand{\LExpr}{\mathit{LocalExpr}}
+\newcommand{\StateExpr}{\mathit{StateExpr}}
+\newcommand{\TransExpr}{\mathit{TransExpr}}
+\newcommand{\LocalStateExpr}{\mathit{LocalStateExpr}}
 \newcommand{\Spec}{\mathit{Spec}}
-\newcommand{\GatedAction}{\mathit{GAct}}
 \newcommand{\AtomicSpecName}{\mathit{AtomSpecName}}
 \newcommand{\AtomicAction}{\mathit{AtomAction}}
-\newcommand{\atomicAction}{\mathit{a}}
 \newcommand{\Entry}{\mathit{Entry}}
 \newcommand{\Program}{\mathit{Program}}
 \newcommand{\Prog}{\mathit{Prog}}
 \newcommand{\ProgSpec}{\mathit{ProgSpec}}
-\newcommand{\procName}{\mathit{P}}
 \newcommand{\ProcName}{\mathit{ProcName}}
-\newcommand{\AtomicProcName}{\mathit{AtProcName}}
+\newcommand{\ActionName}{\mathit{ActionName}}
 \newcommand{\Proc}{\mathit{Proc}}
 \newcommand{\proc}{\mathit{Pr}}
 \newcommand{\Vinfo}{\mathit{Vinfo}}
@@ -36,16 +31,12 @@
 \newcommand{\Body}{\mathit{Body}}
 \newcommand{\ProcSpec}{\mathit{ProcSp}}
 \newcommand{\ProcRefSpec}{\mathit{RefSp}}
-\newcommand{\AtomName}{\mathit{AtomName}}
-\newcommand{\moverType}{\mathit{MvType}}
-\newcommand{\refType}{\mathit{RefChkType}}
 \newcommand{\Stmt}{\mathit{Stmt}}
 \newcommand{\stm}{\mathit{stm}}
 \newcommand{\coll}{\mathit{coll}}
 \newcommand{\stmt}{\mathit{s}}
 \newcommand{\ProcBody}{\mathit{ProcBody}}
 \newcommand{\locExpr}{\mathit{le}}
-\newcommand{\joinLabel}{\mathit{jl}}
 
 \newcommand{\yieldorborder}[1]{\mathit{yield\_or\_border}\ #1}
 \newcommand{\ite}[3]{{\mathit{if}\ {#1}\ }{\mathit{then}\ {#2}\ }{\mathit{else}\ {#3}\ }}
@@ -54,9 +45,9 @@
 \newcommand{\yield}[1]{\mathit{yield}\ #1}
 \newcommand{\join}[1]{\mathit{join}\ #1}
 \newcommand{\async}[1]{\mathit{async}\ #1}
-\newcommand{\call}[2]{\mathit{call}^{{#1}}\ #2}
+\newcommand{\call}[1]{\mathit{call}\ #1}
 \newcommand{\noyield}[1]{\mathit{noyield}\ {#1}\ }
-\newcommand{\ablock}[3]{\mathit{ablock}^{#3}\ {\{#1\}}\ {#2}\ }
+\newcommand{\ablock}[2]{\mathit{ablock}\ {\{#1\}}\ {#2}\ }
 \newcommand{\parcall}[2]{\mathit{call}\ {#1} || {#2}\ }
 \newcommand{\border}[1]{\mathit{border}\ #1}
 \newcommand{\assert}[1]{\mathit{assert}\ #1}
@@ -82,11 +73,12 @@
 \newcommand{\unchangedExcept}[1]{\mathit{UnchangedExcept}_{ {#1} }}
 
 
-\newcommand{\varsG}{g}
-\newcommand{\varsL}{l}
+\newcommand{\varsG}{G}
+\newcommand{\varsTL}{\mathit{TL}}
+\newcommand{\varsL}{L}
 \newcommand{\true}{\mathit{true}}
 \newcommand{\false}{\mathit{false}}
-\newcommand{\vars}{\mathit{gl}}
+\newcommand{\vars}{\varsG\!\cdot\!\varsTL\!\cdot\!\varsL}
 \newcommand{\PS}{\vec{\mathit{P}}}
 \newcommand{\TS}{\vec{\mathit{T}}}
 \newcommand{\LS}{\vec{\mathit{L}}}
@@ -120,6 +112,7 @@
 \newcommand{\dom}{\mathit{dom}}
 \newcommand{\Globals}{\mathit{Globals}}
 \newcommand{\Locals}{\mathit{Locals}}
+\newcommand{\ThreadLocals}{\mathit{ThreadLocals}}
 
 \newcommand{\ProcessProgram}{\mathit{ProcessProgram}}
 \newcommand{\ProcessModule}{\mathit{ProcessModule}}
@@ -158,11 +151,21 @@
 \newcommand{\GoodModules}{\mathit{GoodModules}}
 \newcommand{\NeverFail}{\mathit{NeverFail}}
 
-\newcommand{\YieldingStmt}{y}
-\newcommand{\YieldingThread}{Y}
-\newcommand{\YieldingThreads}{\vec{\YieldingThread}}
+\newcommand{\YieldingThread}{\mathit{YT}}
+\newcommand{\YieldingThreads}{\overrightarrow{\YieldingThread}}
 \newcommand{\StmtCtxt}{\mathit{SC}}
+\newcommand{\ContinuationCtxt}{\mathit{CC}}
 \newcommand{\ThreadCtxt}{\mathit{TC}}
 \newcommand{\ProgCtxt}{\mathit{PC}}
 \newcommand{\fails}{\ \mathrm{fails}}
 
+\newcommand{\tl}{\mathit{tl}}
+\newcommand{\Frame}[2]{(#1,#2)}
+
+\newcommand{\pre}{\mathit{pre}}
+\newcommand{\post}{\mathit{post}}
+\newcommand{\modvars}{\mathit{mod}}
+\newcommand{\mov}{\mathit{mov}}
+\newcommand{\act}{\mathit{act}}
+\newcommand{\Continuation}{C}
+\newcommand{\YieldingContinuation}{\mathit{YC}}
