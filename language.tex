@@ -25,7 +25,7 @@ $\Prog$ & $\in$ & $\Program = (\varsG, \bodies, \specs, \pre, \post, \modvars, \
 \begin{tabular}{rclcl}
 $\Vinfo$ &::= & $x:t=v$ \\
 $\varsG,\varsTL,\varsL \in \Vinfos$ \\
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{le} \mid $ \\
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid $ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
                   & & $s;\;s \mid \yield{e} \mid \ablock{e}{s} \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
