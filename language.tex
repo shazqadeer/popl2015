@@ -25,11 +25,12 @@ $\Prog$ & $\in$ & $\Program = (\varsG, \bodies, \specs, \pre, \post, \modvars, \
 \begin{tabular}{rclcl}
 $\Vinfo$ &::= & $x:t=v$ \\
 $\varsG,\varsTL,\varsL \in \Vinfos$ \\
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid $ \\
+%$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e} \mid$ \\
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e} \mid$ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-                  & & $s;\;s \mid \yield{e} \mid \ablock{e}{s} \mid$\\
+                  & & $\ablock{e}{s} \mid s;\;s \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
-                  & & $\while{e}{\locExpr}{s}$ \\ 
+                  & & $\while{e,m}{\locExpr}{s}$ \\ 
 $\Continuation \in \mathit{Continuation}$ & ::= & $(\varsL,\stmt) \mid (\varsL, \Continuation;\stmt)$ \\
 $T \in \Thread$ & ::=  & $(\varsTL, \Continuation)$ \\
 $\YieldingContinuation \in \mathit{YieldingContinuation}$ & ::= & $(\varsL,\yield{e};\stmt) \mid (\varsL, \YieldingContinuation;\stmt)$ \\
@@ -108,25 +109,25 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars \vdash \locExpr \rightarrow \mathit{true}
-}
-{\bodies,\specs \vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
-\;{(\textsc{Assert-True})}
-$
-\medskip
+%% $
+%% \inferrule
+%% {
+%% \vars \vdash \locExpr \rightarrow \true
+%% }
+%% {\bodies,\specs \vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
+%% \;{(\textsc{Assert-True})}
+%% $
+%% \medskip
 %%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars \vdash \locExpr \rightarrow \mathit{false}
-}
-{\bodies,\specs \vdash (\vars, \assert{\locExpr}) \fails}
-\;{(\textsc{Assert-False})}
-$
-\medskip
+%% $
+%% \inferrule
+%% {
+%% \vars \vdash \locExpr \rightarrow \false
+%% }
+%% {\bodies,\specs \vdash (\vars, \assert{\locExpr}) \fails}
+%% \;{(\textsc{Assert-False})}
+%% $
+%% \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -163,13 +164,22 @@ $
 $
 \inferrule
 {
-\\
+\vars \vdash e \rightarrow \true
 }
 {\bodies,\specs \vdash (\vars, \ablock{e}{\stmt}) \trans (\vars, \stmt)}
-\;{(\textsc{AtomicBlock})}
+\;{(\textsc{AtomicBlock-Ok})}
 $
 \medskip
-
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash e \rightarrow \false
+}
+{\bodies,\specs \vdash (\vars, \ablock{e}{\stmt}) \fails}
+\;{(\textsc{AtomicBlock-Fail})}
+$
+\medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -196,7 +206,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\bodies,\specs \vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, \skipstmt)}
+{\bodies,\specs \vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
 $
 \medskip
@@ -206,7 +216,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\bodies,\specs \vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, s;\while{e}{\locExpr}{s})}
+{\bodies,\specs \vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, s;\while{e,m}{\locExpr}{s})}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%

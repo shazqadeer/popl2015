@@ -1,14 +1,224 @@
-%% $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{le} \mid $ \\
-%%                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-%%                   & & $s;\;s \mid \yield{e} \mid \ablock{e}{s} \mid$\\
-%%                  & & $\ite{\locExpr}{s}{s} \mid$ \\
-%%                   & & $\while{e}{\locExpr}{s}$ \\ 
 
-\newcommand{\FH}[3]{\{#1\} #2 \{#3\}}
-\newcommand{\re}{\mathit{re}}
-\newcommand{\RM}{\mathit{RM}}
-\newcommand{\CM}{\mathit{CM}}
-\newcommand{\LM}{\mathit{LM}}
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{P \jp \FH{\phi}{\skipstmt}{\phi}}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+%% $
+%% \inferrule
+%% {
+%% \mov(P) = \perp
+%% }
+%% {P \jp \FH{\phi}{\assert{\locExpr}}{\phi}}
+%% \;(\textsc{Assert1})
+%% $
+%% \medskip
+%% %%%%%%%%%%%%%%%%%%%%
+%% $
+%% \inferrule
+%% {
+%% }
+%% {P \jp \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
+%% \;(\textsc{Assert2})
+%% $
+%% \medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{P \jp \FH{e}{\yield{e}}{e}}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\phi_1 \wedge \specs(A) \Rightarrow \phi_2
+}
+{P \jp \FH{\phi_1}{\call{A}}{\phi_2}}
+\;(\textsc{Call-Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{P \jp \FH{\pre(P')}{\call{P'}}{\post(P')}}
+\;(\textsc{Call-Proc})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{P \jp \FH{\phi \wedge \pre(P')}{\async{P'}}{\phi}}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jp \FH{\phi_1 \wedge e}{s}{\phi_2}
+}
+{P \jp \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jp \FH{\phi_1}{s_1}{\phi_2} \\ P \jp \FH{\phi_2}{s_2}{\phi_3}
+}
+{P \jp \FH{\phi_1}{s_1;s_2}{\phi_3}}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jp \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ P \jp \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
+}
+{P \jp \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jp \FH{e \wedge \locExpr}{s}{e} \\ P \jt \while{e,m}{\locExpr}{s}
+}
+{P \jp \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+
+}
+\caption{Sequential correctness rules}
+\label{fig:sequential-correctness}
+\end{figure}
+
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{P \jt \FH{\phi}{\skipstmt}{\phi}}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+%% $
+%% \inferrule
+%% {
+%% }
+%% {P \jt \FH{\phi}{\assert{\locExpr}}{\false}}
+%% \;(\textsc{Assert})
+%% $
+%% \medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{P \jt \FH{\phi}{\yield{e}}{\false}}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\mov(P') = \perp
+}
+{P \jt \FH{\phi}{\call{P'}}{\false}}
+\;(\textsc{Call1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\mov(P') \neq \perp \\ \phi_1 \wedge \act(P') \Rightarrow \phi_2
+}
+{P \jt \FH{\phi_1}{\call{P'}}{\phi_2}}
+\;(\textsc{Call2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{P \jt \FH{\phi}{\async{P'}}{\phi}}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jt \FH{\phi_1 \wedge e}{s}{\phi_2}
+}
+{P \jt \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jt \FH{\phi_1}{s_1}{\phi_2} \\ P \jt \FH{\phi_2}{s_2}{\phi_3}
+}
+{P \jt \FH{\phi_1}{s_1;s_2}{\phi_3}}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jt \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ P \jt \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
+}
+{P \jt \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \jt \FH{e \wedge \locExpr}{s}{e \wedge m' < m} \\ e \wedge \locExpr \Rightarrow m \geq 0
+}
+{P \jt \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+
+}
+\caption{Termination correctness rules}
+\label{fig:termination-correctness}
+\end{figure}
 
 \begin{figure}
 \scriptsize{
@@ -23,12 +233,21 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
+%% $
+%% \inferrule
+%% {
+%% }
+%% {P \jr \assert{\locExpr} : \epsilon}
+%% \;(\textsc{Assert})
+%% $
+%% \medskip
+%%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
 }
-{P \jr \assert{\locExpr} : \epsilon}
-\;(\textsc{Assert})
+{P \jr \yield{e} : \epsilon}
+\;(\textsc{Yield})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -107,7 +326,7 @@ $
 {
 P \jr s : \re
 }
-{P \jr \while{e}{\locExpr}{s} : \re^*}
+{P \jr \while{e,m}{\locExpr}{s} : \re^*}
 \;(\textsc{While})
 $
 \medskip
@@ -120,7 +339,7 @@ $
 
 
 \begin{figure}
-\includegraphics[scale=0.4]{YieldTypeCheckingAutomaton.pdf}
+\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
 \caption{Specification for yield sufficiency}
 \label{fig:YieldTypeCheckingAutomaton}
 \end{figure}
@@ -138,12 +357,21 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
+%% $
+%% \inferrule
+%% {
+%% }
+%% {P \jy \assert{\locExpr} : x \leadsto x}
+%% \;(\textsc{Assert})
+%% $
+%% \medskip
+%%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
 }
-{P \jy \assert{\locExpr} : x \leadsto x}
-\;(\textsc{Assert})
+{P \jy \yield{e} : x \leadsto \RM}
+\;(\textsc{Yield})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -241,7 +469,7 @@ $
 {
 P \jy s : x \leadsto x
 }
-{P \jy \while{e}{\locExpr}{s} : x \leadsto x}
+{P \jy \while{e,m}{\locExpr}{s} : x \leadsto x}
 \;(\textsc{While})
 $
 \medskip
