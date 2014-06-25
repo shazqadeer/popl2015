@@ -8,36 +8,41 @@ $l$ & $\in$ & $\Locals \subseteq \Var$ \\
 $t$ & $\in$ & $\Type$ \\
 $x,y$ & $\in$ & $\Var$ \\
 $v$ &  $\in$ & $\Value$ \\
-$e, \tau, \phi, \rho$ & $\in$ & $\StateExpr$ \\
+$e, \phi, \psi, \rho$ & $\in$ & $\StateExpr$ \\
 $\alpha, \beta$ & $\in$ & $\TransExpr$ \\
 $\locExpr$ & $\in$ & $\LocalStateExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
 $\bodies$ & $\in$ & $\ProcName \rightarrow \Stmt$ \\
-$\specs$ & $\in$ & $\ActionName \rightarrow \TransExpr$ \\
-$\pre,\post$ & $\in$ & $\ProcName \rightarrow \StateExpr$ \\
-$\modvars$ & $\in$ & $\ProcName \rightarrow 2^\ThreadLocals$ \\
-$\mov$ & $\in$ & $\ProcName \rightarrow \{B,R,L,N,\perp\}$ \\
-$\act$ & $\in$ & $\ProcName \rightarrow \TransExpr$ \\
-$\Prog$ & $\in$ & $\Program = (\varsG, \bodies, \specs, \pre, \post, \modvars, \mov, \act, \TS)$ \\
+$m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
+$\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
+$\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocals, \StateExpr)$ \\
+$\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
+$H$ & $\in$ & $2^{\ThreadLocals \cup \Globals}$ \\
 \end{tabular}
+~\\
 ~\\
 \begin{tabular}{rclcl}
 $\Vinfo$ &::= & $x:t=v$ \\
 $\varsG,\varsTL,\varsL \in \Vinfos$ \\
-%$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e} \mid$ \\
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e} \mid$ \\
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e} \mid$ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
                   & & $\ablock{e}{s} \mid s;\;s \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
                   & & $\while{e,m}{\locExpr}{s}$ \\ 
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
-$\ExtendedCtxt \in \mathit{ExtendedCtxt}$ &::= & $\ContinuationCtxt \mid \ExtendedCtxt;\stmt$ \\
-$\ContinuationCtxt \in \mathit{ContinuationCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\ExtendedCtxt)$ \\
+$\ReturnCtxt \in \mathit{ReturnCtxt}$ &::= & $\ContinuationCtxt \mid \ReturnCtxt;\stmt$ \\
+$\ContinuationCtxt \in \mathit{ContinuationCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\ReturnCtxt)$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, \ContinuationCtxt)$ \\
+$T \in \mathit{Thread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][s]$ \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e}]$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads$ \\
-\end{tabular}\\
+\end{tabular}
+~\\
+~\\
+\begin{tabular}{rcl}
+$\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, H, \varsG, \TS)$ \\
+\end{tabular}
 \setlength{\tabcolsep}{6pt}
 \caption{Syntax}
 \label{fig:syntax}
@@ -50,9 +55,9 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdo
 $
 \inferrule
 {
-\bodies,\specs \vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, s) \trans (\varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL', s')
+\vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, s) \trans (\varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL', s')
 }
-{\bodies,\specs \vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \trans (\varsG', \ProgCtxt[\varsTL'][\varsL'][s'])}
+{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \trans (\varsG', \ProgCtxt[\varsTL'][\varsL'][s'])}
 \;(\textsc{Program-Step})
 $
 \medskip
@@ -60,9 +65,9 @@ $
 $
 \inferrule
 {
-\bodies,\specs \vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, s) \fails
+\vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, s) \fails
 }
-{\bodies,\specs \vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \fails}
+{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \fails}
 \;(\textsc{Program-Fail})
 $
 \medskip
@@ -72,7 +77,7 @@ $
 {
 T' = (\varsTL, (\varsL, \yield{\pre(P)};\bodies(P)))
 }
-{\bodies,\specs \vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsL][\skipstmt] \cdot T')}
+{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsL][\skipstmt] \cdot T')}
 \;(\textsc{Async})
 $
 \medskip
@@ -82,7 +87,7 @@ $
 {
 \\
 }
-{\bodies,\specs \vdash (\varsG, \YieldingThreads \cdot (\varsTL, \skipstmt) \cdot \YieldingThreads') \trans (\varsG, \YieldingThreads \cdot \YieldingThreads')}
+{\vdash (\varsG, \YieldingThreads \cdot (\varsTL, \skipstmt) \cdot \YieldingThreads') \trans (\varsG, \YieldingThreads \cdot \YieldingThreads')}
 \;(\textsc{Thread-End})
 $
 \medskip
@@ -90,61 +95,9 @@ $
 $
 \inferrule
 {
-\\
+\specs(P) = (\phi, \tls, \psi)
 }
-{\bodies,\specs \vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
-\;{(\textsc{Skip})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\\
-}
-{\bodies,\specs \vdash (\vars, \Frame{\varsL'}{\skipstmt}) \trans (\vars, \skipstmt)}
-\;{(\textsc{Frame})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-%% $
-%% \inferrule
-%% {
-%% \vars \vdash \locExpr \rightarrow \true
-%% }
-%% {\bodies,\specs \vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
-%% \;{(\textsc{Assert-True})}
-%% $
-%% \medskip
-%%%%%%%%%%%%%%%%%%%%
-%% $
-%% \inferrule
-%% {
-%% \vars \vdash \locExpr \rightarrow \false
-%% }
-%% {\bodies,\specs \vdash (\vars, \assert{\locExpr}) \fails}
-%% \;{(\textsc{Assert-False})}
-%% $
-%% \medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\specs(A) = \alpha\ \\
-(\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, \varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL') \vdash \alpha \\
-}
-{
-\bodies,\specs \vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, \call{A}) \trans (\varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL',\skipstmt)
-}
-\;{(\textsc{Atomic})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\bodies,\specs \vdash (\vars, \call{P}) \trans (\vars, \Frame{L}{\yield{\pre(P)};\bodies(P);\yield{\post(P)}})}
+{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\yield{\phi};\bodies(P);\yield{\psi}}])}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -154,7 +107,60 @@ $
 {
 \\
 }
-{\bodies,\specs \vdash (\vars, \yield{e}) \trans (\vars, \skipstmt)}
+{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{\varsL'}{\skipstmt}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt])}
+\;{(\textsc{Return})}
+$
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Operational semantics for program}
+\label{fig:operational-semantics1}
+\end{figure}
+
+
+\begin{figure}
+\scriptsize{
+\medskip
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \true
+}
+{\vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
+\;{(\textsc{Assert-True})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vars \vdash \locExpr \rightarrow \false
+}
+{\vdash (\vars, \assert{\locExpr}) \fails}
+\;{(\textsc{Assert-False})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions(A) = (\rho, \alpha, m) \\
+(\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, \varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL') \vdash \alpha \\
+}
+{
+\vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, \call{A}) \trans (\varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL',\skipstmt)
+}
+\;{(\textsc{Atomic})}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\\
+}
+{\vdash (\vars, \yield{e}) \trans (\vars, \skipstmt)}
 \;{(\textsc{Yield})}
 $
 \medskip
@@ -164,18 +170,18 @@ $
 {
 \vars \vdash e \rightarrow \true
 }
-{\bodies,\specs \vdash (\vars, \ablock{e}{\stmt}) \trans (\vars, \stmt)}
-\;{(\textsc{AtomicBlock-Ok})}
+{\vdash (\vars, \ablock{e}{\stmt}) \trans (\vars, \stmt)}
+\;{(\textsc{AtomicBlock})}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
-\vars \vdash e \rightarrow \false
+\\
 }
-{\bodies,\specs \vdash (\vars, \ablock{e}{\stmt}) \fails}
-\;{(\textsc{AtomicBlock-Fail})}
+{\vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
+\;{(\textsc{Seq})}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -184,7 +190,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\bodies,\specs \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
+{\vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
 \;{(\textsc{If-True})}
 $
 \medskip
@@ -194,7 +200,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\bodies,\specs \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
+{\vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
 \;{(\textsc{If-False})}
 $
 \medskip
@@ -204,7 +210,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\bodies,\specs \vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, \skipstmt)}
+{\vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
 $
 \medskip
@@ -214,13 +220,13 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\bodies,\specs \vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, s;\while{e,m}{\locExpr}{s})}
+{\vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, s;\while{e,m}{\locExpr}{s})}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%
 }
-\caption{Operational semantics}
-\label{fig:operational-semantics}
+\caption{Operational semantics for statement}
+\label{fig:operational-semantics2}
 \end{figure}
 
 %%% Local Variables: 
