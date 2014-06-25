@@ -31,13 +31,11 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e} \mid$ \\
                   & & $\ablock{e}{s} \mid s;\;s \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
                   & & $\while{e,m}{\locExpr}{s}$ \\ 
-$\Continuation \in \mathit{Continuation}$ & ::= & $(\varsL,\stmt) \mid (\varsL, \Continuation;\stmt)$ \\
-$T \in \Thread$ & ::=  & $(\varsTL, \Continuation)$ \\
-$\YieldingContinuation \in \mathit{YieldingContinuation}$ & ::= & $(\varsL,\yield{e};\stmt) \mid (\varsL, \YieldingContinuation;\stmt)$ \\
-$\YieldingThread \in \mathit{YieldingThread}$ &::= &$(\varsTL, \YieldingContinuation)$ \\
-$\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;s$ \\
-$\ContinuationCtxt \in \mathit{ContinuationCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\ContinuationCtxt;\stmt)$ \\
+$\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
+$\ExtendedCtxt \in \mathit{ExtendedCtxt}$ &::= & $\ContinuationCtxt \mid \ExtendedCtxt;\stmt$ \\
+$\ContinuationCtxt \in \mathit{ContinuationCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\ExtendedCtxt)$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, \ContinuationCtxt)$ \\
+$\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e}]$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads$ \\
 \end{tabular}\\
 \setlength{\tabcolsep}{6pt}

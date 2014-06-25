@@ -1,4 +1,3 @@
-
 \begin{figure}
 \scriptsize{
 \medskip
@@ -7,7 +6,7 @@ $
 \inferrule
 {
 }
-{P \jp \FH{\phi}{\skipstmt}{\phi}}
+{\jp \FH{\phi}{\skipstmt}{\phi}}
 \;(\textsc{Skip})
 $
 \medskip
@@ -17,7 +16,7 @@ $
 %% {
 %% \mov(P) = \perp
 %% }
-%% {P \jp \FH{\phi}{\assert{\locExpr}}{\phi}}
+%% {\jp \FH{\phi}{\assert{\locExpr}}{\phi}}
 %% \;(\textsc{Assert1})
 %% $
 %% \medskip
@@ -26,7 +25,7 @@ $
 %% \inferrule
 %% {
 %% }
-%% {P \jp \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
+%% {\jp \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
 %% \;(\textsc{Assert2})
 %% $
 %% \medskip
@@ -35,7 +34,7 @@ $
 \inferrule
 {
 }
-{P \jp \FH{e}{\yield{e}}{e}}
+{\jp \FH{e}{\yield{e}}{e}}
 \;(\textsc{Yield})
 $
 \medskip
@@ -45,8 +44,28 @@ $
 {
 \phi_1 \wedge \specs(A) \Rightarrow \phi_2
 }
-{P \jp \FH{\phi_1}{\call{A}}{\phi_2}}
-\;(\textsc{Call-Atomic})
+{\jp \FH{\phi_1}{\call{A}}{\phi_2}}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\mov(P') = \perp
+}
+{\jp \FH{\pre(P')}{\call{P'}}{\post(P')}}
+\;(\textsc{Proc1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\mov(P') \neq \perp \\ \pre(P') \wedge \act(P') \Rightarrow \post(P')
+}
+{\jp \FH{\pre(P')}{\call{P'}}{\post(P')}}
+\;(\textsc{Proc2})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -54,16 +73,7 @@ $
 \inferrule
 {
 }
-{P \jp \FH{\pre(P')}{\call{P'}}{\post(P')}}
-\;(\textsc{Call-Proc})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{P \jp \FH{\phi \wedge \pre(P')}{\async{P'}}{\phi}}
+{\jp \FH{\phi \wedge \pre(P')}{\async{P'}}{\phi}}
 \;(\textsc{Async})
 $
 \medskip
@@ -71,9 +81,9 @@ $
 $
 \inferrule
 {
-P \jp \FH{\phi_1 \wedge e}{s}{\phi_2}
+\jp \FH{\phi_1 \wedge e}{s}{\phi_2}
 }
-{P \jp \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
+{\jp \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -81,9 +91,9 @@ $
 $
 \inferrule
 {
-P \jp \FH{\phi_1}{s_1}{\phi_2} \\ P \jp \FH{\phi_2}{s_2}{\phi_3}
+\jp \FH{\phi_1}{s_1}{\phi_2} \\ \jp \FH{\phi_2}{s_2}{\phi_3}
 }
-{P \jp \FH{\phi_1}{s_1;s_2}{\phi_3}}
+{\jp \FH{\phi_1}{s_1;s_2}{\phi_3}}
 \;(\textsc{Seq})
 $
 \medskip
@@ -91,9 +101,9 @@ $
 $
 \inferrule
 {
-P \jp \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ P \jp \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
+\jp \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \jp \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
 }
-{P \jp \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
+{\jp \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
 \;(\textsc{Ite})
 $
 \medskip
@@ -101,9 +111,9 @@ $
 $
 \inferrule
 {
-P \jp \FH{e \wedge \locExpr}{s}{e} \\ P \jt \while{e,m}{\locExpr}{s}
+\jp \FH{e \wedge \locExpr}{s}{e}
 }
-{P \jp \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\jp \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 $
 \medskip
@@ -114,111 +124,28 @@ $
 \label{fig:sequential-correctness}
 \end{figure}
 
-\begin{figure}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{P \jt \FH{\phi}{\skipstmt}{\phi}}
-\;(\textsc{Skip})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-%% $
-%% \inferrule
-%% {
-%% }
-%% {P \jt \FH{\phi}{\assert{\locExpr}}{\false}}
-%% \;(\textsc{Assert})
-%% $
-%% \medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{P \jt \FH{\phi}{\yield{e}}{\false}}
-\;(\textsc{Yield})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\mov(P') = \perp
-}
-{P \jt \FH{\phi}{\call{P'}}{\false}}
-\;(\textsc{Call1})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\mov(P') \neq \perp \\ \phi_1 \wedge \act(P') \Rightarrow \phi_2
-}
-{P \jt \FH{\phi_1}{\call{P'}}{\phi_2}}
-\;(\textsc{Call2})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{P \jt \FH{\phi}{\async{P'}}{\phi}}
-\;(\textsc{Async})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \jt \FH{\phi_1 \wedge e}{s}{\phi_2}
-}
-{P \jt \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
-\;(\textsc{Ablock})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \jt \FH{\phi_1}{s_1}{\phi_2} \\ P \jt \FH{\phi_2}{s_2}{\phi_3}
-}
-{P \jt \FH{\phi_1}{s_1;s_2}{\phi_3}}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \jt \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ P \jt \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
-}
-{P \jt \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
-\;(\textsc{Ite})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \jt \FH{e \wedge \locExpr}{s}{e \wedge m' < m} \\ e \wedge \locExpr \Rightarrow m \geq 0
-}
-{P \jt \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
-\;(\textsc{While})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
+For each procedure $P$ such that $\mov(P) = \perp$, prove the following judgments:
+\[
+\jp \FH{\pre(P)}{\bodies(P)}{\post(P)}
+\]
 
-}
-\caption{Termination correctness rules}
-\label{fig:termination-correctness}
-\end{figure}
+Let $\Yields(P)$ be the set of yield predicates in procedure $P$
+and 
+$\Yields = \bigcup_{P \in \ProcName \wedge \mov(P) = \perp}\Yields(P) \cup \{P \in \ProcName \mid \pre(P)\} \cup \{P \in \ProcName \mid \post(P)\}$.
+Let $\Ablocks(P)$ be the set of atomic blocks in procedure $P$.
+Given a predicate $\phi$, let $\hat{\phi}$ represent $\phi$ with all thread-local and local 
+variables substituted with fresh constants.
+
+For each predicate $\phi \in \Yields$
+and for each atomic block $\ablock{e}{s} \in \bigcup_{P \in \ProcName \wedge \mov(P) = \perp} \Ablocks(P)$, prove the following judgment:
+\[
+\jp \FH{\hat{\phi} \wedge e}{s}{\hat{\phi}}
+\]
+
+For each predicate $\phi \in \Yields$ and for each $P$ such that $\mov(P) \neq \perp$, prove the following judgment:
+\[
+\hat{\phi} \wedge \pre(P) \wedge \act(P) \Rightarrow \hat{\phi}
+\]
 
 \begin{figure}
 \scriptsize{
@@ -478,4 +405,122 @@ $
 }
 \caption{Yield sufficiency rules}
 \label{fig:yield-sufficiency}
+\end{figure}
+
+\subsection{Responsiveness}
+
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\jt \FH{\phi}{\skipstmt}{\phi}}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+%% $
+%% \inferrule
+%% {
+%% }
+%% {\jt \FH{\phi}{\assert{\locExpr}}{\false}}
+%% \;(\textsc{Assert})
+%% $
+%% \medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\jt \FH{\phi}{\yield{e}}{\false}}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\phi_1 \wedge \specs(A) \Rightarrow \phi_2
+}
+{\jt \FH{\phi_1}{\call{A}}{\phi_2}}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\mov(P') = \perp
+}
+{\jt \FH{\phi}{\call{P'}}{\false}}
+\;(\textsc{Call1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\mov(P') \neq \perp \\ \phi_1 \wedge \act(P') \Rightarrow \phi_2
+}
+{\jt \FH{\phi_1}{\call{P'}}{\phi_2}}
+\;(\textsc{Call2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\jt \FH{\phi}{\async{P'}}{\phi}}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\jt \FH{\phi_1 \wedge e}{s}{\phi_2}
+}
+{\jt \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\jt \FH{\phi_1}{s_1}{\phi_2} \\ \jt \FH{\phi_2}{s_2}{\phi_3}
+}
+{\jt \FH{\phi_1}{s_1;s_2}{\phi_3}}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\jt \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \jt \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
+}
+{\jt \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\jt \FH{e \wedge \locExpr}{s}{e \wedge m' < m} \\ e \wedge \locExpr \Rightarrow m \geq 0
+}
+{\jt \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+
+}
+\caption{Responsiveness rules}
+\label{fig:termination-correctness}
 \end{figure}
