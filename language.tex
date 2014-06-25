@@ -75,7 +75,7 @@ $
 $
 \inferrule
 {
-T' = (\varsTL, (\varsL, \yield{\pre(P)};\bodies(P)))
+\specs(P) = (\phi, \tls, \psi) \\ T' = (\varsTL, (\varsL, \yield{\phi};\bodies(P)))
 }
 {\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsL][\skipstmt] \cdot T')}
 \;(\textsc{Async})
