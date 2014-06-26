@@ -52,9 +52,9 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \tls, \psi) \\ H \neq \{\}
+\specs(P) = (\phi, \tls, \psi) \\ \accessVars(\rho) \cap (\Globals \cup \tls) = \{\} \\\\ H \neq \{\}
 }
-{\jp \FH{\phi}{\call{P}}{\psi}}
+{\jp \FH{\rho \wedge \phi}{\call{P}}{\rho \wedge \psi}}
 \;(\textsc{Proc1})
 $
 \medskip
@@ -62,9 +62,9 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \tls, \psi) \\ P \in \dom(\refines) \\ \jp \FH{\phi}{\call{\refines(P)}}{\psi}
+\specs(P) = (\phi, \tls, \psi) \\ \accessVars(\rho) \cap (\Globals \cup \tls) = \{\} \\ P \in \dom(\refines) \\ \jp \FH{\phi}{\call{\refines(P)}}{\psi}
 }
-{\jp \FH{\phi}{\call{P}}{\psi}}
+{\jp \FH{\rho \wedge \phi}{\call{P}}{\rho \wedge \psi}}
 \;(\textsc{Proc2})
 $
 \medskip
@@ -74,7 +74,7 @@ $
 {
 \specs(P) = (\phi, \tls, \psi)
 }
-{\jp \FH{\rho \wedge \phi}{\async{P'}}{\rho}}
+{\jp \FH{\rho \wedge \phi}{\async{P}}{\rho}}
 \;(\textsc{Async})
 $
 \medskip
@@ -410,6 +410,17 @@ $
 
 \subsection{Responsiveness}
 
+\[
+\inferrule
+{
+\jp \FH{e \wedge \locExpr}{s}{e} \\ \jr \FH{e \wedge \locExpr}{s}{\alpha \wedge m' < m} \\ e \wedge \locExpr \Rightarrow m \geq 0
+}
+{\jp \FH{e}{\twhile{e}{m,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+\;(\textsc{While})
+\]
+
+\newcommand{\stutter}{\skipstmt}
+
 \begin{figure}
 \scriptsize{
 \medskip
@@ -418,7 +429,7 @@ $
 \inferrule
 {
 }
-{\jr \FH{\phi}{\skipstmt}{\phi}}
+{\jr \skipstmt \preceq \stutter}
 \;(\textsc{Skip})
 $
 \medskip
@@ -427,7 +438,7 @@ $
 \inferrule
 {
 }
-{\jr \FH{\phi}{\assert{\locExpr}}{\false}}
+{\jr \assert{\locExpr} \preceq \locExpr \wedge \stutter}
 \;(\textsc{Assert})
 $
 \medskip
@@ -436,7 +447,7 @@ $
 \inferrule
 {
 }
-{\jr \FH{\phi}{\yield{e}}{\false}}
+{\jr \yield{e} \preceq \false}
 \;(\textsc{Yield})
 $
 \medskip
@@ -444,9 +455,9 @@ $
 $
 \inferrule
 {
-\phi_1 \wedge \specs(A) \Rightarrow \phi_2
+\actions(A) = (\rho, \alpha, m) 
 }
-{\jr \FH{\phi_1}{\call{A}}{\phi_2}}
+{\jr \call{A} \preceq \alpha}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -454,20 +465,9 @@ $
 $
 \inferrule
 {
-\mov(P') = \perp
 }
-{\jr \FH{\phi}{\call{P'}}{\false}}
-\;(\textsc{Call1})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\mov(P') \neq \perp \\ \phi_1 \wedge \act(P') \Rightarrow \phi_2
-}
-{\jr \FH{\phi_1}{\call{P'}}{\phi_2}}
-\;(\textsc{Call2})
+{\jr \call{P} \preceq \false}
+\;(\textsc{Call})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -475,7 +475,7 @@ $
 \inferrule
 {
 }
-{\jr \FH{\phi}{\async{P'}}{\phi}}
+{\jr \async{P} \preceq \stutter}
 \;(\textsc{Async})
 $
 \medskip
@@ -483,9 +483,9 @@ $
 $
 \inferrule
 {
-\jr \FH{\phi_1 \wedge e}{s}{\phi_2}
+\jr s \preceq \alpha
 }
-{\jr \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
+{\jr \ablock{e}{s} \preceq \alpha}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -493,29 +493,28 @@ $
 $
 \inferrule
 {
-\jr \FH{\phi_1}{s_1}{\phi_2} \\ \jr \FH{\phi_2}{s_2}{\phi_3}
+\jr s_1 \preceq \alpha_1 \\ \jr s_2 \preceq \alpha_2
 }
-{\jr \FH{\phi_1}{s_1;s_2}{\phi_3}}
+{\jr s_1;s_2 \preceq \alpha_1 \circ \alpha_2}
 \;(\textsc{Seq})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\jr \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \jr \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
-}
-{\jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
-\;(\textsc{Ite})
-$
-\medskip
+%% $
+%% \inferrule
+%% {
+%% \jr s_1 \preceq \alpha_1 \\ \jr \s_2 \preceq \alpha_2
+%% }
+%% {\jr \ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \Rightarrow \alpha_1) \wedge (\neg \locExpr \Rightarrow \alpha_2)}
+%% \;(\textsc{Ite})
+%% $
+%% \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
-\jr \FH{e \wedge \locExpr}{s}{e \wedge m' < m} \\ e \wedge \locExpr \Rightarrow m \geq 0
 }
-{\jr \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\jr \FH{e}{\twhile{e}{m,\alpha}{\locExpr}{s}}{\alpha}}
 \;(\textsc{While})
 $
 \medskip

@@ -40,8 +40,8 @@
 
 \newcommand{\yieldorborder}[1]{\mathit{yield\_or\_border}\ #1}
 \newcommand{\ite}[3]{{\mathit{if}\ {#1}\ }{\mathit{then}\ {#2}\ }{\mathit{else}\ {#3}\ }}
-\newcommand{\while}[3]{ \mathit{while}\ \{{#1}\}\  {{#2}\ } \mathit{do}\ {{#3}\ } }
-\newcommand{\termwhile}[3]{ \mathit{twhile}\ \{{#1}\}\  {{#2}\ } \mathit{do}\ {{#3}\ } }
+\newcommand{\while}[3]{\mathit{while}\ \{{#1}\}\  {{#2}\ } \mathit{do}\ {{#3}\ } }
+\newcommand{\twhile}[4]{\mathit{while}\ \{{#1}\}\ \{{#2}\}\ {{#3}\ } \mathit{do}\ {{#4}\ } }
 \newcommand{\yield}[1]{\mathit{yield}\ #1}
 \newcommand{\join}[1]{\mathit{join}\ #1}
 \newcommand{\async}[1]{\mathit{async}\ #1}
@@ -161,7 +161,7 @@
 \newcommand{\fails}{\ \mathrm{fails}}
 
 \newcommand{\tl}{\mathit{tl}}
-\newcommand{\tls}{\overrightarrow{\tl}}
+\newcommand{\tls}{\mathit{tls}}
 \newcommand{\Frame}[2]{(#1,#2)}
 
 \newcommand{\pre}{\mathit{pre}}
@@ -188,3 +188,4 @@
 
 \newcommand{\Mover}{\mathit{Mover}}
 
+\newcommand{\accessVars}{\mathit{Vars}}
