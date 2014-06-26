@@ -30,11 +30,13 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e} \mid$ 
                   & & $\ablock{e}{s} \mid s;\;s \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
                   & & $\while{e,m}{\locExpr}{s}$ \\ 
+$\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
+$T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
+\\
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
-$\ReturnCtxt \in \mathit{ReturnCtxt}$ &::= & $\ContinuationCtxt \mid \ReturnCtxt;\stmt$ \\
-$\ContinuationCtxt \in \mathit{ContinuationCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\ReturnCtxt)$ \\
-$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, \ContinuationCtxt)$ \\
-$T \in \mathit{Thread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][s]$ \\
+$\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
+$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, ([]_{\Locals}, \StmtCtxt)) \mid$ \\
+ & &$([]_{\ThreadLocals}, (\varsL, \StmtStackCtxt))$ \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e}]$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads$ \\
 \end{tabular}
