@@ -52,9 +52,9 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \tls, \psi) \\ \accessVars(\rho) \cap (\Globals \cup \tls) = \{\} \\\\ H \neq \{\}
+\specs(P) = (\phi, \psi) \\ H \neq \{\}
 }
-{\jp \FH{\rho \wedge \phi}{\call{P}}{\rho \wedge \psi}}
+{\jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc1})
 $
 \medskip
@@ -62,9 +62,9 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \tls, \psi) \\ \accessVars(\rho) \cap (\Globals \cup \tls) = \{\} \\ P \in \dom(\refines) \\ \jp \FH{\phi}{\call{\refines(P)}}{\psi}
+\specs(P) = (\phi, \psi) \\ P \in \dom(\refines) \\ \jp \FH{\phi}{\call{\refines(P)}}{\psi}
 }
-{\jp \FH{\rho \wedge \phi}{\call{P}}{\rho \wedge \psi}}
+{\jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc2})
 $
 \medskip
@@ -72,7 +72,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \tls, \psi)
+\specs(P) = (\phi, \psi)
 }
 {\jp \FH{\rho \wedge \phi}{\async{P}}{\rho}}
 \;(\textsc{Async})
@@ -114,7 +114,7 @@ $
 {
 \jp \FH{e \wedge \locExpr}{s}{e}
 }
-{\jp \FH{e}{\while{e,m}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\jp \FH{e}{\while{e}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 $
 \medskip
@@ -254,7 +254,7 @@ $
 {
 P \vdash s : \re
 }
-{P \vdash \while{e,m}{\locExpr}{s} : \re^*}
+{P \vdash \while{e}{\locExpr}{s} : \re^*}
 \;(\textsc{While})
 $
 \medskip
@@ -397,7 +397,7 @@ $
 {
 P \vdash s : x \leadsto x
 }
-{P \vdash \while{e,m}{\locExpr}{s} : x \leadsto x}
+{P \vdash \while{e}{\locExpr}{s} : x \leadsto x}
 \;(\textsc{While})
 $
 \medskip
@@ -500,15 +500,15 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-%% $
-%% \inferrule
-%% {
-%% \jr s_1 \preceq \alpha_1 \\ \jr \s_2 \preceq \alpha_2
-%% }
-%% {\jr \ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \Rightarrow \alpha_1) \wedge (\neg \locExpr \Rightarrow \alpha_2)}
-%% \;(\textsc{Ite})
-%% $
-%% \medskip
+$
+\inferrule
+{
+\jr s_1 \preceq \alpha_1 \\ \jr s_2 \preceq \alpha_2
+}
+{\jr \ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \Rightarrow \alpha_1) \wedge (\neg \locExpr \Rightarrow \alpha_2)}
+\;(\textsc{Ite})
+$
+\medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule

@@ -4,7 +4,6 @@
 \begin{tabular}{rclcl}
 $g$ & $\in$ & $\Globals \subseteq \Var$ \\
 $\tl$ & $\in$ & $\ThreadLocals \subseteq \Var$ \\
-$\tls$ & $\in$ & $2^\ThreadLocals$ \\
 $l$ & $\in$ & $\Locals \subseteq \Var$ \\
 $t$ & $\in$ & $\Type$ \\
 $x,y$ & $\in$ & $\Var$ \\
@@ -17,7 +16,7 @@ $A$ & $\in$ & $\ActionName$ \\
 $\bodies$ & $\in$ & $\ProcName \rightarrow \Stmt$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
-$\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocals, \StateExpr)$ \\
+$\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, \StateExpr)$ \\
 $\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
 $H$ & $\in$ & $2^{\ThreadLocals \cup \Globals}$ \\
 \end{tabular}
@@ -30,7 +29,7 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e} \mid$ 
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
                   & & $\ablock{e}{s} \mid s;\;s \mid$\\
                  & & $\ite{\locExpr}{s}{s} \mid$ \\
-                  & & $\while{e,m}{\locExpr}{s}$ \\ 
+                  & & $\while{e}{\locExpr}{s}$ \\ 
 $\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
 \\
@@ -78,7 +77,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \tls, \psi) \\ T' = (\varsTL, (\varsL, \yield{\phi};\bodies(P)))
+\specs(P) = (\phi, \psi) \\ T' = (\varsTL, (\varsL, \yield{\phi};\bodies(P)))
 }
 {\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsL][\skipstmt] \cdot T')}
 \;(\textsc{Async})
@@ -98,7 +97,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \tls, \psi)
+\specs(P) = (\phi, \psi)
 }
 {\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\yield{\phi};\bodies(P);\yield{\psi}}])}
 \;{(\textsc{Call})}
@@ -213,7 +212,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, \skipstmt)}
+{\vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
 $
 \medskip
@@ -223,7 +222,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\vdash (\vars, \while{e,m}{\locExpr}{s}) \trans (\vars, s;\while{e,m}{\locExpr}{s})}
+{\vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, s;\while{e,m}{\locExpr}{s})}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%
