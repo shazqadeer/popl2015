@@ -125,11 +125,6 @@ $
 \label{fig:sequential-correctness}
 \end{figure}
 
-For each procedure $P$ such that $\mov(P) = \perp$, prove the following judgments:
-\[
-\jp \FH{\pre(P)}{\bodies(P)}{\post(P)}
-\]
-
 Let $\Yields(P)$ be the set of yield predicates in procedure $P$
 and 
 $\Yields = \bigcup_{P \in \ProcName \wedge \mov(P) = \perp}\Yields(P) \cup \{P \in \ProcName \mid \pre(P)\} \cup \{P \in \ProcName \mid \post(P)\}$.
@@ -410,16 +405,17 @@ $
 
 \subsection{Responsiveness}
 
+\newcommand{\stutter}{\skipstmt}
+
 \[
 \inferrule
 {
-\jp \FH{e \wedge \locExpr}{s}{e} \\ \jr \FH{e \wedge \locExpr}{s}{\alpha \wedge m' < m} \\ e \wedge \locExpr \Rightarrow m \geq 0
+\jp \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow m \geq 0 \\ \jr s \preceq \beta \\ e \wedge \locExpr \wedge \beta \Rightarrow m' < m \\ \neg \locExpr \wedge \stutter \Rightarrow \alpha \\ \beta \circ \alpha \Rightarrow \alpha 
 }
 {\jp \FH{e}{\twhile{e}{m,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 \]
 
-\newcommand{\stutter}{\skipstmt}
 
 \begin{figure}
 \scriptsize{
@@ -438,7 +434,7 @@ $
 \inferrule
 {
 }
-{\jr \assert{\locExpr} \preceq \locExpr \wedge \stutter}
+{\jr \assert{\locExpr} \preceq \stutter}
 \;(\textsc{Assert})
 $
 \medskip
@@ -514,7 +510,7 @@ $
 \inferrule
 {
 }
-{\jr \FH{e}{\twhile{e}{m,\alpha}{\locExpr}{s}}{\alpha}}
+{\jr \twhile{e}{m,\alpha}{\locExpr}{s} \preceq e \circ \alpha \circ \neg \locExpr}
 \;(\textsc{While})
 $
 \medskip
