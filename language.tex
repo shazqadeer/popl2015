@@ -2,11 +2,11 @@
 \setlength{\tabcolsep}{3pt}
 {\bf Program Syntax} \\
 \begin{tabular}{rclcl}
-$g$ & $\in$ & $\Globals \subseteq \Var$ \\
-$\tl$ & $\in$ & $\ThreadLocals \subseteq \Var$ \\
-$l$ & $\in$ & $\Locals \subseteq \Var$ \\
+$g$ & $\in$ & $\Globals \subseteq \VarName$ \\
+$\tl$ & $\in$ & $\ThreadLocals \subseteq \VarName$ \\
+$l$ & $\in$ & $\Locals \subseteq \VarName$ \\
+$x,y$ & $\in$ & $\Var = \Globals \cup \ThreadLocals \cup \Locals$ \\
 $t$ & $\in$ & $\Type$ \\
-$x,y$ & $\in$ & $\Var$ \\
 $v$ &  $\in$ & $\Value$ \\
 $e, \phi, \psi, \rho$ & $\in$ & $\StateExpr$ \\
 $\alpha, \beta$ & $\in$ & $\TransExpr$ \\
@@ -19,12 +19,16 @@ $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ 
 $\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, \StateExpr)$ \\
 $\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
 $H$ & $\in$ & $2^{\ThreadLocals \cup \Globals}$ \\
+$\varsG$ & $\in$ & $ \Globals \rightarrow \Value$ \\
+$\varsTL$ & $\in$ & $ \ThreadLocals  \rightarrow \Value$ \\
+$\varsL$ & $\in$ & $ \Locals \rightarrow \Value$ \\
+$\sigma$ & $\in$ & $ \Var \rightarrow \Value$ \\
+$\Gamma$ & $\in$ & $ \Var \rightarrow \Type$ \\
+$\lins$ & $\in$ & $2^{\Var}$ \\
 \end{tabular}
 ~\\
 ~\\
 \begin{tabular}{rclcl}
-$\Vinfo$ &::= & $x:t=v$ \\
-$\varsG,\varsTL,\varsL \in \Vinfos$ \\
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e} \mid$ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
                   & & $\ablock{e}{s} \mid s;\;s \mid$\\
@@ -57,7 +61,7 @@ $\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, H, \varsG, \
 $
 \inferrule
 {
-\vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, s) \trans (\varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL', s')
+\vdash (\varsG\cup\varsTL\cup\varsL, s) \trans (\varsG'\cup\varsTL'\cup\varsL', s')
 }
 {\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \trans (\varsG', \ProgCtxt[\varsTL'][\varsL'][s'])}
 \;(\textsc{Program-Step})
@@ -67,7 +71,7 @@ $
 $
 \inferrule
 {
-\vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, s) \fails
+\vdash (\varsG\cup\varsTL\cup\varsL, s) \fails
 }
 {\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \fails}
 \;(\textsc{Program-Fail})
@@ -148,10 +152,10 @@ $
 \inferrule
 {
 \actions(A) = (\rho, \alpha, m) \\
-(\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, \varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL') \vdash \alpha \\
+(\vars, \vars') \vdash \alpha \\
 }
 {
-\vdash (\varsG\!\cdot\!\varsTL\!\cdot\!\varsL, \call{A}) \trans (\varsG'\!\cdot\!\varsTL'\!\cdot\!\varsL',\skipstmt)
+\vdash (\vars, \call{A}) \trans (\vars',\skipstmt)
 }
 \;{(\textsc{Atomic})}
 $
@@ -183,7 +187,7 @@ $
 \\
 }
 {\vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
-\;{(\textsc{Seq})}
+\;{\;\;\;\;\;\;\;\;\;\;\;\;(\textsc{Seq})}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
