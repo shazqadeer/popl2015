@@ -531,3 +531,162 @@ $
 \caption{Sequential rules for responsiveness}
 \label{fig:termination-correctness}
 \end{figure}
+
+
+\newcommand{\RefinementAny}{r}
+\newcommand{\RefinementInside}{\mathrm{r^+}}
+\newcommand{\RefinementOutside}{\mathrm{r^-}}
+
+\newcommand{\ABlockAny}{a}
+\newcommand{\ABlockInside}{\mathrm{a^+}}
+\newcommand{\ABlockOutside}{\mathrm{a^-}}
+
+\newcommand{\ProcLins}{\mathit{ls}}
+
+\begin{figure}
+$\ProcLins \in (\ActionName \cup \ProcName) \rightarrow (2^{\Var}, 2^{\Var})$ \\
+$\ABlockAny \in \mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
+$\RefinementAny \in \mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
+\\
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\lins;\RefinementAny;\ABlockAny \vdash \skipstmt : \lins
+}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\lins;\RefinementAny;\ABlockOutside \vdash \assert{\locExpr} : \lins
+}
+\;(\textsc{Assert1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\lins;\RefinementAny;\ABlockOutside \vdash \yield{e} : \lins
+}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(A) = (\lins',\lins'')
+}
+{
+\lins,\lins';\RefinementAny;\ABlockInside \vdash \call{A} : \lins,\lins''
+}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(P) = (\lins',\lins'') \\
+\RefinementAny = \RefinementInside \Longrightarrow P \in \dom(\refines)
+}
+{
+\lins,\lins';\RefinementAny;\ABlockOutside \vdash \call{P} : \lins,\lins''
+}
+\;(\textsc{Proc})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(P) = (\lins',\lins'') \\
+\RefinementAny = \RefinementInside \Longrightarrow P \in \dom(\refines)
+}
+{
+\lins,\lins';\RefinementAny;\ABlockOutside \vdash \async{P} : \lins
+}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\RefinementAny;\ABlockInside \vdash \stmt : \lins' \\
+}
+{
+\lins;\RefinementAny;\ABlockOutside \vdash \ablock{e}{\stmt} : \lins' \\
+}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\RefinementAny;\ABlockAny \vdash \StmtStack : \lins' \\
+}
+{
+\lins;\RefinementAny;\ABlockAny \vdash (\varsL,\StmtStack) : \lins' \\
+}
+\;(\textsc{StackFrame})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\RefinementAny;\ABlockAny \vdash \StmtStack : \lins' \\
+\lins';\RefinementAny;\ABlockAny \vdash \stmt : \lins'' \\
+}
+{
+\lins;\RefinementAny;\ABlockAny \vdash \StmtStack;\stmt : \lins'' \\
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\RefinementAny;\ABlockAny \vdash s_1 : \lins' \\
+\lins;\RefinementAny;\ABlockAny \vdash s_2 : \lins' \\
+}
+{
+\lins;\RefinementAny;\ABlockAny \vdash \ite{\locExpr}{s_1}{s_2} : \lins' \\
+}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\RefinementAny;\ABlockAny \vdash s : \lins \\
+}
+{
+\lins;\RefinementAny;\ABlockAny \vdash \while{e}{\locExpr}{s} : \lins \\
+}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+
+}
+\caption{Type checking rules}
+\label{fig:type-checking}
+\end{figure}
+
