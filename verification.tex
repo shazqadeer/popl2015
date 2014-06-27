@@ -339,7 +339,7 @@ $
 $
 \inferrule
 {
-\mov(P') \neq \perp \\ \act(P') \Rightarrow \havoc{H}
+\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \havoc{H}
 }
 {P \vdash \call{P'} : \epsilon}
 \;(\textsc{Call-Loop})
@@ -349,9 +349,9 @@ $
 $
 \inferrule
 {
-\mov(P') \neq \perp \\ \act(P') \Rightarrow \act{P}
+\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho \Rightarrow \rho' \\ \rho \circ \alpha' \Rightarrow \alpha
 }
-{P \vdash \ablock{e}{s} : A}
+{P \vdash \call{P'} : A}
 \;(\textsc{Call-Action})
 $
 \medskip
@@ -359,7 +359,7 @@ $
 $
 \inferrule
 {
-\mov(P') \neq \perp \\ \act(P') \Rightarrow \havoc{H}
+\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \havoc{H}
 }
 {P \vdash \async{P'} : \epsilon}
 \;(\textsc{Async})
@@ -379,7 +379,7 @@ $
 $
 \inferrule
 {
-\jp \FH{e}{s}{\act(P)}
+\actions(\refines(P)) = (\rho,\alpha,m) \\ \rho \Rightarrow e \\ \jp \FH{\rho}{s}{\alpha}
 }
 {P \vdash \ablock{e}{s} : A}
 \;(\textsc{Ablock-Action})
@@ -461,7 +461,7 @@ $
 \inferrule
 {
 }
-{P \vdash \skipstmt : x \leadsto x}
+{\vdash \skipstmt : x \leadsto x}
 \;(\textsc{Skip})
 $
 \medskip
@@ -470,7 +470,7 @@ $
 \inferrule
 {
 }
-{P \vdash \assert{\locExpr} : x \leadsto x}
+{\vdash \assert{\locExpr} : x \leadsto x}
 \;(\textsc{Assert})
 $
 \medskip
@@ -479,7 +479,7 @@ $
 \inferrule
 {
 }
-{P \vdash \yield{e} : x \leadsto \RM}
+{\vdash \yield{e} : x \leadsto \RM}
 \;(\textsc{Yield})
 $
 \medskip
@@ -487,9 +487,9 @@ $
 $
 \inferrule
 {
-\mov(P') = B
+P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, B)
 }
-{P \vdash \call{P'} : x \leadsto x}
+{\vdash \call{P} : x \leadsto x}
 \;(\textsc{CallBothMover})
 $
 \medskip
@@ -497,9 +497,9 @@ $
 $
 \inferrule
 {
-\mov(P') = R
+P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, R)
 }
-{P \vdash \call{P'} : \RM \leadsto \RM}
+{\vdash \call{P} : \RM \leadsto \RM}
 \;(\textsc{CallRightMover})
 $
 \medskip
@@ -507,9 +507,9 @@ $
 $
 \inferrule
 {
-\mov(P') = L
+P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, L)
 }
-{P \vdash \call{P'} : x \leadsto \LM}
+{\vdash \call{P} : x \leadsto \LM}
 \;(\textsc{CallLeftMover})
 $
 \medskip
@@ -517,9 +517,19 @@ $
 $
 \inferrule
 {
-\mov(P') = N
+P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, N)
 }
-{P \vdash \call{P'} : \RM \leadsto \LM}
+{\vdash \call{P} : \RM \leadsto \LM}
+\;(\textsc{CallNonMover})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not \in \dom(\refines)
+}
+{\vdash \call{P} : x \leadsto \RM}
 \;(\textsc{CallYield})
 $
 \medskip
@@ -527,18 +537,8 @@ $
 $
 \inferrule
 {
-\mov(P') = \perp
 }
-{P \vdash \call{P'} : x \leadsto \RM}
-\;(\textsc{CallYield})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{P \vdash \async{P'} : x \leadsto \LM}
+{\vdash \async{P} : x \leadsto \LM}
 \;(\textsc{Async})
 $
 \medskip
@@ -548,7 +548,7 @@ $
 {
 x \in \{\RM,\CM\}
 }
-{P \vdash \ablock{e}{s} : x \leadsto \CM}
+{\vdash \ablock{e}{s} : x \leadsto \CM}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -556,9 +556,9 @@ $
 $
 \inferrule
 {
-P \vdash s_1 : x \leadsto y \\ P \vdash s_2 : y \leadsto z
+\vdash s_1 : x \leadsto y \\ \vdash s_2 : y \leadsto z
 }
-{P \vdash s_1;s_2 : x \leadsto z}
+{\vdash s_1;s_2 : x \leadsto z}
 \;(\textsc{Seq})
 $
 \medskip
@@ -566,9 +566,9 @@ $
 $
 \inferrule
 {
-P \vdash s_1 : x \leadsto y \\ P \vdash s_2 : x \leadsto y
+\vdash s_1 : x \leadsto y \\ \vdash s_2 : x \leadsto y
 }
-{P \vdash \ite{\locExpr}{s_1}{s_2} : x \leadsto y}
+{\vdash \ite{\locExpr}{s_1}{s_2} : x \leadsto y}
 \;(\textsc{Ite})
 $
 \medskip
@@ -576,9 +576,9 @@ $
 $
 \inferrule
 {
-P \vdash s : x \leadsto x
+\vdash s : x \leadsto x
 }
-{P \vdash \while{e}{\locExpr}{s} : x \leadsto x}
+{\vdash \while{e}{\locExpr}{s} : x \leadsto x}
 \;(\textsc{While})
 $
 \medskip
