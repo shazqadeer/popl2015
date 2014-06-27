@@ -125,23 +125,34 @@ $
 \label{fig:sequential-correctness}
 \end{figure}
 
-Let $\Yields(P)$ be the set of yield predicates in procedure $P$
-and 
-$\Yields = \bigcup_{P \in \ProcName \wedge \mov(P) = \perp}\Yields(P) \cup \{P \in \ProcName \mid \pre(P)\} \cup \{P \in \ProcName \mid \post(P)\}$.
-Let $\Ablocks(P)$ be the set of atomic blocks in procedure $P$.
-Given a predicate $\phi$, let $\hat{\phi}$ represent $\phi$ with all thread-local and local 
-variables substituted with fresh constants.
+\newcommand{\Yield}{\mathit{Yield}}
+\newcommand{\Pre}{\mathit{Pre}}
+\newcommand{\Post}{\mathit{Post}}
+\newcommand{\Ablock}{\mathit{Ablock}}
+\newcommand{\FV}{\mathit{FV}}
 
-For each predicate $\phi \in \Yields$
-and for each atomic block $\ablock{e}{s} \in \bigcup_{P \in \ProcName \wedge \mov(P) = \perp} \Ablocks(P)$, prove the following judgment:
+Let $\Yield$ be the set of yield predicates, $\Pre$ be the set of preconditions,
+and $\Post$ be the set of postconditions, and $\Ablock$ be the set of atomic blocks in the entire program.
+Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Lambda$ be a one-one 
+substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
+Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
+For each predicate $\phi \in \Yield \cup \Pre \cup \Post$
+and for each atomic block $\ablock{e}{s} \in \Ablock$, we prove the following judgment:
 \[
-\jp \FH{\hat{\phi} \wedge e}{s}{\hat{\phi}}
+\jp \FH{\Lambda(\phi) \wedge e}{s}{\Lambda(\phi)}
 \]
 
-For each predicate $\phi \in \Yields$ and for each $P$ such that $\mov(P) \neq \perp$, prove the following judgment:
+Let $\Yield'$ be the set of yield predicates anywhere in the program except in the bodies of procedures
+in  $\dom(\refines)$.
+Let ${\cal P}$ be the set of procedures called from anywhere in the program except from the bodies of 
+procedures in $\dom(\refines)$.
+Let $\Pre'$ be the set of preconditions and $\Post'$ be the set of postconditions of the procedures in ${\cal P}$.
+For each predicate $\phi \in \Yield' \cup \Pre' \cup \Post'$ and for each $P \in \dom(\refines) \cap {\cal P}$ such that
+$\actions(P) = (\rho, \alpha, m)$, prove the following judgment:
 \[
-\hat{\phi} \wedge \pre(P) \wedge \act(P) \Rightarrow \hat{\phi}
+\Lambda(\phi) \circ \rho \circ \alpha \Rightarrow \Lambda(\phi)
 \]
+
 
 \begin{figure}
 \scriptsize{
