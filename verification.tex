@@ -125,12 +125,7 @@ $
 \label{fig:sequential-correctness}
 \end{figure}
 
-\newcommand{\Yield}{\mathit{Yield}}
-\newcommand{\Pre}{\mathit{Pre}}
-\newcommand{\Post}{\mathit{Post}}
-\newcommand{\Ablock}{\mathit{Ablock}}
-\newcommand{\FV}{\mathit{FV}}
-
+{\bf Non-interference.}
 Let $\Yield$ be the set of yield predicates, $\Pre$ be the set of preconditions,
 and $\Post$ be the set of postconditions, and $\Ablock$ be the set of atomic blocks in the entire program.
 Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Lambda$ be a one-one 
@@ -148,11 +143,33 @@ Let ${\cal P}$ be the set of procedures called from anywhere in the program exce
 procedures in $\dom(\refines)$.
 Let $\Pre'$ be the set of preconditions and $\Post'$ be the set of postconditions of the procedures in ${\cal P}$.
 For each predicate $\phi \in \Yield' \cup \Pre' \cup \Post'$ and for each $P \in \dom(\refines) \cap {\cal P}$ such that
-$\actions(P) = (\rho, \alpha, m)$, prove the following judgment:
+$\actions(P) = (\rho, \alpha, m)$, prove the following valid:
 \[
 \Lambda(\phi) \circ \rho \circ \alpha \Rightarrow \Lambda(\phi)
 \]
 
+{\bf Commutativity.}
+Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
+Let $\Lambda_1$ and $\Lambda_2$ be one-one 
+substitution functions from $\ThreadLocals \cup \Locals$ to $\FV_1$ and $\FV_2$ respectively.
+For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$ then prove the following valid:
+\[
+\begin{array}{l}
+(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Lambda_1(\alpha_2) \wedge \Same(\FV_1)) \\ 
+\Rightarrow (\Lambda_1(\alpha_2) \wedge \Same(\FV_1)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2))
+\end{array}
+\]
+For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+if $m_1 \in \{B,R\}$ then prove the following unsatisfiable:
+\[
+\Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ \Lambda_2(\alpha_2)) \circ \neg \Lambda_1(\rho_1)
+\]
+For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+if $m_1 \in \{B,L\}$ then prove the following unsatisfiable:
+\[
+\neg \Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ \Lambda_2(\alpha_2)) \circ \Lambda_1(\rho_1)
+\]
 
 \begin{figure}
 \scriptsize{
