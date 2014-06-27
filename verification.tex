@@ -339,7 +339,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \havoc{H}
+\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(H)
 }
 {P \vdash \call{P'} : \epsilon}
 \;(\textsc{Call-Loop})
@@ -349,7 +349,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho \Rightarrow \rho' \\ \rho \circ \alpha' \Rightarrow \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \Rightarrow \rho \\ \rho' \circ \alpha' \Rightarrow \alpha
 }
 {P \vdash \call{P'} : A}
 \;(\textsc{Call-Action})
@@ -359,7 +359,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \havoc{H}
+\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(H)
 }
 {P \vdash \async{P'} : \epsilon}
 \;(\textsc{Async})
@@ -369,7 +369,7 @@ $
 $
 \inferrule
 {
-\jp \FH{e}{s}{\havoc{H \cup L}}
+\jp \FH{e}{s}{\Havoc(H \cup L)}
 }
 {P \vdash \ablock{e}{s} : \epsilon}
 \;(\textsc{Ablock-Loop})
@@ -379,7 +379,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ \rho \Rightarrow e \\ \jp \FH{\rho}{s}{\alpha}
+\actions(\refines(P)) = (\rho,\alpha,m) \\ e \Rightarrow \rho \\ \jp \FH{e}{s}{\alpha}
 }
 {P \vdash \ablock{e}{s} : A}
 \;(\textsc{Ablock-Action})
