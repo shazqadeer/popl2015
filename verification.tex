@@ -515,7 +515,7 @@ $
 {
 s_1 \preceq \alpha_1 \\ s_2 \preceq \alpha_2
 }
-{\ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \Rightarrow \alpha_1) \wedge (\neg \locExpr \Rightarrow \alpha_2)}
+{\ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \circ \alpha_1) \vee (\neg \locExpr \circ \alpha_2)}
 \;(\textsc{Ite})
 $
 \medskip
@@ -530,7 +530,15 @@ s \preceq \beta \\ \neg \locExpr \circ \stutter \Rightarrow \alpha \\ \beta \cir
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-
+$
+\inferrule
+{
+s \preceq \alpha \\ \alpha \Rightarrow \alpha'
+}
+{s \preceq \alpha'}
+\;(\textsc{Weaken})
+$
+\medskip
 }
 \caption{Abstracting statements by actions}
 \label{fig:statement-to-action}
@@ -708,7 +716,7 @@ $
 \[
 \inferrule
 {
-\mathit{fresh}\ x \in \VarName \setminus \Var \\ \FH{e \wedge \locExpr \wedge x = f}{s}{e \wedge f < x} \\ e \wedge \locExpr \Rightarrow f \geq 0
+\FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \mathit{old}(f) > f)
 }
 {\FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
