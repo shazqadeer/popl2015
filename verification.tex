@@ -198,7 +198,7 @@ $
 $
 \inferrule
 {
-\actions(A) = (\rho, \alpha, m) \\ \phi_1 \Rightarrow \rho \\ \phi_1 \wedge \alpha \Rightarrow \phi_2
+\actions(A) = (\rho, \alpha, m) \\ \phi_1 \Rightarrow \rho \\ \mathit{old}(\phi_1) \wedge \alpha \Rightarrow \phi_2
 }
 {\FH{\phi_1}{\call{A}}{\phi_2}}
 \;(\textsc{Atomic})
@@ -378,7 +378,7 @@ $
 $
 \inferrule
 {
-s \preceq e \Rightarrow \Havoc(L)
+s \preceq \mathit{old}(e) \Rightarrow \Havoc(L)
 }
 {P \vdash \ablock{e}{s} : \epsilon}
 \;(\textsc{Ablock-Loop})
@@ -388,7 +388,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq e \Rightarrow \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow \alpha
 }
 {P \vdash \ablock{e}{s} : N}
 \;(\textsc{Ablock-Action})
