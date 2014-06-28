@@ -18,7 +18,7 @@ $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
 $\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, \StateExpr)$ \\
 $\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
-$H$ & $\in$ & $2^{\ThreadLocals \cup \Globals}$ \\
+$H$ & $\in$ & $2^{\Globals}$ \\
 $\varsG$ & $\in$ & $ \Globals \rightarrow \Value$ \\
 $\varsTL$ & $\in$ & $ \ThreadLocals  \rightarrow \Value$ \\
 $\varsL$ & $\in$ & $ \Locals \rightarrow \Value$ \\
@@ -47,7 +47,7 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdo
 ~\\
 ~\\
 \begin{tabular}{rcl}
-$\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, H, \varsG, \TS)$ \\
+$\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, \varsG, \TS)$ \\
 \end{tabular}
 \setlength{\tabcolsep}{6pt}
 \caption{Syntax}

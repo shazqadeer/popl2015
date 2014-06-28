@@ -162,7 +162,7 @@ $
 \inferrule
 {
 }
-{\jp \FH{\phi}{\skipstmt}{\phi}}
+{\FH{\phi}{\skipstmt}{\phi}}
 \;(\textsc{Skip})
 $
 \medskip
@@ -172,7 +172,7 @@ $
 {
 P \not \in \dom(\refines)
 }
-{\jp \FH{\phi}{\assert{\locExpr}}{\phi}}
+{\FH{\phi}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert1})
 $
 \medskip
@@ -181,7 +181,7 @@ $
 \inferrule
 {
 }
-{\jp \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
+{\FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert2})
 $
 \medskip
@@ -190,7 +190,7 @@ $
 \inferrule
 {
 }
-{\jp \FH{e}{\yield{e}}{e}}
+{\FH{e}{\yield{e}}{e}}
 \;(\textsc{Yield})
 $
 \medskip
@@ -200,7 +200,7 @@ $
 {
 \actions(A) = (\rho, \alpha, m) \\ \phi_1 \Rightarrow \rho \\ \phi_1 \wedge \alpha \Rightarrow \phi_2
 }
-{\jp \FH{\phi_1}{\call{A}}{\phi_2}}
+{\FH{\phi_1}{\call{A}}{\phi_2}}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -208,9 +208,9 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\ H \neq \{\}
+\specs(P) = (\phi, \psi) \\ P \not \in \dom(\refines)
 }
-{\jp \FH{\phi}{\call{P}}{\psi}}
+{\FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc1})
 $
 \medskip
@@ -218,9 +218,9 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\ P \in \dom(\refines) \\ \jp \FH{\phi}{\call{\refines(P)}}{\psi}
+\specs(P) = (\phi, \psi) \\ P \in \dom(\refines) \\ \FH{\phi}{\call{\refines(P)}}{\psi}
 }
-{\jp \FH{\phi}{\call{P}}{\psi}}
+{\FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc2})
 $
 \medskip
@@ -230,7 +230,7 @@ $
 {
 \specs(P) = (\phi, \psi)
 }
-{\jp \FH{\rho \wedge \phi}{\async{P}}{\rho}}
+{\FH{\rho \wedge \phi}{\async{P}}{\rho}}
 \;(\textsc{Async})
 $
 \medskip
@@ -238,9 +238,9 @@ $
 $
 \inferrule
 {
-\jp \FH{\phi_1 \wedge e}{s}{\phi_2}
+\FH{\phi_1 \wedge e}{s}{\phi_2}
 }
-{\jp \FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
+{\FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -248,9 +248,9 @@ $
 $
 \inferrule
 {
-\jp \FH{\phi_1}{s_1}{\phi_2} \\ \jp \FH{\phi_2}{s_2}{\phi_3}
+\FH{\phi_1}{s_1}{\phi_2} \\ \FH{\phi_2}{s_2}{\phi_3}
 }
-{\jp \FH{\phi_1}{s_1;s_2}{\phi_3}}
+{\FH{\phi_1}{s_1;s_2}{\phi_3}}
 \;(\textsc{Seq})
 $
 \medskip
@@ -258,9 +258,9 @@ $
 $
 \inferrule
 {
-\jp \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \jp \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
+\FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
 }
-{\jp \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
+{\FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
 \;(\textsc{Ite})
 $
 \medskip
@@ -268,14 +268,23 @@ $
 $
 \inferrule
 {
-\jp \FH{e \wedge \locExpr}{s}{e}
+\FH{e \wedge \locExpr}{s}{e}
 }
-{\jp \FH{e}{\while{e}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\FH{e}{\while{e}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-
+$
+\inferrule
+{
+\phi \Rightarrow \phi' \\ \FH{\phi'}{s}{\psi'} \\ \psi' \Rightarrow \psi
+}
+{\FH{\phi}{s}{\psi}}
+\;(\textsc{Weaken})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
 }
 \caption{Sequential rules for partial correctness}
 \label{fig:sequential-correctness}
@@ -290,7 +299,7 @@ Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression
 For each predicate $\phi \in \Yield \cup \Pre \cup \Post$
 and for each atomic block $\ablock{e}{s} \in \Ablock$, we prove the following judgment:
 \[
-\jp \FH{\Lambda(\phi) \wedge e}{s}{\Lambda(\phi)}
+\FH{\Lambda(\phi) \wedge e}{s}{\Lambda(\phi)}
 \]
 
 Let $\Yield'$ be the set of yield predicates anywhere in the program except in the bodies of procedures
@@ -349,9 +358,9 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \Rightarrow \rho \\ \rho' \circ \alpha' \Rightarrow \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \alpha
 }
-{P \vdash \call{P'} : A}
+{P \vdash \call{P'} : N}
 \;(\textsc{Call-Action})
 $
 \medskip
@@ -359,7 +368,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(H)
+\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
 {P \vdash \async{P'} : \epsilon}
 \;(\textsc{Async})
@@ -369,7 +378,7 @@ $
 $
 \inferrule
 {
-\jp \FH{e}{s}{\Havoc(H \cup L)}
+s \preceq e \Rightarrow \Havoc(L)
 }
 {P \vdash \ablock{e}{s} : \epsilon}
 \;(\textsc{Ablock-Loop})
@@ -379,9 +388,9 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ e \Rightarrow \rho \\ \jp \FH{e}{s}{\alpha}
+\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq e \Rightarrow \alpha
 }
-{P \vdash \ablock{e}{s} : A}
+{P \vdash \ablock{e}{s} : N}
 \;(\textsc{Ablock-Action})
 $
 \medskip
@@ -420,6 +429,111 @@ $
 }
 \caption{Refinement rules}
 \label{fig:refinement}
+\end{figure}
+
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\skipstmt \preceq \stutter}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\assert{\locExpr} \preceq \stutter}
+\;(\textsc{Assert})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\yield{e} \preceq \false}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions(A) = (\rho, \alpha, m) 
+}
+{\call{A} \preceq \alpha}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\call{P} \preceq \false}
+\;(\textsc{Call})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\async{P} \preceq \stutter}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+s \preceq \alpha
+}
+{\ablock{e}{s} \preceq \alpha}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+s_1 \preceq \alpha_1 \\ s_2 \preceq \alpha_2
+}
+{s_1;s_2 \preceq \alpha_1 \circ \alpha_2}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+s_1 \preceq \alpha_1 \\ s_2 \preceq \alpha_2
+}
+{\ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \Rightarrow \alpha_1) \wedge (\neg \locExpr \Rightarrow \alpha_2)}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+s \preceq \beta \\ \neg \locExpr \circ \stutter \Rightarrow \alpha \\ \beta \circ \alpha \Rightarrow \alpha 
+}
+{\while{e,\alpha}{\locExpr}{s} \preceq e \circ \alpha \circ \neg \locExpr}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+
+}
+\caption{Abstracting statements by actions}
+\label{fig:statement-to-action}
 \end{figure}
 
 \subsection{Yield sufficiency}
@@ -591,120 +705,13 @@ $
 
 \subsection{Responsiveness}
 
-\newcommand{\stutter}{\skipstmt}
-
 \[
 \inferrule
 {
-\jp \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow m \geq 0 \\ \jr s \preceq \beta \\ e \wedge \locExpr \wedge \beta \Rightarrow m' < m \\ \neg \locExpr \wedge \stutter \Rightarrow \alpha \\ \beta \circ \alpha \Rightarrow \alpha 
+\mathit{fresh}\ x \in \VarName \setminus \Var \\ \FH{e \wedge \locExpr \wedge x = f}{s}{e \wedge f < x} \\ e \wedge \locExpr \Rightarrow f \geq 0
 }
-{\jp \FH{e}{\twhile{e}{m,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 \]
-
-
-\begin{figure}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\jr \skipstmt \preceq \stutter}
-\;(\textsc{Skip})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\jr \assert{\locExpr} \preceq \stutter}
-\;(\textsc{Assert})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\jr \yield{e} \preceq \false}
-\;(\textsc{Yield})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\actions(A) = (\rho, \alpha, m) 
-}
-{\jr \call{A} \preceq \alpha}
-\;(\textsc{Atomic})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\jr \call{P} \preceq \false}
-\;(\textsc{Call})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\jr \async{P} \preceq \stutter}
-\;(\textsc{Async})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\jr s \preceq \alpha
-}
-{\jr \ablock{e}{s} \preceq \alpha}
-\;(\textsc{Ablock})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\jr s_1 \preceq \alpha_1 \\ \jr s_2 \preceq \alpha_2
-}
-{\jr s_1;s_2 \preceq \alpha_1 \circ \alpha_2}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\jr s_1 \preceq \alpha_1 \\ \jr s_2 \preceq \alpha_2
-}
-{\jr \ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \Rightarrow \alpha_1) \wedge (\neg \locExpr \Rightarrow \alpha_2)}
-\;(\textsc{Ite})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\jr \twhile{e}{m,\alpha}{\locExpr}{s} \preceq e \circ \alpha \circ \neg \locExpr}
-\;(\textsc{While})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-
-}
-\caption{Sequential rules for responsiveness}
-\label{fig:termination-correctness}
-\end{figure}
 
 
