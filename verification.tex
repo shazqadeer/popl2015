@@ -291,26 +291,21 @@ $
 \end{figure}
 
 {\bf Non-interference.}
-Let $\Yield$ be the set of yield predicates, $\Pre$ be the set of preconditions,
-and $\Post$ be the set of postconditions, and $\Ablock$ be the set of atomic blocks in the entire program.
+Let $\Yields$ be the set of yield predicates, preconditions, and postconditions in the program.
+Let $\Ablocks$ be the set of atomic blocks in the program except those inside the bodies of procedures
+in $\dom(\refines)$.
 Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Lambda$ be a one-one 
 substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
 Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
-For each predicate $\phi \in \Yield \cup \Pre \cup \Post$
-and for each atomic block $\ablock{e}{s} \in \Ablock$, we prove the following judgment:
+For each predicate $\phi \in \Yields$
+and for each atomic block $\ablock{e}{s} \in \Ablocks$, we prove the following judgment:
 \[
 \FH{\Lambda(\phi) \wedge e}{s}{\Lambda(\phi)}
 \]
-
-Let $\Yield'$ be the set of yield predicates anywhere in the program except in the bodies of procedures
-in  $\dom(\refines)$.
-Let ${\cal P}$ be the set of procedures called from anywhere in the program except from the bodies of 
-procedures in $\dom(\refines)$.
-Let $\Pre'$ be the set of preconditions and $\Post'$ be the set of postconditions of the procedures in ${\cal P}$.
-For each predicate $\phi \in \Yield' \cup \Pre' \cup \Post'$ and for each $P \in \dom(\refines) \cap {\cal P}$ such that
-$\actions(P) = (\rho, \alpha, m)$, prove the following valid:
+For each predicate $\phi \in \Yields$ and for each $P \in \dom(\refines)$ such that
+$\actions(\refines(P)) = (\rho, \alpha, m)$, we prove the following to be unsatisfiable:
 \[
-\Lambda(\phi) \circ \rho \circ \alpha \Rightarrow \Lambda(\phi)
+\Lambda(\phi) \circ \rho \circ \alpha \circ \neg\Lambda(\phi)
 \]
 
 \subsection{Refinement}
