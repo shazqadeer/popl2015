@@ -6,11 +6,14 @@ $g$ & $\in$ & $\Globals \subseteq \VarName$ \\
 $\tl$ & $\in$ & $\ThreadLocals \subseteq \VarName$ \\
 $l$ & $\in$ & $\Locals \subseteq \VarName$ \\
 $x,y$ & $\in$ & $\Var = \Globals \cup \ThreadLocals \cup \Locals$ \\
-$t$ & $\in$ & $\Type$ \\
 $v$ &  $\in$ & $\Value$ \\
-$e, \phi, \psi, \rho$ & $\in$ & $\StateExpr$ \\
-$\alpha, \beta$ & $\in$ & $\TransExpr$ \\
-$\locExpr$ & $\in$ & $\LocalStateExpr$ \\
+$\sigma$ & $\in$ & $\Store = \Var \rightarrow \Value$ \\
+$\varsG$ & $\in$ & $StoreGlobals = \Globals \rightarrow \Value$ \\
+$\varsTL$ & $\in$ & $StoreThreadLocals = \ThreadLocals  \rightarrow \Value$ \\
+$\varsL$ & $\in$ & $StoreLocals = \Locals \rightarrow \Value$ \\
+$e, \phi, \psi, \rho$ & $\in$ & $\StateExpr = 2^{\Store}$ \\
+$\alpha, \beta$ & $\in$ & $\TransExpr = 2^{(\Store,\Store)}$ \\
+$\locExpr$ & $\in$ & $\LocalStateExpr = 2^{\StoreLocals}$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
 $\bodies$ & $\in$ & $\ProcName \rightarrow \Stmt$ \\
@@ -18,13 +21,12 @@ $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
 $\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, \StateExpr)$ \\
 $\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
+$\lins$ & $\in$ & $\LinearVars = 2^{\Globals \cup \ThreadLocals}$ \\
+$\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVars, \LinearVars)$ \\
+$lv$ & $\in$ & $\mathit{LinearValues} = \Value \rightarrow 2^{\Value}$ \\
+$\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
+$\RefinementAny$ & $\in$ & $\mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
 $H$ & $\in$ & $2^{\Globals}$ \\
-$\varsG$ & $\in$ & $ \Globals \rightarrow \Value$ \\
-$\varsTL$ & $\in$ & $ \ThreadLocals  \rightarrow \Value$ \\
-$\varsL$ & $\in$ & $ \Locals \rightarrow \Value$ \\
-$\sigma$ & $\in$ & $ \Var \rightarrow \Value$ \\
-$\Gamma$ & $\in$ & $ \Var \rightarrow \Type$ \\
-$\lins$ & $\in$ & $2^{\Var}$ \\
 \end{tabular}
 ~\\
 ~\\

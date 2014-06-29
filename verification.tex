@@ -1,9 +1,5 @@
 \subsection{Type checking}
 \begin{figure}
-$\ProcLins \in (\ActionName \cup \ProcName) \rightarrow (2^{\Var}, 2^{\Var})$ \\
-$\ABlockAny \in \mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
-$\RefinementAny \in \mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
-\\
 \scriptsize{
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -43,11 +39,10 @@ $
 $
 \inferrule
 {
-\ProcLins(A) = (\lins,\lins') \\
-\lins_L \subseteq \Locals
+\ProcLins(A) = (\lins,\lins')
 }
 {
-\lins_L,\lins;\RefinementAny;\ABlockInside \vdash \call{A} : \lins_L,\lins'
+\lins;\RefinementAny;\ABlockInside \vdash \call{A} : \lins'
 }
 \;(\textsc{Atomic})
 $
@@ -57,11 +52,10 @@ $
 \inferrule
 {
 \ProcLins(P) = (\lins,\lins') \\
-\lins_L \subseteq \Locals \\
 \RefinementAny = \RefinementInside \Longrightarrow P \in \dom(\refines)
 }
 {
-\lins_L,\lins;\RefinementAny;\ABlockOutside \vdash \call{P} : \lins_L,\lins'
+\lins;\RefinementAny;\ABlockOutside \vdash \call{P} : \lins'
 }
 \;(\textsc{Proc})
 $
@@ -71,14 +65,12 @@ $
 \inferrule
 {
 \lins_G \subseteq \Globals \\
-\lins_{TL},\lins_{TL}' \subseteq \ThreadLocals \\
-\lins_L \subseteq \Locals \\
-\ProcLins(P) = (\lins',\lins'') \\
-\lins' = \lins_G,\lins_{TL}' \\
+\lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocals \\
+\ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
 \RefinementAny = \RefinementInside \Longrightarrow P \in \dom(\refines)
 }
 {
-\lins_G,\lins_{TL},\lins_{TL}',\lins_L;\RefinementAny;\ABlockOutside \vdash \async{P} : \lins_G,\lins_{TL},\lins_L
+\lins_G,\lins,\lins_P;\RefinementAny;\ABlockOutside \vdash \async{P} : \lins_G,\lins
 }
 \;(\textsc{Async})
 $
@@ -87,11 +79,10 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockInside \vdash \stmt : \lins' \\
-\lins \cap \Globals = \lins' \cap \Globals
+\lins;\RefinementAny;\ABlockInside \vdash \stmt : \lins'
 }
 {
-\lins;\RefinementAny;\ABlockOutside \vdash \ablock{e}{\stmt} : \lins' \\
+\lins;\RefinementAny;\ABlockOutside \vdash \ablock{e}{\stmt} : \lins'
 }
 \;(\textsc{Ablock})
 $
@@ -100,10 +91,10 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockAny \vdash \StmtStack : \lins' \\
+\lins;\RefinementAny;\ABlockAny \vdash \StmtStack : \lins'
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash (\varsL,\StmtStack) : \lins' \\
+\lins;\RefinementAny;\ABlockAny \vdash (\varsL,\StmtStack) : \lins'
 }
 \;(\textsc{StackFrame})
 $
@@ -113,10 +104,10 @@ $
 \inferrule
 {
 \lins;\RefinementAny;\ABlockAny \vdash \StmtStack : \lins' \\
-\lins';\RefinementAny;\ABlockAny \vdash \stmt : \lins'' \\
+\lins';\RefinementAny;\ABlockAny \vdash \stmt : \lins''
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \StmtStack;\stmt : \lins'' \\
+\lins;\RefinementAny;\ABlockAny \vdash \StmtStack;\stmt : \lins''
 }
 \;(\textsc{Seq})
 $
@@ -126,10 +117,10 @@ $
 \inferrule
 {
 \lins;\RefinementAny;\ABlockAny \vdash s_1 : \lins' \\
-\lins;\RefinementAny;\ABlockAny \vdash s_2 : \lins' \\
+\lins;\RefinementAny;\ABlockAny \vdash s_2 : \lins'
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \ite{\locExpr}{s_1}{s_2} : \lins' \\
+\lins;\RefinementAny;\ABlockAny \vdash \ite{\locExpr}{s_1}{s_2} : \lins'
 }
 \;(\textsc{Ite})
 $
@@ -138,16 +129,77 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockAny \vdash s : \lins \\
+\lins;\RefinementAny;\ABlockAny \vdash s : \lins
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \while{e}{\locExpr}{s} : \lins \\
+\lins;\RefinementAny;\ABlockAny \vdash \while{e}{\locExpr}{s} : \lins
 }
 \;(\textsc{While})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-
+$
+\inferrule
+{
+\ProcLins(P) = (\lins,\lins') \\
+\RefinementAny = \RefinementInside \Longleftrightarrow P \in \dom(\refines) \\
+\lins;\RefinementAny;\ABlockOutside \vdash \bodies(P) : \lins'
+}
+{
+\vdash P
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(A) = (\lins,\lins') \\
+\lins \cap \Globals = \lins' \cap \Globals \\
+\actions(A) = (\rho, \alpha, m) \\
+m \in \{B, L\} \Longrightarrow \forall \sigma \in \rho. \exists \sigma'. (\sigma, \sigma') \in \alpha \\
+\forall (\sigma,\sigma') \in \alpha.
+  \biguplus \{lv(\sigma'(x)) \mid x \in \lins'\} \subseteq
+  \biguplus \{lv(\sigma(x)) \mid x \in \lins\}
+%TODO: local variables for A in range(rs)
+}
+{
+\vdash A
+}
+\;(\textsc{Action})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T = (\varsTL, (\varsL, \StmtStack)) \\
+\lins;\RefinementOutside;\ABlockOutside \vdash \StmtStack : \lins'
+}
+{
+\lins \vdash T
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall P \in \ProcName. \vdash P \\
+\forall A \in \ActionName. \vdash A \\
+\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
+\lins_G \subseteq \Globals \\
+\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocals)
+}
+{
+\lins_G,\lins_1,\ldots,\lins_n \vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
 }
 \caption{Type checking rules}
 \label{fig:type-checking}
