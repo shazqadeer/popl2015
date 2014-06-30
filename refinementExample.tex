@@ -79,7 +79,9 @@ procedure Reserve({:cnst "tid"} tid:int)
   while (true) {
     call tmp := ReadFreeSpace();
     if (tmp > 0) {
-       call success := CAS_freeSpace(tmp,tmp-1)) 
+       call success := CAS_freeSpace(tmp,tmp-1);
+       if (success)
+         return; 
        yield;
     }
   }
