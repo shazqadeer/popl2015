@@ -103,13 +103,23 @@ obviously-terminating \exC{while} loop succeeds in finding a
 number of \exC{free} addresses that have not been reserved in this
 manner. 
 
-This example makes use of refinement at several levels. At the lowest
-level, refinement checks are performed to verify that 
-\exC{AllocAddrIfFree}, \exC{FreeAddr},
+In this example, three descriptions of the program at different levels
+of abstraction and atomicity are related by refinement. 
+The bottom-level description consists of the entire program with all
+variables present and no simplification due to abstract atomic
+procedures. 
+
+To obtain the middle-level description from the bottom-level
+  one, we hide \exC{allocLock}. We verify that 
+the calls to \exC{AllocAddrIfFree}, \exC{FreeAddr},
 \exC{Reserve}, and
-\exC{IncrementFreeSpace} satisfy their atomic action
-specifications. Verifying that \exC{IncrementFreeSpace}'s atomic
-action specification is a left mover allows us to show that \exC{Free} is
+\exC{IncrementFreeSpace} can be replaced by their atomic action
+specifications. 
+
+The top-level representation only
+consists of \exC{Alloc} and \exC{Free}'s atomic action
+specifications. To verify \exC{Free}, we verify that \exC{IncrementFreeSpace}'s atomic
+action specification is a left mover, we are able to show that \exC{Free} is
 atomic and satisfies its atomic action specification at the next level. 
 Verifying refinement and atomicity for \exC{Alloc} makes use
 of the fact that \exC{Reserve} is atomic. To prove that \exC{Alloc}
