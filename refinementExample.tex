@@ -1,92 +1,122 @@
 \begin{figure}
 \begin{small}
 \begin{verbatim}
-procedure Alloc({:cnst "tid"} tid:int) returns addr:int
-  ensures {:atomic} {assume Mem[addr] == free;  
-                     Mem[addr] := taken;}
+var Mem[int]:bool; // true: free, false: taken
+
+procedure Test({:cnst "tid"} tid:int) 
 {
-  Reserve(tid);         
+  call addr1 := Alloc();
+  yield;
+  call addr2 := Alloc();
+  assert addr1 != addr2 && !Mem[addr1] && !Mem[addr2];
+}
+\end{verbatim}
+\end{small}
+\caption{Client of \exC{Alloc} and \exC{Free}.}
+\label{fig:refTop}
+\end{figure}
+
+\begin{figure}
+\begin{small}
+\begin{verbatim}
+var freeSpace:int;
+var AtOrAfter[int][int]:bool; 
+const tid_max:int, lo:int, hi:int;
+axiom lo <= hi;
+
+procedure Alloc({:cnst "tid"} tid:int) returns addr:int
+  refines {:atomic} [assume Mem[addr];  
+                     Mem[addr] := false;]
+{
+  Reserve(tid);
+  yield AllocInv(tid, addr, freeSpace, AtOrAfter);         
   ptr := lo;
   while (ptr < hi && !found)
     invariant AllocInv(tid, addr, freeSpace, AtOrAfter);
   { 
-    found := AllocAddrIfFree(tid, addr);
-    if (!found) 
-      addr := addr + 1;
+    call found, addr := AllocAddrIfFree(tid, addr);
+    if (found) {
+      yield AllocInv(tid, addr, freeSpace, AtOrAfter);
+      return;
+    } 
     yield AllocInv(tid, addr, freeSpace, AtOrAfter);
   }
+  assert false;
 }
 \end{verbatim}
 \begin{verbatim}
 procedure Free({:cnst "tid"} tid:int, addr:int)
-  ensures {:atomic} {Mem[addr] := free;}
+  refines {:atomic} [Mem[addr] := true;]
 {
   FreeAddr(tid, addr);  
   IncFreeSpace(); 
 }
 \end{verbatim}
 \begin{verbatim}
-procedure AllocAddrIfFree({:cnst "tid"} tid:int, addr:int) 
-  returns res:bool
-  ensures {:atomic} { res := false;
-                      if (Mem[addr] == free) {
-                         Mem[addr] := taken; 
-                         res := true;
-                      }  
-                    }
-{
-  acquire(tid, allocLock);
-  if (Mem[addr] == free)
-    Mem[addr] := taken;   
-  release(tid, allocLock);
-}
+AllocInv(tid, addr, freeSpace, AtOrAfter) = 
+  0 <= freeSpace && lo <= addr <= hi &&
+  #(AtOrAfter[lo],0,tid_max) + freeSpace == #(Mem,lo,hi) && 
+  (forall u,v :: lo <= u <= v <= hi ==> 
+         Subset(AtOrAfter[v], AtOrAfter[u])) &&
+  (forall u :: 
+         #(AtOrAfter[u],0,tid_max) <= #(Mem,u,hi) &&
+         AtOrAfter[u][tid] <==> lo <= u && u <= addr)
 \end{verbatim}
-\begin{verbatim}
-procedure FreeAddr({:cnst "tid"} tid:int, addr:int)
-  ensures {:atomic} {Mem[addr] := free;}
-{
-  acquire(tid, allocLock);
-  Mem[addr] := free;   
-  release(tid, allocLock);
-}
-\end{verbatim}
+\end{small}
+\caption{An example of multiple phases of refinement}
+\label{fig:refTop}
+\end{figure}
+
+
+\begin{figure}
+\begin{small}
 \begin{verbatim}
 procedure Reserve({:cnst "tid"} tid:int) 
-  ensures {:atomic} {assume freeSpace >= 1; 
+  refines {:atomic} [assume freeSpace >= 1; 
                      freeSpace := freeSpace - 1;
-                     AtOrAfter[tid][lo] := true;}
+                     AtOrAfter[tid][lo] := true;]
 {
   while (true) {
-    tmp := freeSpace;
-    if (tmp>0 && CAS(freeSpace,tmp,tmp-1))  break;
-    yield;
+    call tmp := ReadFreeSpace();
+    if (tmp > 0) {
+       call success := CAS_freeSpace(tmp,tmp-1);
+       if (success)
+         return; 
+       yield;
+    }
   }
 }
 \end{verbatim}
 \begin{verbatim}
 procedure IncFreeSpace() 
-  ensures {:left} {freeSpace := freeSpace + 1;}
+  refines {:left} [freeSpace := freeSpace + 1;]
 {
   while (true) {
-    tmp := freeSpace;
-    if (CAS(freeSpace, tmp, tmp+1))  break;
+    call tmp := ReadFreeSpace();
+    success := CAS_freeSpace(tmp, tmp+1)
+    if (success)  
+      return;
     yield;
   }
 }
 \end{verbatim}
 \begin{verbatim}
-AllocInv(tid, addr, freeSpace, AtOrAfter) = 
-  0 <= freeSpace && lo <= addr <= hi &&
-  Size(AtOrAfter[lo]) + freeSpace == #Free[lo,hi] && 
-  (forall u,v :: lo <= u <= v <= hi ==> 
-         Subset(AtOrAfter[v], AtOrAfter[u])) &&
-  (forall u :: 
-         Size(AtOrAfter[u]) <= #Free[u,hi]) &&
-         AtOrAfter[u][tid] <==> lo <= u && u <= addr)
+procedure AllocAddrIfFree({:cnst "tid"} tid:int, addr:int) 
+  returns res:bool
+  refines {:atomic} [ res := false;
+                      if (Mem[addr]) {
+                         Mem[addr] := false; 
+                         res := true;
+                      } ]
+                    
+\end{verbatim}
+\begin{verbatim}
+procedure FreeAddr({:cnst "tid"} tid:int, addr:int)
+  refines {:atomic} [Mem[addr] := true;]
 \end{verbatim}
 \end{small}
 \caption{An example of multiple phases of refinement}
-\label{fig:refinement}
+\label{fig:refinementBot}
 \end{figure}
 
 The \exC{Alloc} procedure is possibly blocking and returns when it
@@ -136,7 +166,6 @@ establishes the following important facts when \exC{Alloc}'s
 \begin{verbatim}
   Size(AtOrAfter[lo]) + freeSpace == #Free[lo,hi] 
 \end{verbatim}
-
 
 %%% Local Variables: 
 %%% mode: latex
