@@ -1,9 +1,25 @@
 \begin{figure}
 \begin{small}
 \begin{verbatim}
-
-var freeSpace:int;
 var Mem[int]:bool; // true: free, false: taken
+
+procedure Test({:cnst "tid"} tid:int) 
+{
+  call addr1 := Alloc();
+  yield;
+  call addr2 := Alloc();
+  assert addr1 != addr2 && !Mem[addr1] && !Mem[addr2];
+}
+\end{verbatim}
+\end{small}
+\caption{Client of \exC{Alloc} and \exC{Free}.}
+\label{fig:refTop}
+\end{figure}
+
+\begin{figure}
+\begin{small}
+\begin{verbatim}
+var freeSpace:int;
 var AtOrAfter[int][int]:bool; 
 const tid_max:int, lo:int, hi:int;
 axiom lo <= hi;
