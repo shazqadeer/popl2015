@@ -60,6 +60,7 @@ procedure Reserve({:cnst "tid"} tid:int)
   while (true) {
     tmp := freeSpace;
     if (tmp>0 && CAS(freeSpace,tmp,tmp-1))  break;
+    yield;
   }
 }
 \end{verbatim}
@@ -70,6 +71,7 @@ procedure IncFreeSpace()
   while (true) {
     tmp := freeSpace;
     if (CAS(freeSpace, tmp, tmp+1))  break;
+    yield;
   }
 }
 \end{verbatim}
@@ -103,10 +105,14 @@ number of \exC{free} addresses that have not been reserved in this
 manner. 
 
 This example makes use of refinement at several levels. At the lowest
-level, the atomic action specifications of \exC{Reserve} and
-\exC{IncrementFreeSpace}, and the fact that the latter is a left mover
-are verified. This is sufficient to show that \exC{Free} is
-atomic. Verifying refinement and atomicity for \exC{Alloc} makes use
+level, refinement checks are performed to verify that 
+\exC{AllocAddrIfFree}, \exC{FreeAddr},
+\exC{Reserve}, and
+\exC{IncrementFreeSpace} satisfy their atomic action
+specifications. Verifying that \exC{IncrementFreeSpace}'s atomic
+action specification is a left mover allows us to show that \exC{Free} is
+atomic and satisfies its atomic action specification at the next level. 
+Verifying refinement and atomicity for \exC{Alloc} makes use
 of the fact that \exC{Reserve} is atomic. To prove that \exC{Alloc}
 satisfies its atomic action specification, we make use of an auxiliary
 variable \exC{AtOrAfter}. \exC{AtOrAfter[u][tid] == true} iff thread
