@@ -9,7 +9,6 @@ procedure Alloc({:cnst "tid"} tid:int) returns addr:int
   ptr := lo;
   while (ptr < hi && !found)
     invariant AllocInv(tid, addr, freeSpace, AtOrAfter);
-    invariant 
   { 
     found := AllocAddrIfFree(tid, addr);
     if (!found) 
