@@ -337,6 +337,18 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall 1 \le i \le n. (\FH{\phi_i}{T_i}{\psi_i}) \\
+}
+{
+\lins_G,\lins_1,\ldots,\lins_n \vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
 }
 \caption{Sequential rules for partial correctness}
 \label{fig:sequential-correctness}
@@ -395,7 +407,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(H)
+\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
 {P \vdash \call{P'} : \epsilon}
 \;(\textsc{Call-Loop})
@@ -435,7 +447,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow \beta
 }
 {P \vdash \ablock{e}{s} : N}
 \;(\textsc{Ablock-Action})
@@ -758,6 +770,29 @@ $
 \label{fig:yield-sufficiency}
 \end{figure}
 
+\subsection{Soundness}
+
+\begin{theorem}
+Let $\Prog = (\bodies, \actions, \specs, \refines, G, \YieldingThreads)$ be a program 
+and $\YieldingThreads'$ be a sequence of threads such that the following conditions are satisfied:
+\begin{enumerate}
+\item 
+All finite executions from the configuration $(G,\YieldingThreads)$ are safe.
+\item
+All infinite executions from the configuration $(G,\YieldingThreads)$ are responsive.
+\item
+The actions in $\actions$ satisfy their commutativity specifications.
+\item
+Both $(G,\YieldingThreads)$ and $(G,\YieldingThreads')$ are well-typed.
+\item
+The sequences of threads $\YieldingThreads$ can be rewritten to $\YieldingThreads'$.
+\item
+$(G,\YieldingThreads)$ is interference-free.
+\item
+
+\end{enumerate}
+\end{theorem}
+
 \subsection{Responsiveness}
 
 \[
@@ -768,5 +803,4 @@ $
 {\FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 \]
-
 
