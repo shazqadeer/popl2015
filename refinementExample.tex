@@ -1,31 +1,34 @@
 \begin{figure}
 \begin{small}
 \begin{verbatim}
-procedure Alloc() returns addr:int
+procedure Alloc({:cnst "tid"} tid:int) returns addr:int
   ensures {:atomic} {assume Mem[addr] == free;  
                      Mem[addr] := taken;}
 {
-  Reserve();         
+  Reserve(tid);         
   ptr := lo;
   while (ptr < hi && !found)
-    invariant LoopInv(tid, addr, freeSpace, AtOrAfter);
+    invariant AllocInv(tid, addr, freeSpace, AtOrAfter);
+    invariant 
   { 
-    found := AllocAddrIfFree(addr);
+    found := AllocAddrIfFree(tid, addr);
     if (!found) 
       addr := addr + 1;
+    yield AllocInv(tid, addr, freeSpace, AtOrAfter);
   }
 }
 \end{verbatim}
 \begin{verbatim}
-procedure Free(addr:int)
+procedure Free({:cnst "tid"} tid:int, addr:int)
   ensures {:atomic} {Mem[addr] := free;}
 {
-  FreeAddr(addr);  
+  FreeAddr(tid, addr);  
   IncFreeSpace(); 
 }
 \end{verbatim}
 \begin{verbatim}
-procedure AllocAddrIfFree(addr:int) returns res:bool
+procedure AllocAddrIfFree({:cnst "tid"} tid:int, addr:int) 
+  returns res:bool
   ensures {:atomic} { res := false;
                       if (Mem[addr] == free) {
                          Mem[addr] := taken; 
@@ -33,23 +36,23 @@ procedure AllocAddrIfFree(addr:int) returns res:bool
                       }  
                     }
 {
-  acquire(allocLock);
+  acquire(tid, allocLock);
   if (Mem[addr] == free)
     Mem[addr] := taken;   
-  release(allocLock);
+  release(tid, allocLock);
 }
 \end{verbatim}
 \begin{verbatim}
-procedure FreeAddr(addr)
+procedure FreeAddr({:cnst "tid"} tid:int, addr:int)
   ensures {:atomic} {Mem[addr] := free;}
 {
-  acquire(allocLock);
+  acquire(tid, allocLock);
   Mem[addr] := free;   
-  release(allocLock);
+  release(tid, allocLock);
 }
 \end{verbatim}
 \begin{verbatim}
-procedure Reserve() 
+procedure Reserve({:cnst "tid"} tid:int) 
   ensures {:atomic} {assume freeSpace >= 1; 
                      freeSpace := freeSpace - 1;
                      AtOrAfter[tid][lo] := true;}
@@ -71,7 +74,7 @@ procedure IncFreeSpace()
 }
 \end{verbatim}
 \begin{verbatim}
-LoopInv(tid, addr, freeSpace, AtOrAfter) = 
+AllocInv(tid, addr, freeSpace, AtOrAfter) = 
   0 <= freeSpace && lo <= addr <= hi &&
   Size(AtOrAfter[lo]) + freeSpace == #Free[lo,hi] && 
   (forall u,v :: lo <= u <= v <= hi ==> 
