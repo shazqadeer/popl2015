@@ -138,16 +138,6 @@ establishes the following important facts when \exC{Alloc}'s
 \end{verbatim}
 
 
-%
-%
-%
-%
-%Text:
-%   (forall u: int :: memAddr(u) || NumFreeAtOrAfter[u] == 0) &&
-%    (forall u: int :: {memAddr(u)} memAddr(u) ==> NumFreeAtOrAfter[u] == (NumFreeAtOrAfter[u+1] + (if Free[u] then 1 else 0)))
-%
-% Invariant in text
-
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "paper"
