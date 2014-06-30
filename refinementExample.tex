@@ -1,0 +1,137 @@
+\begin{figure}
+\begin{small}
+\begin{verbatim}
+procedure Alloc() returns addr:int
+  ensures {:atomic} {assume Mem[addr] == free;  
+                     Mem[addr] := taken;}
+{
+  Reserve();         
+  ptr := lo;
+  while (ptr < hi && !found)
+    invariant LoopInv(tid, addr, freeSpace, AtOrAfter);
+  { 
+    found := AllocAddrIfFree(addr);
+    if (!found) 
+      addr := addr + 1;
+  }
+}
+\end{verbatim}
+\begin{verbatim}
+procedure Free(addr:int)
+  ensures {:atomic} {Mem[addr] := free;}
+{
+  FreeAddr(addr);  
+  IncFreeSpace(); 
+}
+\end{verbatim}
+\begin{verbatim}
+procedure AllocAddrIfFree(addr:int) returns res:bool
+  ensures {:atomic} { res := false;
+                      if (Mem[addr] == free) {
+                         Mem[addr] := taken; 
+                         res := true;
+                      }  
+                    }
+{
+  acquire(allocLock);
+  if (Mem[addr] == free)
+    Mem[addr] := taken;   
+  release(allocLock);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure FreeAddr(addr)
+  ensures {:atomic} {Mem[addr] := free;}
+{
+  acquire(allocLock);
+  Mem[addr] := free;   
+  release(allocLock);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure Reserve() 
+  ensures {:atomic} {assume freeSpace >= 1; 
+                     freeSpace := freeSpace - 1;
+                     AtOrAfter[tid][lo] := true;}
+{
+  while (true) {
+    tmp := freeSpace;
+    if (tmp>0 && CAS(freeSpace,tmp,tmp-1))  break;
+  }
+}
+\end{verbatim}
+\begin{verbatim}
+procedure IncFreeSpace() 
+  ensures {:left} {freeSpace := freeSpace + 1;}
+{
+  while (true) {
+    tmp := freeSpace;
+    if (CAS(freeSpace, tmp, tmp+1))  break;
+  }
+}
+\end{verbatim}
+\begin{verbatim}
+LoopInv(tid, addr, freeSpace, AtOrAfter) = 
+  0 <= freeSpace && lo <= addr <= hi &&
+  Size(AtOrAfter[lo]) + freeSpace == #Free[lo,hi] && 
+  (forall u,v :: lo <= u <= v <= hi ==> 
+         Subset(AtOrAfter[v], AtOrAfter[u])) &&
+  (forall u :: 
+         Size(AtOrAfter[u]) <= #Free[u,hi]) &&
+         AtOrAfter[u][tid] <==> lo <= u && u <= addr)
+\end{verbatim}
+\end{small}
+\caption{An example of multiple phases of refinement}
+\label{fig:refinement}
+\end{figure}
+
+The \exC{Alloc} procedure is possibly blocking and returns when it
+finds an address \exC{addr} such that \exC{Mem[addr]} is
+\exC{free}. \exC{Free(addr)} simply frees the address
+\exC{addr}. 
+Before \exC{Alloc} scans the range of addresses
+\exC{[lo,hi]}, it calls \exC{Reserve}, which continuously checks if
+\exC{freeSpace > 0} and tries to atomically decrement \exC{freeSpace}
+and reserves a \exC{free} address for later allocation by
+\exC{Alloc}'s \exC{while} loop. It is non-trivial to verify that this
+obviously-terminating \exC{while} loop succeeds in finding a
+\exC{free} address. The variable \exC{freeSpace} keeps track of the
+number of \exC{free} addresses that have not been reserved in this
+manner. 
+
+This example makes use of refinement at several levels. At the lowest
+level, the atomic action specifications of \exC{Reserve} and
+\exC{IncrementFreeSpace}, and the fact that the latter is a left mover
+are verified. This is sufficient to show that \exC{Free} is
+atomic. Verifying refinement and atomicity for \exC{Alloc} makes use
+of the fact that \exC{Reserve} is atomic. To prove that \exC{Alloc}
+satisfies its atomic action specification, we make use of an auxiliary
+variable \exC{AtOrAfter}. \exC{AtOrAfter[u][tid] == true} iff thread
+\exC{tid} has successfully completed executing \exC{Reserve} but has
+not returned, and its local variable \exC{addr >= u}. We also make use
+of the function \exC{\#Free} where \exC{\#Free[u,v]} returns the number
+of addresses \exC{addr} in the interval \exC{[u,v]} such that
+\exC{Mem[addr] == free}. 
+\exC{Reserve}
+establishes the following important facts when \exC{Alloc}'s
+\exC{while} loop is about to be entered: \exC{AtOrAfter[lo][tid]} and 
+\begin{verbatim}
+  Size(AtOrAfter[lo]) + freeSpace == #Free[lo,hi] 
+\end{verbatim}
+
+
+%
+%
+%
+%
+%Text:
+%   (forall u: int :: memAddr(u) || NumFreeAtOrAfter[u] == 0) &&
+%    (forall u: int :: {memAddr(u)} memAddr(u) ==> NumFreeAtOrAfter[u] == (NumFreeAtOrAfter[u+1] + (if Free[u] then 1 else 0)))
+%
+% Invariant in text
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "paper"
+%%% End: 
+
