@@ -19,7 +19,7 @@ $A$ & $\in$ & $\ActionName$ \\
 $\bodies$ & $\in$ & $\ProcName \rightarrow \Stmt$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
-$\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, \StateExpr)$ \\
+$\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocals, \StateExpr)$ \\
 $\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
 $\lins$ & $\in$ & $\LinearVars = 2^{\Globals \cup \ThreadLocals}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVars, \LinearVars)$ \\
@@ -84,7 +84,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\
+\specs(P) = (\phi, \mods, \psi) \\
 \ProcLins(P) = (\lins, \lins') \\
 T' = (\varsTL, (\varsL, \yield{\phi,\lins};\bodies(P)))
 }
@@ -106,7 +106,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\
+\specs(P) = (\phi, \mods, \psi) \\
 \ProcLins(P) = (\lins, \lins')
 }
 {\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\yield{\phi,\lins};\bodies(P);\yield{\psi,\lins'}}])}

@@ -266,7 +266,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\ P \not \in \dom(\refines)
+\specs(P) = (\phi, \mods, \psi) \\ P \not \in \dom(\refines)
 }
 {\FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc1})
@@ -276,7 +276,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\ P \in \dom(\refines) \\ \FH{\phi}{\call{\refines(P)}}{\psi}
+\specs(P) = (\phi, \mods, \psi) \\ P \in \dom(\refines) \\ \FH{\phi}{\call{\refines(P)}}{\psi}
 }
 {\FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc2})
@@ -286,7 +286,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi)
+\specs(P) = (\phi, \mods, \psi)
 }
 {\FH{\rho \wedge \phi}{\async{P}}{\rho}}
 \;(\textsc{Async})
@@ -360,7 +360,7 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\
+\specs(P) = (\phi, \mods, \psi) \\
 \vdash \FH{\phi}{\bodies(P)}{\psi}
 }
 {
