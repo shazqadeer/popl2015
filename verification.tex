@@ -221,7 +221,7 @@ $
 \inferrule
 {
 }
-{\FH{\phi}{\skipstmt}{\phi}}
+{\{\} \jp \FH{\phi}{\skipstmt}{\phi}}
 \;(\textsc{Skip})
 $
 \medskip
@@ -231,7 +231,7 @@ $
 {
 P \not \in \dom(\refines)
 }
-{\FH{\phi}{\assert{\locExpr}}{\phi}}
+{\{\} \jp \FH{\phi}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert1})
 $
 \medskip
@@ -240,7 +240,7 @@ $
 \inferrule
 {
 }
-{\FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
+{\{\} \jp \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert2})
 $
 \medskip
@@ -249,7 +249,7 @@ $
 \inferrule
 {
 }
-{\FH{e}{\yield{e,\lins}}{e}}
+{\{\} \jp \FH{e}{\yield{e,\lins}}{e}}
 \;(\textsc{Yield})
 $
 \medskip
@@ -257,9 +257,13 @@ $
 $
 \inferrule
 {
-\actions(A) = (\rho, \alpha, m) \\ \phi_1 \Rightarrow \rho \\ \mathit{old}(\phi_1) \wedge \alpha \Rightarrow \phi_2
+\actions(A) = (\rho, \alpha, m) \\ 
+\mods \subseteq \ThreadLocals \\
+\alpha \Rightarrow \Havoc(\Globals \cup \mods \cup \Locals) \\
+\phi_1 \Rightarrow \rho \\ 
+\mathit{old}(\phi_1) \wedge \alpha \Rightarrow \phi_2 \\
 }
-{\FH{\phi_1}{\call{A}}{\phi_2}}
+{\mods \jp \FH{\phi_1}{\call{A}}{\phi_2}}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -269,7 +273,7 @@ $
 {
 \specs(P) = (\phi, \mods, \psi) \\ P \not \in \dom(\refines)
 }
-{\FH{\phi}{\call{P}}{\psi}}
+{\mods \jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc1})
 $
 \medskip
@@ -279,7 +283,7 @@ $
 {
 \specs(P) = (\phi, \mods, \psi) \\ P \in \dom(\refines) \\ \FH{\phi}{\call{\refines(P)}}{\psi}
 }
-{\FH{\phi}{\call{P}}{\psi}}
+{\mods \jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc2})
 $
 \medskip
@@ -289,7 +293,7 @@ $
 {
 \specs(P) = (\phi, \mods, \psi)
 }
-{\FH{\rho \wedge \phi}{\async{P}}{\rho}}
+{\{\} \jp \FH{\rho \wedge \phi}{\async{P}}{\rho}}
 \;(\textsc{Async})
 $
 \medskip
@@ -297,9 +301,9 @@ $
 $
 \inferrule
 {
-\FH{\phi_1 \wedge e}{s}{\phi_2}
+\mods \jp \FH{\phi_1 \wedge e}{s}{\phi_2}
 }
-{\FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2}}
+{\mods \jp \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2}}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -307,12 +311,12 @@ $
 $
 \inferrule
 {
-\FH{\phi'}{\StmtStack}{\psi} \\ 
+\mods \jp \FH{\phi'}{\StmtStack}{\psi} \\ 
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Locals = \{\} \\
 \forall G, \varsTL.\ \phi(G,\varsTL) \Rightarrow \phi'(G, \varsTL,\varsL)
 }
 {
-\FH{\phi}{(\varsL,\StmtStack)}{\psi}
+\mods \jp \FH{\phi}{(\varsL,\StmtStack)}{\psi}
 }
 \;(\textsc{StackFrame})
 $
@@ -321,9 +325,9 @@ $
 $
 \inferrule
 {
-\FH{\phi_1}{\StmtStack}{\phi_2} \\ \FH{\phi_2}{s}{\phi_3}
+\mods_1 \jp \FH{\phi_1}{\StmtStack}{\phi_2} \\ \mods_2 \jp \FH{\phi_2}{s}{\phi_3}
 }
-{\FH{\phi_1}{\StmtStack;s}{\phi_3}}
+{\mods_1 \cup \mods_2 \jp \FH{\phi_1}{\StmtStack;s}{\phi_3}}
 \;(\textsc{Seq})
 $
 \medskip
@@ -331,9 +335,9 @@ $
 $
 \inferrule
 {
-\FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
+\mods_1 \jp \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \mods_2 \jp \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
 }
-{\FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
+{\mods_1 \cup \mods_2 \jp \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
 \;(\textsc{Ite})
 $
 \medskip
@@ -341,9 +345,9 @@ $
 $
 \inferrule
 {
-\FH{e \wedge \locExpr}{s}{e}
+\mods \jp \FH{e \wedge \locExpr}{s}{e}
 }
-{\FH{e}{\while{e}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\mods \jp \FH{e}{\while{e}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 $
 \medskip
@@ -361,11 +365,22 @@ $
 $
 \inferrule
 {
+\mods \phi \FH{\phi}{s}{\psi} \\ \accessVars(\rho) \cap \mods = \{\}
+}
+{\mods \FH{\rho \wedge \phi}{s}{\rho \wedge \psi}}
+\;(\textsc{Weaken})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
 \specs(P) = (\phi, \mods, \psi) \\
-\vdash \FH{\phi}{\bodies(P)}{\psi}
+\mods' \jp \FH{\phi}{\bodies(P)}{\psi} \\
+\mods' \subseteq \mods
 }
 {
-\vdash P
+\jp P
 }
 \;(\textsc{Procedure})
 $
@@ -375,11 +390,11 @@ $
 \inferrule
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
-G\!\cdot\!\varsTL\!\cdot\!\varsL \vdash \phi \rightarrow \true \\
-\vdash \FH{\phi}{\StmtStack}{\true}
+G\!\cdot\!\varsTL\!\cdot\!\varsL \jp \phi \rightarrow \true \\
+\mods \jp \FH{\phi}{\StmtStack}{\true}
 }
 {
-G \vdash T
+G \jp T
 }
 \;(\textsc{Thread})
 $
@@ -388,11 +403,11 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName.\ \vdash P \\
-\forall 1 \le i \le n.\ G \vdash T_i
+\forall P \in \ProcName.\ \jp P \\
+\forall 1 \le i \le n.\ G \jp T_i
 }
 {
-\vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\jp (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -433,7 +448,7 @@ $
 \inferrule
 {
 }
-{P \vdash \skipstmt : \epsilon}
+{P \jr \skipstmt : \epsilon}
 \;(\textsc{Skip})
 $
 \medskip
@@ -442,7 +457,7 @@ $
 \inferrule
 {
 }
-{P \vdash \assert{\locExpr} : \epsilon}
+{P \jr \assert{\locExpr} : \epsilon}
 \;(\textsc{Assert})
 $
 \medskip
@@ -451,7 +466,7 @@ $
 \inferrule
 {
 }
-{P \vdash \yield{e,\lins} : \epsilon}
+{P \jr \yield{e,\lins} : \epsilon}
 \;(\textsc{Yield})
 $
 \medskip
@@ -461,7 +476,7 @@ $
 {
 \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
-{P \vdash \call{P'} : \epsilon}
+{P \jr \call{P'} : \epsilon}
 \;(\textsc{Call-Loop})
 $
 \medskip
@@ -471,7 +486,7 @@ $
 {
 \actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \alpha
 }
-{P \vdash \call{P'} : N}
+{P \jr \call{P'} : N}
 \;(\textsc{Call-Action})
 $
 \medskip
@@ -481,7 +496,7 @@ $
 {
 \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
-{P \vdash \async{P'} : \epsilon}
+{P \jr \async{P'} : \epsilon}
 \;(\textsc{Async})
 $
 \medskip
@@ -491,7 +506,7 @@ $
 {
 s \preceq \mathit{old}(e) \Rightarrow \Havoc(L)
 }
-{P \vdash \ablock{e,\lins}{s} : \epsilon}
+{P \jr \ablock{e,\lins}{s} : \epsilon}
 \;(\textsc{Ablock-Loop})
 $
 \medskip
@@ -501,7 +516,7 @@ $
 {
 \actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow \beta
 }
-{P \vdash \ablock{e,\lins}{s} : N}
+{P \jr \ablock{e,\lins}{s} : N}
 \;(\textsc{Ablock-Action})
 $
 \medskip
@@ -509,9 +524,9 @@ $
 $
 \inferrule
 {
-P \vdash s_1 : \re_1 \\ P \vdash s_2 : \re_2
+P \jr s_1 : \re_1 \\ P \jr s_2 : \re_2
 }
-{P \vdash s_1;s_2 : \re_1\cdot\re_2}
+{P \jr s_1;s_2 : \re_1\cdot\re_2}
 \;(\textsc{Seq})
 $
 \medskip
@@ -519,9 +534,9 @@ $
 $
 \inferrule
 {
-P \vdash s_1 : \re_1 \\ P \vdash s_2 : \re_2
+P \jr s_1 : \re_1 \\ P \jr s_2 : \re_2
 }
-{P \vdash \ite{\locExpr}{s_1}{s_2} : \re_1+\re_2}
+{P \jr \ite{\locExpr}{s_1}{s_2} : \re_1+\re_2}
 \;(\textsc{Ite})
 $
 \medskip
@@ -529,9 +544,9 @@ $
 $
 \inferrule
 {
-P \vdash s : \re
+P \jr s : \re
 }
-{P \vdash \while{e}{\locExpr}{s} : \re^*}
+{P \jr \while{e}{\locExpr}{s} : \re^*}
 \;(\textsc{While})
 $
 \medskip
@@ -539,10 +554,10 @@ $
 $
 \inferrule
 {
-\forall P \in \dom(\refines).\ \bodies(P) \vdash \{N\}
+\forall P \in \dom(\refines).\ \bodies(P) \jr \{N\}
 }
 {
-\vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\jr (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -705,7 +720,7 @@ $
 \inferrule
 {
 }
-{\vdash \skipstmt : (x, x)}
+{\jy \skipstmt : (x, x)}
 \;(\textsc{Skip})
 $
 \medskip
@@ -714,7 +729,7 @@ $
 \inferrule
 {
 }
-{\vdash \assert{\locExpr} : (x, x)}
+{\jy \assert{\locExpr} : (x, x)}
 \;(\textsc{Assert})
 $
 \medskip
@@ -723,7 +738,7 @@ $
 \inferrule
 {
 }
-{\vdash \yield{e,\lins} : (x, \RM)}
+{\jy \yield{e,\lins} : (x, \RM)}
 \;(\textsc{Yield})
 $
 \medskip
@@ -733,7 +748,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, B)
 }
-{\vdash \call{P} : (x, x)}
+{\jy \call{P} : (x, x)}
 \;(\textsc{CallBothMover})
 $
 \medskip
@@ -743,7 +758,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, R)
 }
-{\vdash \call{P} : (\RM, \RM)}
+{\jy \call{P} : (\RM, \RM)}
 \;(\textsc{CallRightMover})
 $
 \medskip
@@ -753,7 +768,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, L)
 }
-{\vdash \call{P} : (x, \LM)}
+{\jy \call{P} : (x, \LM)}
 \;(\textsc{CallLeftMover})
 $
 \medskip
@@ -763,7 +778,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, N)
 }
-{\vdash \call{P} : (\RM, \LM)}
+{\jy \call{P} : (\RM, \LM)}
 \;(\textsc{CallNonMover})
 $
 \medskip
@@ -773,7 +788,7 @@ $
 {
 P \not \in \dom(\refines)
 }
-{\vdash \call{P} : (x, \RM)}
+{\jy \call{P} : (x, \RM)}
 \;(\textsc{CallYield})
 $
 \medskip
@@ -782,7 +797,7 @@ $
 \inferrule
 {
 }
-{\vdash \async{P} : (x, \LM)}
+{\jy \async{P} : (x, \LM)}
 \;(\textsc{Async})
 $
 \medskip
@@ -792,7 +807,7 @@ $
 {
 x \in \{\RM,\CM\}
 }
-{\vdash \ablock{e,\lins}{s} : (x, \CM)}
+{\jy \ablock{e,\lins}{s} : (x, \CM)}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -800,10 +815,10 @@ $
 $
 \inferrule
 {
-\vdash \StmtStack : (x,y)
+\jy \StmtStack : (x,y)
 }
 {
-\vdash (\varsL,\StmtStack) : (x,y)
+\jy (\varsL,\StmtStack) : (x,y)
 }
 \;(\textsc{StackFrame})
 $
@@ -812,9 +827,9 @@ $
 $
 \inferrule
 {
-\vdash \StmtStack : (x, y) \\ \vdash s : (y, z)
+\jy \StmtStack : (x, y) \\ \jy s : (y, z)
 }
-{\vdash \StmtStack;s : (x, z)}
+{\jy \StmtStack;s : (x, z)}
 \;(\textsc{Seq})
 $
 \medskip
@@ -822,9 +837,9 @@ $
 $
 \inferrule
 {
-\vdash s_1 : (x, y) \\ \vdash s_2 : (x, y)
+\jy s_1 : (x, y) \\ \jy s_2 : (x, y)
 }
-{\vdash \ite{\locExpr}{s_1}{s_2} : (x, y)}
+{\jy \ite{\locExpr}{s_1}{s_2} : (x, y)}
 \;(\textsc{Ite})
 $
 \medskip
@@ -832,9 +847,9 @@ $
 $
 \inferrule
 {
-\vdash s : (x, x)
+\jy s : (x, x)
 }
-{\vdash \while{e}{\locExpr}{s} : (x, x)}
+{\jy \while{e}{\locExpr}{s} : (x, x)}
 \;(\textsc{While})
 $
 \medskip
@@ -842,10 +857,10 @@ $
 $
 \inferrule
 {
-\vdash \bodies(P) : (x, y)
+\jy \bodies(P) : (x, y)
 }
 {
-\vdash P
+\jy P
 }
 \;(\textsc{Procedure})
 $
@@ -855,10 +870,10 @@ $
 \inferrule
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
-\vdash \StmtStack : (x, y)
+\jy \StmtStack : (x, y)
 }
 {
-\vdash T
+\jy T
 }
 \;(\textsc{Thread})
 $
@@ -867,11 +882,11 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName.\ \vdash P \\
-\forall 1 \le i \le n.\ \vdash T_i
+\forall P \in \ProcName.\ \jy P \\
+\forall 1 \le i \le n.\ \jy T_i
 }
 {
-\vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\jy (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
