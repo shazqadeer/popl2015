@@ -161,10 +161,11 @@ $
 \lins \cap \Globals = \lins' \cap \Globals \\
 \actions(A) = (\rho, \alpha, m) \\
 m \in \{B, L\} \Longrightarrow \forall \sigma \in \rho. \exists \sigma'. (\sigma, \sigma') \in \alpha \\
+A \in \mathit{range}(\refines) \Longrightarrow \accessVars(\rho) \subseteq \Locals \\
+A \in \mathit{range}(\refines) \Longrightarrow \alpha = ((\exists \Locals,\Locals'.\alpha) \wedge \mathit{\Same(\Locals,\Locals')}) \\
 \forall (\sigma,\sigma') \in \alpha.
   \biguplus\{lv(\sigma'(x)) \mid x \in \lins'\} \subseteq
   \biguplus\{lv(\sigma(x)) \mid x \in \lins\}
-%TODO: local variables for A in range(rs)
 }
 {
 \vdash A
