@@ -900,6 +900,150 @@ $
 \label{fig:yield-sufficiency}
 \end{figure}
 
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\refines \vdash s \leadsto s
+}
+\;(\textsc{Reflexive})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines \vdash s_1 \leadsto s_2 \\
+\refines \vdash s_2 \leadsto s_3
+}
+{
+\refines \vdash s_1 \leadsto s_3
+}
+\;(\textsc{Transitive})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\refines \vdash \ablock{e,\lins}{s} \leadsto s
+}
+\;(\textsc{Ablock-Elim})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\refines \vdash s \leadsto \ablock{e,\lins}{s}
+}
+\;(\textsc{Ablock-Intro})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\refines \vdash \call{P} \leadsto \call{\refines(P)}
+}
+\;(\textsc{Proc})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\refines \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+}
+\;(\textsc{StackFrame})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines \vdash \StmtStack \leadsto \StmtStack' \\
+\refines \vdash \stmt \leadsto \stmt'
+}
+{
+\refines \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines \vdash s_1 \leadsto s_1' \\
+\refines \vdash s_2 \leadsto s_2'
+}
+{
+\refines \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines \vdash s \leadsto s'
+}
+{
+\refines \vdash \while{e}{\locExpr}{s} \leadsto \while{e}{\locExpr}{s'}
+}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines \vdash \StmtStack \leadsto \StmtStack' \\
+}
+{
+\refines \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack')) \\
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Prog = (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n) \\
+\Prog' = (\bodies', \actions, \specs', \refines', \ProcLins', \lins', \varsG, T_1' \ldots T_n') \\
+\forall 1 \le i \le n. (\refines \vdash T_i \leadsto T_i') \\
+\forall P \not\in dom(\refines). (\refines \vdash \bodies(P) \leadsto \bodies'(P))
+}
+{
+\Prog \leadsto \Prog'
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Program refinement}
+\label{fig:program-refinement}
+\end{figure}
+
+
 \subsection{Soundness}
 
 \begin{theorem}
