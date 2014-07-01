@@ -305,9 +305,23 @@ $
 $
 \inferrule
 {
-\FH{\phi_1}{s_1}{\phi_2} \\ \FH{\phi_2}{s_2}{\phi_3}
+\FH{\phi'}{\StmtStack}{\psi} \\ 
+(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Locals = \{\} \\
+\forall G, \varsTL.\ \phi(G,\varsTL) \Rightarrow \phi'(G, \varsTL,\varsL)
 }
-{\FH{\phi_1}{s_1;s_2}{\phi_3}}
+{
+\FH{\phi}{(\varsL,\StmtStack)}{\psi}
+}
+\;(\textsc{StackFrame})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\FH{\phi_1}{\StmtStack}{\phi_2} \\ \FH{\phi_2}{s}{\phi_3}
+}
+{\FH{\phi_1}{\StmtStack;s}{\phi_3}}
 \;(\textsc{Seq})
 $
 \medskip
@@ -345,10 +359,38 @@ $
 $
 \inferrule
 {
-\forall 1 \le i \le n. (\FH{\phi_i}{T_i}{\psi_i}) \\
+\specs(P) = (\phi, \psi) \\
+\vdash \FH{\phi}{\bodies(P)}{\psi}
 }
 {
-\lins_G,\lins_1,\ldots,\lins_n \vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\vdash P
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T = (\varsTL, (\varsL, \StmtStack)) \\
+G\!\cdot\!\varsTL\!\cdot\!\varsL \vdash \phi \rightarrow \true \\
+\vdash \FH{\phi}{\StmtStack}{\true}
+}
+{
+G \vdash T
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall P \in \ProcName.\ \vdash P \\
+\forall 1 \le i \le n.\ G \vdash T_i
+}
+{
+\vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -492,7 +534,18 @@ P \vdash s : \re
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-
+$
+\inferrule
+{
+\forall P \in \dom(\refines).\ \bodies(P) \vdash \{N\}
+}
+{
+\vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
 }
 \caption{Refinement rules}
 \label{fig:refinement}
@@ -650,7 +703,7 @@ $
 \inferrule
 {
 }
-{\vdash \skipstmt : x \leadsto x}
+{\vdash \skipstmt : (x, x)}
 \;(\textsc{Skip})
 $
 \medskip
@@ -659,7 +712,7 @@ $
 \inferrule
 {
 }
-{\vdash \assert{\locExpr} : x \leadsto x}
+{\vdash \assert{\locExpr} : (x, x)}
 \;(\textsc{Assert})
 $
 \medskip
@@ -668,7 +721,7 @@ $
 \inferrule
 {
 }
-{\vdash \yield{e,\lins} : x \leadsto \RM}
+{\vdash \yield{e,\lins} : (x, \RM)}
 \;(\textsc{Yield})
 $
 \medskip
@@ -678,7 +731,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, B)
 }
-{\vdash \call{P} : x \leadsto x}
+{\vdash \call{P} : (x, x)}
 \;(\textsc{CallBothMover})
 $
 \medskip
@@ -688,7 +741,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, R)
 }
-{\vdash \call{P} : \RM \leadsto \RM}
+{\vdash \call{P} : (\RM, \RM)}
 \;(\textsc{CallRightMover})
 $
 \medskip
@@ -698,7 +751,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, L)
 }
-{\vdash \call{P} : x \leadsto \LM}
+{\vdash \call{P} : (x, \LM)}
 \;(\textsc{CallLeftMover})
 $
 \medskip
@@ -708,7 +761,7 @@ $
 {
 P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, N)
 }
-{\vdash \call{P} : \RM \leadsto \LM}
+{\vdash \call{P} : (\RM, \LM)}
 \;(\textsc{CallNonMover})
 $
 \medskip
@@ -718,7 +771,7 @@ $
 {
 P \not \in \dom(\refines)
 }
-{\vdash \call{P} : x \leadsto \RM}
+{\vdash \call{P} : (x, \RM)}
 \;(\textsc{CallYield})
 $
 \medskip
@@ -727,7 +780,7 @@ $
 \inferrule
 {
 }
-{\vdash \async{P} : x \leadsto \LM}
+{\vdash \async{P} : (x, \LM)}
 \;(\textsc{Async})
 $
 \medskip
@@ -737,7 +790,7 @@ $
 {
 x \in \{\RM,\CM\}
 }
-{\vdash \ablock{e,\lins}{s} : x \leadsto \CM}
+{\vdash \ablock{e,\lins}{s} : (x, \CM)}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -745,9 +798,21 @@ $
 $
 \inferrule
 {
-\vdash s_1 : x \leadsto y \\ \vdash s_2 : y \leadsto z
+\vdash \StmtStack : (x,y)
 }
-{\vdash s_1;s_2 : x \leadsto z}
+{
+\vdash (\varsL,\StmtStack) : (x,y)
+}
+\;(\textsc{StackFrame})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\vdash \StmtStack : (x, y) \\ \vdash s : (y, z)
+}
+{\vdash \StmtStack;s : (x, z)}
 \;(\textsc{Seq})
 $
 \medskip
@@ -755,9 +820,9 @@ $
 $
 \inferrule
 {
-\vdash s_1 : x \leadsto y \\ \vdash s_2 : x \leadsto y
+\vdash s_1 : (x, y) \\ \vdash s_2 : (x, y)
 }
-{\vdash \ite{\locExpr}{s_1}{s_2} : x \leadsto y}
+{\vdash \ite{\locExpr}{s_1}{s_2} : (x, y)}
 \;(\textsc{Ite})
 $
 \medskip
@@ -765,14 +830,51 @@ $
 $
 \inferrule
 {
-\vdash s : x \leadsto x
+\vdash s : (x, x)
 }
-{\vdash \while{e}{\locExpr}{s} : x \leadsto x}
+{\vdash \while{e}{\locExpr}{s} : (x, x)}
 \;(\textsc{While})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-
+$
+\inferrule
+{
+\vdash \bodies(P) : (x, y)
+}
+{
+\vdash P
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T = (\varsTL, (\varsL, \StmtStack)) \\
+\vdash \StmtStack : (x, y)
+}
+{
+\vdash T
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall P \in \ProcName.\ \vdash P \\
+\forall 1 \le i \le n.\ \vdash T_i
+}
+{
+\vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
 }
 \caption{Yield sufficiency rules}
 \label{fig:yield-sufficiency}
