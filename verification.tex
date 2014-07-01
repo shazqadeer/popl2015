@@ -900,24 +900,24 @@ $
 \subsection{Soundness}
 
 \begin{theorem}
-Let $\Prog = (\bodies, \actions, \specs, \refines, G, \YieldingThreads)$ be a program 
-and $\YieldingThreads'$ be a sequence of threads such that the following conditions are satisfied:
+Let $\Prog = (\bodies, \actions, \specs, \refines, G, \YieldingThreads)$ 
+and $\Prog' = (\bodies', \actions', \specs', \refines', G', \YieldingThreads')$ be programs
+such that the following conditions are satisfied:
 \begin{enumerate}
+\item
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Prog$ is abstracted by $\Prog'$.
 \item 
-All finite executions from the configuration $(G,\YieldingThreads)$ are safe.
+All finite executions of $\Prog'$ are safe.
 \item
-All infinite executions from the configuration $(G,\YieldingThreads)$ are responsive.
+All infinite executions of $\Prog'$ are responsive.
 \item
-The actions in $\actions$ satisfy their commutativity specifications.
+The program $\Prog$ is commutativity-safe.
 \item
-Both $(G,\YieldingThreads)$ and $(G,\YieldingThreads')$ are well-typed.
+The program $\Prog$ is interference-free.
 \item
-The sequences of threads $\YieldingThreads$ can be rewritten to $\YieldingThreads'$.
-\item
-$(G,\YieldingThreads)$ is interference-free.
-\item
-
+$\jp Prog$, $\jr Prog$, and $\jy Prog$.
 \end{enumerate}
+Then all finite executions of $\Prog'$ are safe.
 \end{theorem}
 
 \subsection{Responsiveness}
