@@ -134,7 +134,7 @@ $
 \lins;\RefinementAny;\ABlockAny \vdash s : \lins
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \while{e}{\locExpr}{s} : \lins
+\lins;\RefinementAny;\ABlockAny \vdash \while{e,\alpha}{\locExpr}{s} : \lins
 }
 \;(\textsc{While})
 $
@@ -334,7 +334,7 @@ $
 {
 \RefinementAny;\mods \jp \FH{e \wedge \locExpr}{s}{e}
 }
-{\RefinementAny;\mods \jp \FH{e}{\while{e}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\RefinementAny;\mods \jp \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 $
 \medskip
@@ -548,7 +548,7 @@ $
 {
 P \jr s : \re
 }
-{P \jr \while{e}{\locExpr}{s} : \re^*}
+{P \jr \while{e,\alpha}{\locExpr}{s} : \re^*}
 \;(\textsc{While})
 $
 \medskip
@@ -840,7 +840,7 @@ $
 {
 \jy s : (x, x)
 }
-{\jy \while{e}{\locExpr}{s} : (x, x)}
+{\jy \while{e,\alpha}{\locExpr}{s} : (x, x)}
 \;(\textsc{While})
 $
 \medskip
@@ -899,6 +899,8 @@ $
 \caption{Yield sufficiency rules}
 \label{fig:yield-sufficiency}
 \end{figure}
+
+\subsection{Program refinement}
 
 \begin{figure}
 \scriptsize{
@@ -1005,7 +1007,7 @@ $
 \refines \vdash s \leadsto s'
 }
 {
-\refines \vdash \while{e}{\locExpr}{s} \leadsto \while{e}{\locExpr}{s'}
+\refines \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
 }
 \;(\textsc{While})
 $
@@ -1043,14 +1045,13 @@ $
 \label{fig:program-refinement}
 \end{figure}
 
-
 \subsection{Soundness}
 
 \begin{theorem}
 Let $\Prog$ and $\Prog'$ be two programs such that the following conditions are satisfied:
 \begin{enumerate}
 \item
-$\vdash \Prog$ and $\vdash \Prog'$ and $\Prog$ is abstracted by $\Prog'$.
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Prog \leadsto \Prog'$.
 \item 
 All finite executions of $\Prog'$ are safe.
 \item

@@ -25,7 +25,6 @@ $\lins$ & $\in$ & $\LinearVars = 2^{\Globals \cup \ThreadLocals}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVars, \LinearVars)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
 $\RefinementAny$ & $\in$ & $\mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
-$H$ & $\in$ & $2^{\Globals}$ \\
 $\linsmax$ & $\in$ & $\mathit{ValueMultiset} = \Value \rightarrow \mathbb{N}$ \\
 $lv$ & $\in$ & $\mathit{LinearValues} = \Value \rightarrow \mathit{ValueMultiset}$ \\
 \end{tabular}
@@ -36,7 +35,7 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e,\lins} 
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
                   & & $\ablock{e,\lins}{s} \mid s;\;s \mid$\\
                   & & $\ite{\locExpr}{s}{s} \mid$ \\
-                  & & $\while{e}{\locExpr}{s}$ \\ 
+                  & & $\while{e,\alpha}{\locExpr}{s}$ \\ 
 $\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
 \\
@@ -224,7 +223,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, \skipstmt)}
+{\vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
 $
 \medskip
@@ -234,7 +233,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\vdash (\vars, \while{e}{\locExpr}{s}) \trans (\vars, s;\while{e,m}{\locExpr}{s})}
+{\vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, s;\while{e,\alpha}{\locExpr}{s})}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%
