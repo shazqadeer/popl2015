@@ -23,12 +23,11 @@ $\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, \StateExpr)$ \\
 $\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
 $\lins$ & $\in$ & $\LinearVars = 2^{\Globals \cup \ThreadLocals}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVars, \LinearVars)$ \\
-$lv$ & $\in$ & $\mathit{LinearValues} = \Value \rightarrow 2^{\Value}$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
 $\RefinementAny$ & $\in$ & $\mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
 $H$ & $\in$ & $2^{\Globals}$ \\
 $\linsmax$ & $\in$ & $\mathit{ValueMultiset} = \Value \rightarrow \mathbb{N}$ \\
-$lv$ & $\in$ & $\Value \rightarrow \mathit{ValueMultiset}$ \\
+$lv$ & $\in$ & $\mathit{LinearValues} = \Value \rightarrow \mathit{ValueMultiset}$ \\
 \end{tabular}
 ~\\
 ~\\
@@ -51,7 +50,7 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdo
 ~\\
 ~\\
 \begin{tabular}{rcl}
-$\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, \varsG, \TS)$ \\
+$\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, \TS)$ \\
 \end{tabular}
 \setlength{\tabcolsep}{6pt}
 \caption{Syntax}

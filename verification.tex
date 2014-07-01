@@ -191,15 +191,16 @@ $
 {
 \forall P \in \ProcName. \vdash P \\
 \forall A \in \ActionName. \vdash A \\
-\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
+\lins = \lins_G,\lins_1,\ldots,\lins_n  \\
 \lins_G \subseteq \Globals \\
+\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocals) \\
 \forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
 \biguplus\{lv(\varsG(x)) \mid x \in \lins_G\} \uplus
   \biguplus\{lv(\varsTL_i(x)) \mid 1 \le i \le n, x \in \lins_i\} \subseteq \linsmax
 }
 {
-\lins_G,\lins_1,\ldots,\lins_n \vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\vdash (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
