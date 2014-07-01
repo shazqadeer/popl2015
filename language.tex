@@ -107,9 +107,10 @@ $
 \inferrule
 {
 \specs(P) = (\phi, \mods, \psi) \\
-\ProcLins(P) = (\lins, \lins')
+\ProcLins(P) = (\lins, \lins') \\
+\StmtStack = \yield{\phi,\lins};\bodies(P);\yield{\psi,\lins'}
 }
-{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\yield{\phi,\lins};\bodies(P);\yield{\psi,\lins'}}])}
+{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\StmtStack}])}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -153,6 +154,7 @@ $
 \;{(\textsc{Assert-False})}
 $
 \medskip
+~\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule

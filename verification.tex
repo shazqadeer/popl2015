@@ -253,6 +253,7 @@ $
 \;(\textsc{Yield})
 $
 \medskip
+~\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -297,6 +298,7 @@ $
 \;(\textsc{Async})
 $
 \medskip
+~\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -368,7 +370,7 @@ $
 \mods \phi \FH{\phi}{s}{\psi} \\ \accessVars(\rho) \cap \mods = \{\}
 }
 {\mods \FH{\rho \wedge \phi}{s}{\rho \wedge \psi}}
-\;(\textsc{Weaken})
+\;(\textsc{Frame})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -390,7 +392,7 @@ $
 \inferrule
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
-G\!\cdot\!\varsTL\!\cdot\!\varsL \jp \phi \rightarrow \true \\
+G\!\cdot\!\varsTL\!\cdot\!\varsL \jp \phi \rightarrow \true \\\\
 \mods \jp \FH{\phi}{\StmtStack}{\true}
 }
 {
@@ -474,7 +476,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
+\actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
 {P \jr \call{P'} : \epsilon}
 \;(\textsc{Call-Loop})
@@ -484,7 +486,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \alpha
 }
 {P \jr \call{P'} : N}
 \;(\textsc{Call-Action})
@@ -742,6 +744,7 @@ $
 \;(\textsc{Yield})
 $
 \medskip
+~\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -900,9 +903,7 @@ $
 \subsection{Soundness}
 
 \begin{theorem}
-Let $\Prog = (\bodies, \actions, \specs, \refines, G, \YieldingThreads)$ 
-and $\Prog' = (\bodies', \actions', \specs', \refines', G', \YieldingThreads')$ be programs
-such that the following conditions are satisfied:
+Let $\Prog$ and $\Prog'$ be two programs such that the following conditions are satisfied:
 \begin{enumerate}
 \item
 $\vdash \Prog$ and $\vdash \Prog'$ and $\Prog$ is abstracted by $\Prog'$.
