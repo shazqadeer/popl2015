@@ -27,14 +27,16 @@ $lv$ & $\in$ & $\mathit{LinearValues} = \Value \rightarrow 2^{\Value}$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
 $\RefinementAny$ & $\in$ & $\mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
 $H$ & $\in$ & $2^{\Globals}$ \\
+$\linsmax$ & $\in$ & $\mathit{ValueMultiset} = \Value \rightarrow \mathbb{N}$ \\
+$lv$ & $\in$ & $\Value \rightarrow \mathit{ValueMultiset}$ \\
 \end{tabular}
 ~\\
 ~\\
 \begin{tabular}{rclcl}
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e} \mid$ \\
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e,\lins} \mid$ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-                  & & $\ablock{e}{s} \mid s;\;s \mid$\\
-                 & & $\ite{\locExpr}{s}{s} \mid$ \\
+                  & & $\ablock{e,\lins}{s} \mid s;\;s \mid$\\
+                  & & $\ite{\locExpr}{s}{s} \mid$ \\
                   & & $\while{e}{\locExpr}{s}$ \\ 
 $\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
@@ -43,7 +45,7 @@ $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
 $\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, ([]_{\Locals}, \StmtCtxt)) \mid$ \\
  & &$([]_{\ThreadLocals}, (\varsL, \StmtStackCtxt))$ \\
-$\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e}]$ \\
+$\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads$ \\
 \end{tabular}
 ~\\
@@ -83,7 +85,9 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi) \\ T' = (\varsTL, (\varsL, \yield{\phi};\bodies(P)))
+\specs(P) = (\phi, \psi) \\
+\ProcLins(P) = (\lins, \lins') \\
+T' = (\varsTL, (\varsL, \yield{\phi,\lins};\bodies(P)))
 }
 {\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt] \cdot T')}
 \;(\textsc{Async})
@@ -103,9 +107,10 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \psi)
+\specs(P) = (\phi, \psi) \\
+\ProcLins(P) = (\lins, \lins')
 }
-{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\yield{\phi};\bodies(P);\yield{\psi}}])}
+{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\yield{\phi,\lins};\bodies(P);\yield{\psi,\lins'}}])}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -168,7 +173,7 @@ $
 {
 \\
 }
-{\vdash (\vars, \yield{e}) \trans (\vars, \skipstmt)}
+{\vdash (\vars, \yield{e,\lins}) \trans (\vars, \skipstmt)}
 \;{(\textsc{Yield})}
 $
 \medskip
@@ -178,7 +183,7 @@ $
 {
 \vars \vdash e \rightarrow \true
 }
-{\vdash (\vars, \ablock{e}{\stmt}) \trans (\vars, \stmt)}
+{\vdash (\vars, \ablock{e,\lins}{\stmt}) \trans (\vars, \stmt)}
 \;{(\textsc{AtomicBlock})}
 $
 \medskip

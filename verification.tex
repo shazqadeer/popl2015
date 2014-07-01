@@ -28,9 +28,10 @@ $
 $
 \inferrule
 {
+\lins_y \subseteq \lins
 }
 {
-\lins;\RefinementAny;\ABlockOutside \vdash \yield{e} : \lins
+\lins;\RefinementAny;\ABlockOutside \vdash \yield{e,\lins_y} : \lins
 }
 \;(\textsc{Yield})
 $
@@ -79,10 +80,11 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockInside \vdash \stmt : \lins'
+\lins;\RefinementAny;\ABlockInside \vdash \stmt : \lins' \\
+\lins_a \subseteq \lins
 }
 {
-\lins;\RefinementAny;\ABlockOutside \vdash \ablock{e}{\stmt} : \lins'
+\lins;\RefinementAny;\ABlockOutside \vdash \ablock{e,\lins_a}{\stmt} : \lins'
 }
 \;(\textsc{Ablock})
 $
@@ -160,8 +162,8 @@ $
 \actions(A) = (\rho, \alpha, m) \\
 m \in \{B, L\} \Longrightarrow \forall \sigma \in \rho. \exists \sigma'. (\sigma, \sigma') \in \alpha \\
 \forall (\sigma,\sigma') \in \alpha.
-  \biguplus \{lv(\sigma'(x)) \mid x \in \lins'\} \subseteq
-  \biguplus \{lv(\sigma(x)) \mid x \in \lins\}
+  \biguplus\{lv(\sigma'(x)) \mid x \in \lins'\} \subseteq
+  \biguplus\{lv(\sigma(x)) \mid x \in \lins\}
 %TODO: local variables for A in range(rs)
 }
 {
@@ -191,7 +193,10 @@ $
 \forall A \in \ActionName. \vdash A \\
 \forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \lins_G \subseteq \Globals \\
-\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocals)
+\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocals) \\
+\forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
+\biguplus\{lv(\varsG(x)) \mid x \in \lins_G\} \uplus
+  \biguplus\{lv(\varsTL_i(x)) \mid 1 \le i \le n, x \in \lins_i\} \subseteq \linsmax
 }
 {
 \lins_G,\lins_1,\ldots,\lins_n \vdash (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
@@ -242,7 +247,7 @@ $
 \inferrule
 {
 }
-{\FH{e}{\yield{e}}{e}}
+{\FH{e}{\yield{e,\lins}}{e}}
 \;(\textsc{Yield})
 $
 \medskip
@@ -292,7 +297,7 @@ $
 {
 \FH{\phi_1 \wedge e}{s}{\phi_2}
 }
-{\FH{\phi_1 \wedge e}{\ablock{e}{s}}{\phi_2}}
+{\FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2}}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -349,10 +354,13 @@ in $\dom(\refines)$.
 Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Lambda$ be a one-one 
 substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
 Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
-For each predicate $\phi \in \Yields$
-and for each atomic block $\ablock{e}{s} \in \Ablocks$, we prove the following judgment:
+For each predicate ($\phi,\lins_y) \in \Yields$
+and for each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks$, we prove the following judgment:
 \[
-\FH{\Lambda(\phi) \wedge e}{s}{\Lambda(\phi)}
+\FH{\Lambda(\phi) \wedge e \wedge
+  \{lv(\Lambda(x)) \mid x \in \lins_y\} \uplus
+  \{lv(x) \mid x \in \lins_a\} \subseteq \linsmax
+}{s}{\Lambda(\phi)}
 \]
 For each predicate $\phi \in \Yields$ and for each $P \in \dom(\refines)$ such that
 $\actions(\refines(P)) = (\rho, \alpha, m)$, we prove the following to be unsatisfiable:
@@ -387,7 +395,7 @@ $
 \inferrule
 {
 }
-{P \vdash \yield{e} : \epsilon}
+{P \vdash \yield{e,\lins} : \epsilon}
 \;(\textsc{Yield})
 $
 \medskip
@@ -427,7 +435,7 @@ $
 {
 s \preceq \mathit{old}(e) \Rightarrow \Havoc(L)
 }
-{P \vdash \ablock{e}{s} : \epsilon}
+{P \vdash \ablock{e,\lins}{s} : \epsilon}
 \;(\textsc{Ablock-Loop})
 $
 \medskip
@@ -437,7 +445,7 @@ $
 {
 \actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow \alpha
 }
-{P \vdash \ablock{e}{s} : N}
+{P \vdash \ablock{e,\lins}{s} : N}
 \;(\textsc{Ablock-Action})
 $
 \medskip
@@ -504,7 +512,7 @@ $
 \inferrule
 {
 }
-{\yield{e} \preceq \false}
+{\yield{e,\lins} \preceq \false}
 \;(\textsc{Yield})
 $
 \medskip
@@ -542,7 +550,7 @@ $
 {
 s \preceq \alpha
 }
-{\ablock{e}{s} \preceq \alpha}
+{\ablock{e,\lins}{s} \preceq \alpha}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -648,7 +656,7 @@ $
 \inferrule
 {
 }
-{\vdash \yield{e} : x \leadsto \RM}
+{\vdash \yield{e,\lins} : x \leadsto \RM}
 \;(\textsc{Yield})
 $
 \medskip
@@ -717,7 +725,7 @@ $
 {
 x \in \{\RM,\CM\}
 }
-{\vdash \ablock{e}{s} : x \leadsto \CM}
+{\vdash \ablock{e,\lins}{s} : x \leadsto \CM}
 \;(\textsc{Ablock})
 $
 \medskip
