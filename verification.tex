@@ -486,7 +486,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \exists \Locals, \Locals'.\ \alpha
 }
 {P \jr \call{P'} : N}
 \;(\textsc{Call-Action})
@@ -516,7 +516,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow \beta
+\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow  \exists \Locals, \Locals'.\ \alpha
 }
 {P \jr \ablock{e,\lins}{s} : N}
 \;(\textsc{Ablock-Action})
