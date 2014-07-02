@@ -410,7 +410,7 @@ $
 \forall 1 \le i \le n.\ G \jp T_i
 }
 {
-\jp (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\jp (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -563,7 +563,7 @@ $
 \forall P \in \dom(\refines).\ \bodies(P) \jr \{N\}
 }
 {
-\jr (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\jr (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -893,7 +893,7 @@ $
 \forall 1 \le i \le n.\ \jy T_i
 }
 {
-\jy (\bodies, \actions, \specs, \refines, \varsG, T_1 \ldots T_n)
+\jy (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -914,23 +914,8 @@ $
 \inferrule
 {
 }
-{
-\refines \vdash s \leadsto s
-}
-\;(\textsc{Reflexive})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\refines \vdash s_1 \leadsto s_2 \\
-\refines \vdash s_2 \leadsto s_3
-}
-{
-\refines \vdash s_1 \leadsto s_3
-}
-\;(\textsc{Transitive})
+{\refines;\Actions \vdash \skipstmt \leadsto \skipstmt}
+\;(\textsc{Skip})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -938,8 +923,36 @@ $
 \inferrule
 {
 }
+{\refines;\Actions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
+\;(\textsc{Assert})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
 {
-\refines \vdash \ablock{e,\lins}{s} \leadsto s
+}
+{\refines;\Actions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+A \not \in \Actions
+}
+{\refines;\Actions \vdash \call{A} \leadsto \call{A}}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\refines;\Actions \vdash \ablock{e,\lins}{s} \leadsto s
 }
 \;(\textsc{Ablock-Elim})
 $
@@ -950,7 +963,7 @@ $
 {
 }
 {
-\refines \vdash s \leadsto \ablock{e,\lins}{s}
+\refines;\Actions \vdash s \leadsto \ablock{e,\lins}{s}
 }
 \;(\textsc{Ablock-Intro})
 $
@@ -961,7 +974,7 @@ $
 {
 }
 {
-\refines \vdash \call{P} \leadsto \call{\refines(P)}
+\refines;\Actions \vdash \call{P} \leadsto \call{\refines(P)}
 }
 \;(\textsc{Proc})
 $
@@ -970,10 +983,21 @@ $
 $
 \inferrule
 {
-\refines \vdash \StmtStack \leadsto \StmtStack'
 }
 {
-\refines \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+\refines;\Actions \vdash \async{P} \leadsto \async{P}
+}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines;\Actions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\refines;\Actions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
 }
 \;(\textsc{StackFrame})
 $
@@ -982,11 +1006,11 @@ $
 $
 \inferrule
 {
-\refines \vdash \StmtStack \leadsto \StmtStack' \\
-\refines \vdash \stmt \leadsto \stmt'
+\refines;\Actions \vdash \StmtStack \leadsto \StmtStack' \\
+\refines;\Actions \vdash \stmt \leadsto \stmt'
 }
 {
-\refines \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+\refines;\Actions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
 }
 \;(\textsc{Seq})
 $
@@ -995,11 +1019,11 @@ $
 $
 \inferrule
 {
-\refines \vdash s_1 \leadsto s_1' \\
-\refines \vdash s_2 \leadsto s_2'
+\refines;\Actions \vdash s_1 \leadsto s_1' \\
+\refines;\Actions \vdash s_2 \leadsto s_2'
 }
 {
-\refines \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+\refines;\Actions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
 }
 \;(\textsc{Ite})
 $
@@ -1008,10 +1032,10 @@ $
 $
 \inferrule
 {
-\refines \vdash s \leadsto s'
+\refines;\Actions \vdash s \leadsto s'
 }
 {
-\refines \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
+\refines;\Actions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
 }
 \;(\textsc{While})
 $
@@ -1020,10 +1044,21 @@ $
 $
 \inferrule
 {
-\refines \vdash \StmtStack \leadsto \StmtStack' \\
 }
 {
-\refines \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack')) \\
+\refines;\Actions \vdash (\rho,\alpha,m) \leadsto (\rho,\alpha,m)
+}
+\;(\textsc{Action})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\refines;\Actions \vdash \StmtStack \leadsto \StmtStack' \\
+}
+{
+\refines;\Actions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack')) \\
 }
 \;(\textsc{Thread})
 $
@@ -1033,12 +1068,13 @@ $
 \inferrule
 {
 \Prog = (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n) \\
-\Prog' = (\bodies', \actions, \specs', \refines', \ProcLins', \lins', \varsG, T_1' \ldots T_n') \\
-\forall 1 \le i \le n. (\refines \vdash T_i \leadsto T_i') \\
-\forall P \not\in dom(\refines). (\refines \vdash \bodies(P) \leadsto \bodies'(P))
+\Prog' = (\bodies', \actions', \specs', \refines', \ProcLins', \lins', \varsG, T_1' \ldots T_n') \\
+\forall 1 \le i \le n.\ (\refines;\Actions \vdash T_i \leadsto T_i') \\
+\forall A \not\in \Actions.\ (\refines;\Actions \vdash \actions(A) \leadsto \actions'(A)) \\
+\forall P \not\in dom(\refines).\ (\refines;\Actions \vdash \bodies(P) \leadsto \bodies'(P))
 }
 {
-\Prog \leadsto \Prog'
+\Actions \vdash \Prog \leadsto \Prog'
 }
 \;(\textsc{Program})
 $
