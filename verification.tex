@@ -477,7 +477,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
+P' \in \dom(\refines) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
 {P \jr \call{P'} : \epsilon}
 \;(\textsc{Call-Loop})
@@ -487,7 +487,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ 
+P' \in \dom(\refines) \\ \actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ 
 \mathit{OldLocals} = \mathit{old}(\Locals) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{OldLocals}, \Locals.\ \alpha
 }
 {P \jr \call{P'} : N}
@@ -498,7 +498,7 @@ $
 $
 \inferrule
 {
-\actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
+P' \in \dom(\refines) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
 {P \jr \async{P'} : \epsilon}
 \;(\textsc{Async})
@@ -1088,7 +1088,7 @@ $
 \subsection{Soundness}
 
 \begin{theorem}
-Let $\Prog$ and $\Prog'$ be two programs such that the following conditions are satisfied:
+Let $\Prog$ and $\Prog'$ be two programs and $\Actions \subseteq \ActionName$ a set of action names such that the following conditions are satisfied:
 \begin{enumerate}
 \item
 $\vdash \Prog$ and $\vdash \Prog'$ and $\Prog \leadsto \Prog'$.
@@ -1103,7 +1103,7 @@ The program $\Prog$ is interference-free.
 \item
 $\jp Prog$, $\jr Prog$, and $\jy Prog$.
 \end{enumerate}
-Then all finite executions of $\Prog'$ are safe.
+Then all finite executions of $\Prog$ are safe.
 \end{theorem}
 
 \subsection{Responsiveness}
