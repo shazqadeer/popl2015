@@ -162,8 +162,10 @@ A \in \mathit{range}(\refines) \Longrightarrow \accessVars(\rho) \cap \Locals = 
 \mathit{OldLocals} = \mathit{old}(\Locals) \\
 A \in \mathit{range}(\refines) \Longrightarrow \alpha = ((\exists \mathit{OldLocals},\Locals.\ \alpha) \wedge \Same(\Locals)) \\
 \forall (\sigma,\sigma') \in \alpha.
-  \biguplus\{lv(\sigma'(x)) \mid x \in \lins'\} \subseteq
-  \biguplus\{lv(\sigma(x)) \mid x \in \lins\}
+  \disjoint(\{\sigma(x) \mid x \in \lins\}) \wedge
+  \disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
+\forall (\sigma,\sigma') \in \alpha.
+  \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
 }
 {
 \vdash A
@@ -194,8 +196,8 @@ $
 \forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocals) \\
 \forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
-\biguplus\{lv(\varsG(x)) \mid x \in \lins_G\} \uplus
-  \biguplus\{lv(\varsTL_i(x)) \mid 1 \le i \le n, x \in \lins_i\} \subseteq \linsmax
+\disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
+  \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
 }
 {
 \vdash (\bodies, \actions, \specs, \refines, \ProcLins, \varsG, T_1 \ldots T_n)
@@ -428,8 +430,8 @@ For each predicate ($\phi,\lins_y) \in \Yields$
 and for each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks$, we prove the following judgment:
 \[
 \FH{\Lambda(\phi) \wedge e \wedge
-  \{lv(\Lambda(x)) \mid x \in \lins_y\} \uplus
-  \{lv(x) \mid x \in \lins_a\} \subseteq \linsmax
+  \disjoint(\{\Lambda(x) \mid x \in \lins_y\} \cup
+  \{x \mid x \in \lins_a\})
 }{s}{\Lambda(\phi)}
 \]
 For each predicate $\phi \in \Yields$ and for each $P \in \dom(\refines)$ such that
