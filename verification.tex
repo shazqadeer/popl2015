@@ -948,9 +948,10 @@ $
 $
 \inferrule
 {
+\refines;\Actions \vdash s \leadsto s'
 }
 {
-\refines;\Actions \vdash \ablock{e,\lins}{s} \leadsto s
+\refines;\Actions \vdash \ablock{e,\lins}{s} \leadsto s'
 }
 \;(\textsc{Ablock-Elim})
 $
@@ -959,9 +960,10 @@ $
 $
 \inferrule
 {
+\refines;\Actions \vdash s \leadsto s'
 }
 {
-\refines;\Actions \vdash s \leadsto \ablock{e,\lins}{s}
+\refines;\Actions \vdash s \leadsto \ablock{e,\lins}{s'}
 }
 \;(\textsc{Ablock-Intro})
 $
@@ -970,11 +972,24 @@ $
 $
 \inferrule
 {
+P \in \dom(\refines)
 }
 {
 \refines;\Actions \vdash \call{P} \leadsto \call{\refines(P)}
 }
-\;(\textsc{Proc})
+\;(\textsc{Proc1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\refines)
+}
+{
+\refines;\Actions \vdash \call{P} \leadsto \call{P}
+}
+\;(\textsc{Proc2})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
