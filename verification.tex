@@ -161,7 +161,7 @@ $
 \lins \cap \Globals = \lins' \cap \Globals \\
 \actions(A) = (\rho, \alpha, m) \\
 m \in \{B, L\} \Longrightarrow \forall \sigma \in \rho. \exists \sigma'. (\sigma, \sigma') \in \alpha \\
-A \in \mathit{range}(\refines) \Longrightarrow \accessVars(\rho) \subseteq \Locals \\
+A \in \mathit{range}(\refines) \Longrightarrow \accessVars(\rho) \cap \Locals = \emptyset \\
 \mathit{OldLocals} = \mathit{old}(\Locals) \\
 A \in \mathit{range}(\refines) \Longrightarrow \alpha = ((\exists \mathit{OldLocals},\Locals.\ \alpha) \wedge \Same(\Locals)) \\
 \forall (\sigma,\sigma') \in \alpha.
@@ -193,7 +193,6 @@ $
 {
 \forall P \in \ProcName. \vdash P \\
 \forall A \in \ActionName. \vdash A \\
-\lins = \lins_G,\lins_1,\ldots,\lins_n  \\
 \lins_G \subseteq \Globals \\
 \forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocals) \\
@@ -202,7 +201,7 @@ $
   \biguplus\{lv(\varsTL_i(x)) \mid 1 \le i \le n, x \in \lins_i\} \subseteq \linsmax
 }
 {
-\vdash (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
+\vdash (\bodies, \actions, \specs, \refines, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -410,7 +409,7 @@ $
 \forall 1 \le i \le n.\ G \jp T_i
 }
 {
-\jp (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
+\jp (\bodies, \actions, \specs, \refines, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -563,7 +562,7 @@ $
 \forall P \in \dom(\refines).\ \bodies(P) \jr \{N\}
 }
 {
-\jr (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
+\jr (\bodies, \actions, \specs, \refines, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -893,7 +892,7 @@ $
 \forall 1 \le i \le n.\ \jy T_i
 }
 {
-\jy (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n)
+\jy (\bodies, \actions, \specs, \refines, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -1067,8 +1066,8 @@ $
 $
 \inferrule
 {
-\Prog = (\bodies, \actions, \specs, \refines, \ProcLins, \lins, \varsG, T_1 \ldots T_n) \\
-\Prog' = (\bodies', \actions', \specs', \refines', \ProcLins', \lins', \varsG, T_1' \ldots T_n') \\
+\Prog = (\bodies, \actions, \specs, \refines, \ProcLins, \varsG, T_1 \ldots T_n) \\
+\Prog' = (\bodies', \actions', \specs', \refines', \ProcLins', \varsG, T_1' \ldots T_n') \\
 \forall 1 \le i \le n.\ (\refines;\Actions \vdash T_i \leadsto T_i') \\
 \forall A \not\in \Actions.\ (\refines;\Actions \vdash \actions(A) \leadsto \actions'(A)) \\
 \forall P \not\in dom(\refines).\ (\refines;\Actions \vdash \bodies(P) \leadsto \bodies'(P))
