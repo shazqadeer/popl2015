@@ -267,7 +267,7 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\ P \not \in \dom(\refines)
+\procs(P) = (\phi, \mods, \psi, \stmt) \\ P \not \in \dom(\Refines)
 }
 {\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc1})
@@ -277,7 +277,7 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\ P \in \dom(\refines) \\\\ \procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{\refines(P)}}{\psi}
+\procs(P) = (\phi, \mods, \psi, \stmt) \\ P \in \dom(\Refines) \\\\ \procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{\Refines(P)}}{\psi}
 }
 {\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc2})
@@ -361,12 +361,12 @@ $
 \inferrule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
-\RefinementAny = \RefinementInside \Longleftrightarrow P \in \dom(\refines) \\\\
+\RefinementAny = \RefinementInside \Longleftrightarrow P \in \dom(\Refines) \\\\
 \procs;\actions;\RefinementAny;\mods' \jp \FH{\phi}{\stmt}{\psi} \\
 \mods' \subseteq \mods
 }
 {
-\procs;\actions;\refines \jp P
+\procs;\actions;\Refines \jp P
 }
 \;(\textsc{Procedure})
 $
@@ -403,11 +403,11 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName.\ \procs;\actions;\refines \jp P \\
+\forall P \in \ProcName.\ \procs;\actions;\Refines \jp P \\
 \forall 1 \le i \le n.\ \procs;\actions;\varsG \jp T_i
 }
 {
-\refines \jp (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\Refines \jp (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -421,7 +421,7 @@ $
 {\bf Non-interference.}
 Let $\Yields$ be the set of yield predicates, preconditions, and postconditions in the program.
 Let $\Ablocks$ be the set of atomic blocks in the program except those inside the bodies of procedures
-in $\dom(\refines)$.
+in $\dom(\Refines)$.
 Let $\FV \subseteq \VarName \setminus \Vars$ be a set of fresh variables and $\Lambda$ be a one-one 
 substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
 Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
@@ -433,8 +433,8 @@ and for each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks$, we prove the fol
   \{x \mid x \in \lins_a\})
 }{s}{\Lambda(\phi)}
 \]
-For each predicate $\phi \in \Yields$ and for each $P \in \dom(\refines)$ such that
-$\actions(\refines(P)) = (\rho, \alpha, m)$, we prove the following to be unsatisfiable:
+For each predicate $\phi \in \Yields$ and for each $P \in \dom(\Refines)$ such that
+$\actions(\Refines(P)) = (\rho, \alpha, m)$, we prove the following to be unsatisfiable:
 \[
 \Lambda(\phi) \circ \rho \circ \alpha \circ \neg\Lambda(\phi)
 \]
@@ -448,7 +448,7 @@ $
 \inferrule
 {
 }
-{\refines;\actions;P \jr \skipstmt : \epsilon}
+{\Refines;\actions;P \jr \skipstmt : \epsilon}
 \;(\textsc{Skip})
 $
 \medskip
@@ -457,7 +457,7 @@ $
 \inferrule
 {
 }
-{\refines;\actions;P \jr \assert{\locExpr} : \epsilon}
+{\Refines;\actions;P \jr \assert{\locExpr} : \epsilon}
 \;(\textsc{Assert})
 $
 \medskip
@@ -466,7 +466,7 @@ $
 \inferrule
 {
 }
-{\refines;\actions;P \jr \yield{e,\lins} : \epsilon}
+{\Refines;\actions;P \jr \yield{e,\lins} : \epsilon}
 \;(\textsc{Yield})
 $
 \medskip
@@ -474,9 +474,9 @@ $
 $
 \inferrule
 {
-P' \in \dom(\refines) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
+P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
-{\refines;\actions;P \jr \call{P'} : \epsilon}
+{\Refines;\actions;P \jr \call{P'} : \epsilon}
 \;(\textsc{Call-Loop})
 $
 \medskip
@@ -484,10 +484,10 @@ $
 $
 \inferrule
 {
-P' \in \dom(\refines) \\ \actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ 
+P' \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\ 
 \mathit{OldLocals} = \mathit{old}(\Locals) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{OldLocals}, \Locals.\ \alpha
 }
-{\refines;\actions;P \jr \call{P'} : N}
+{\Refines;\actions;P \jr \call{P'} : N}
 \;(\textsc{Call-Action})
 $
 \medskip
@@ -495,9 +495,9 @@ $
 $
 \inferrule
 {
-P' \in \dom(\refines) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
+P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
-{\refines;\actions;P \jr \async{P'} : \epsilon}
+{\Refines;\actions;P \jr \async{P'} : \epsilon}
 \;(\textsc{Async})
 $
 \medskip
@@ -507,7 +507,7 @@ $
 {
 \actions \vdash s \preceq \mathit{old}(e) \Rightarrow \Havoc(L)
 }
-{\refines;\actions;P \jr \ablock{e,\lins}{s} : \epsilon}
+{\Refines;\actions;P \jr \ablock{e,\lins}{s} : \epsilon}
 \;(\textsc{Ablock-Loop})
 $
 \medskip
@@ -515,11 +515,11 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ 
+\actions(\Refines(P)) = (\rho,\alpha,m) \\ 
 \mathit{OldLocals} = \mathit{old}(\Locals) \\\\
 \actions \vdash s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{OldLocals}, \Locals.\ \alpha
 }
-{\refines;\actions;P \jr \ablock{e,\lins}{s} : N}
+{\Refines;\actions;P \jr \ablock{e,\lins}{s} : N}
 \;(\textsc{Ablock-Action})
 $
 \medskip
@@ -527,9 +527,9 @@ $
 $
 \inferrule
 {
-\refines;\actions;P \jr s_1 : \re_1 \\ \refines;\actions;P \jr s_2 : \re_2
+\Refines;\actions;P \jr s_1 : \re_1 \\ \Refines;\actions;P \jr s_2 : \re_2
 }
-{\refines;\actions;P \jr s_1;s_2 : \re_1\cdot\re_2}
+{\Refines;\actions;P \jr s_1;s_2 : \re_1\cdot\re_2}
 \;(\textsc{Seq})
 $
 \medskip
@@ -537,9 +537,9 @@ $
 $
 \inferrule
 {
-\refines;\actions;P \jr s_1 : \re_1 \\ \refines;\actions;P \jr s_2 : \re_2
+\Refines;\actions;P \jr s_1 : \re_1 \\ \Refines;\actions;P \jr s_2 : \re_2
 }
-{\refines;\actions;P \jr \ite{\locExpr}{s_1}{s_2} : \re_1+\re_2}
+{\Refines;\actions;P \jr \ite{\locExpr}{s_1}{s_2} : \re_1+\re_2}
 \;(\textsc{Ite})
 $
 \medskip
@@ -547,9 +547,9 @@ $
 $
 \inferrule
 {
-\refines;\actions;P \jr s : \re
+\Refines;\actions;P \jr s : \re
 }
-{\refines;\actions;P \jr \while{e,\alpha}{\locExpr}{s} : \re^*}
+{\Refines;\actions;P \jr \while{e,\alpha}{\locExpr}{s} : \re^*}
 \;(\textsc{While})
 $
 \medskip
@@ -558,10 +558,10 @@ $
 \inferrule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
-\forall P \in \dom(\refines).\ \refines;\actions;P \jr \stmt : \{N\}
+\forall P \in \dom(\Refines).\ \Refines;\actions;P \jr \stmt : \{N\}
 }
 {
-\refines \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\Refines \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -729,7 +729,7 @@ $
 \inferrule
 {
 }
-{\refines;\actions \jy \skipstmt : (x, x)}
+{\Refines;\actions \jy \skipstmt : (x, x)}
 \;(\textsc{Skip})
 $
 \medskip
@@ -738,7 +738,7 @@ $
 \inferrule
 {
 }
-{\refines;\actions \jy \assert{\locExpr} : (x, x)}
+{\Refines;\actions \jy \assert{\locExpr} : (x, x)}
 \;(\textsc{Assert})
 $
 \medskip
@@ -747,7 +747,7 @@ $
 \inferrule
 {
 }
-{\refines;\actions \jy \yield{e,\lins} : (x, \RM)}
+{\Refines;\actions \jy \yield{e,\lins} : (x, \RM)}
 \;(\textsc{Yield})
 $
 \medskip
@@ -756,9 +756,9 @@ $
 $
 \inferrule
 {
-P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, B)
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, B)
 }
-{\refines;\actions \jy \call{P} : (x, x)}
+{\Refines;\actions \jy \call{P} : (x, x)}
 \;(\textsc{CallBothMover})
 $
 \medskip
@@ -766,9 +766,9 @@ $
 $
 \inferrule
 {
-P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, R)
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, R)
 }
-{\refines;\actions \jy \call{P} : (\RM, \RM)}
+{\Refines;\actions \jy \call{P} : (\RM, \RM)}
 \;(\textsc{CallRightMover})
 $
 \medskip
@@ -776,9 +776,9 @@ $
 $
 \inferrule
 {
-P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, L)
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, L)
 }
-{\refines;\actions \jy \call{P} : (x, \LM)}
+{\Refines;\actions \jy \call{P} : (x, \LM)}
 \;(\textsc{CallLeftMover})
 $
 \medskip
@@ -786,9 +786,9 @@ $
 $
 \inferrule
 {
-P \in \dom(\refines) \\ \actions(\refines(P)) = (\rho, \alpha, N)
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, N)
 }
-{\refines;\actions \jy \call{P} : (\RM, \LM)}
+{\Refines;\actions \jy \call{P} : (\RM, \LM)}
 \;(\textsc{CallNonMover})
 $
 \medskip
@@ -796,9 +796,9 @@ $
 $
 \inferrule
 {
-P \not \in \dom(\refines)
+P \not \in \dom(\Refines)
 }
-{\refines;\actions \jy \call{P} : (x, \RM)}
+{\Refines;\actions \jy \call{P} : (x, \RM)}
 \;(\textsc{CallYield})
 $
 \medskip
@@ -807,7 +807,7 @@ $
 \inferrule
 {
 }
-{\refines;\actions \jy \async{P} : (x, \LM)}
+{\Refines;\actions \jy \async{P} : (x, \LM)}
 \;(\textsc{Async})
 $
 \medskip
@@ -817,7 +817,7 @@ $
 {
 x \in \{\RM,\CM\}
 }
-{\refines;\actions \jy \ablock{e,\lins}{s} : (x, \CM)}
+{\Refines;\actions \jy \ablock{e,\lins}{s} : (x, \CM)}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -825,9 +825,9 @@ $
 $
 \inferrule
 {
-\refines;\actions \jy \StmtStack : (x, y) \\ \refines;\actions \jy s : (y, z)
+\Refines;\actions \jy \StmtStack : (x, y) \\ \Refines;\actions \jy s : (y, z)
 }
-{\refines;\actions \jy \StmtStack;s : (x, z)}
+{\Refines;\actions \jy \StmtStack;s : (x, z)}
 \;(\textsc{Seq})
 $
 \medskip
@@ -835,9 +835,9 @@ $
 $
 \inferrule
 {
-\refines;\actions \jy s_1 : (x, y) \\ \refines;\actions \jy s_2 : (x, y)
+\Refines;\actions \jy s_1 : (x, y) \\ \Refines;\actions \jy s_2 : (x, y)
 }
-{\refines;\actions \jy \ite{\locExpr}{s_1}{s_2} : (x, y)}
+{\Refines;\actions \jy \ite{\locExpr}{s_1}{s_2} : (x, y)}
 \;(\textsc{Ite})
 $
 \medskip
@@ -845,9 +845,9 @@ $
 $
 \inferrule
 {
-\refines;\actions \jy s : (x, x)
+\Refines;\actions \jy s : (x, x)
 }
-{\refines;\actions \jy \while{e,\alpha}{\locExpr}{s} : (x, x)}
+{\Refines;\actions \jy \while{e,\alpha}{\locExpr}{s} : (x, x)}
 \;(\textsc{While})
 $
 \medskip
@@ -856,10 +856,10 @@ $
 \inferrule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
-\refines;\actions \jy \stmt : (x, y)
+\Refines;\actions \jy \stmt : (x, y)
 }
 {
-\refines;\actions \jy P
+\Refines;\actions \jy P
 }
 \;(\textsc{Procedure})
 $
@@ -868,10 +868,10 @@ $
 $
 \inferrule
 {
-\refines;\actions \jy \StmtStack : (x,y)
+\Refines;\actions \jy \StmtStack : (x,y)
 }
 {
-\refines;\actions \jy (\varsL,\StmtStack) : (x,y)
+\Refines;\actions \jy (\varsL,\StmtStack) : (x,y)
 }
 \;(\textsc{StackFrame})
 $
@@ -881,10 +881,10 @@ $
 \inferrule
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
-\refines;\actions \jy (\varsL, \StmtStack) : (x, y)
+\Refines;\actions \jy (\varsL, \StmtStack) : (x, y)
 }
 {
-\refines;\actions \jy T
+\Refines;\actions \jy T
 }
 \;(\textsc{Thread})
 $
@@ -893,11 +893,11 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName \setminus \dom(\refines).\ \refines;\actions \jy P \\\\
-\forall 1 \le i \le n.\ \refines;\actions \jy T_i
+\forall P \in \ProcName \setminus \dom(\Refines).\ \Refines;\actions \jy P \\\\
+\forall 1 \le i \le n.\ \Refines;\actions \jy T_i
 }
 {
-\refines \jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\Refines \jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -918,7 +918,7 @@ $
 \inferrule
 {
 }
-{\refines;\Actions \vdash \skipstmt \leadsto \skipstmt}
+{\Refines;\RemovedActions \vdash \skipstmt \leadsto \skipstmt}
 \;(\textsc{Skip})
 $
 \medskip
@@ -927,7 +927,7 @@ $
 \inferrule
 {
 }
-{\refines;\Actions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
+{\Refines;\RemovedActions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
 \;(\textsc{Assert})
 $
 \medskip
@@ -936,7 +936,7 @@ $
 \inferrule
 {
 }
-{\refines;\Actions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
+{\Refines;\RemovedActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
 \;(\textsc{Yield})
 $
 \medskip
@@ -944,9 +944,9 @@ $
 $
 \inferrule
 {
-A \not \in \Actions
+A \not \in \RemovedActions
 }
-{\refines;\Actions \vdash \call{A} \leadsto \call{A}}
+{\Refines;\RemovedActions \vdash \call{A} \leadsto \call{A}}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -954,10 +954,10 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash s \leadsto s'
+\Refines;\RemovedActions \vdash s \leadsto s'
 }
 {
-\refines;\Actions \vdash \ablock{e,\lins}{s} \leadsto s'
+\Refines;\RemovedActions \vdash \ablock{e,\lins}{s} \leadsto s'
 }
 \;(\textsc{Ablock-Elim})
 $
@@ -966,10 +966,10 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash s \leadsto s'
+\Refines;\RemovedActions \vdash s \leadsto s'
 }
 {
-\refines;\Actions \vdash s \leadsto \ablock{e,\lins}{s'}
+\Refines;\RemovedActions \vdash s \leadsto \ablock{e,\lins}{s'}
 }
 \;(\textsc{Ablock-Intro})
 $
@@ -978,10 +978,10 @@ $
 $
 \inferrule
 {
-P \in \dom(\refines)
+P \in \dom(\Refines)
 }
 {
-\refines;\Actions \vdash \call{P} \leadsto \call{\refines(P)}
+\Refines;\RemovedActions \vdash \call{P} \leadsto \call{\Refines(P)}
 }
 \;(\textsc{Proc1})
 $
@@ -990,10 +990,10 @@ $
 $
 \inferrule
 {
-P \not\in \dom(\refines)
+P \not\in \dom(\Refines)
 }
 {
-\refines;\Actions \vdash \call{P} \leadsto \call{P}
+\Refines;\RemovedActions \vdash \call{P} \leadsto \call{P}
 }
 \;(\textsc{Proc2})
 $
@@ -1004,7 +1004,7 @@ $
 {
 }
 {
-\refines;\Actions \vdash \async{P} \leadsto \async{P}
+\Refines;\RemovedActions \vdash \async{P} \leadsto \async{P}
 }
 \;(\textsc{Async})
 $
@@ -1013,10 +1013,10 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash \StmtStack \leadsto \StmtStack'
+\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
 }
 {
-\refines;\Actions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+\Refines;\RemovedActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
 }
 \;(\textsc{StackFrame})
 $
@@ -1025,11 +1025,11 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash \StmtStack \leadsto \StmtStack' \\
-\refines;\Actions \vdash \stmt \leadsto \stmt'
+\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
 }
 {
-\refines;\Actions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+\Refines;\RemovedActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
 }
 \;(\textsc{Seq})
 $
@@ -1038,11 +1038,11 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash s_1 \leadsto s_1' \\
-\refines;\Actions \vdash s_2 \leadsto s_2'
+\Refines;\RemovedActions \vdash s_1 \leadsto s_1' \\
+\Refines;\RemovedActions \vdash s_2 \leadsto s_2'
 }
 {
-\refines;\Actions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+\Refines;\RemovedActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
 }
 \;(\textsc{Ite})
 $
@@ -1051,10 +1051,10 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash s \leadsto s'
+\Refines;\RemovedActions \vdash s \leadsto s'
 }
 {
-\refines;\Actions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
+\Refines;\RemovedActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
 }
 \;(\textsc{While})
 $
@@ -1063,10 +1063,10 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash \stmt \leadsto \stmt'
+\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
 }
 {
-\refines;\Actions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
+\Refines;\RemovedActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
 }
 \;(\textsc{Procedure})
 $
@@ -1080,7 +1080,7 @@ $
 \alpha = ((\exists \mathit{OldLocals},\Locals.\ \alpha) \wedge \Same(\Locals)) \\
 }
 {
-\refines;\Actions \vdash (\rho,\alpha,m) \leadsto (\rho,\alpha,m)
+\Refines;\RemovedActions \vdash (\rho,\alpha,m) \leadsto (\rho,\alpha,m)
 }
 \;(\textsc{Action})
 $
@@ -1089,10 +1089,10 @@ $
 $
 \inferrule
 {
-\refines;\Actions \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack' \\
 }
 {
-\refines;\Actions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack')) \\
+\Refines;\RemovedActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack')) \\
 }
 \;(\textsc{Thread})
 $
@@ -1103,13 +1103,13 @@ $
 {
 \Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \\
 \Prog' = (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n') \\
-\forall 1 \le i \le n.\ \refines;\Actions \vdash T_i \leadsto T_i' \\
-\forall A \not\in \Actions.\ \actions(A) = \actions'(A) \\
-\forall A \in \range(\refines).\ \refines;\Actions \vdash \actions(A) \leadsto \actions(A) \\
-\forall P \not\in \dom(\refines).\ \refines;\Actions \vdash \procs(P) \leadsto \procs'(P)
+\forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
+\forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
+\forall A \in \range(\Refines).\ \Refines;\RemovedActions \vdash \actions(A) \leadsto \actions(A) \\
+\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P)
 }
 {
-\refines;\Actions \vdash \Prog \leadsto \Prog'
+\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'
 }
 \;(\textsc{Program})
 $
@@ -1124,12 +1124,12 @@ $
 
 \begin{theorem}
 Let $\Prog$ and $\Prog'$ be two programs.
-Let $\refines \in \ProcName \pf \ActionName$ be a partial function from procedure names to action names.
-Let $\Actions \in 2^{\ActionName}$ be a set of action names.
+Let $\Refines \in \ProcName \pf \ActionName$ be a partial function from procedure names to action names.
+Let $\RemovedActions \in 2^{\ActionName}$ be a set of action names.
 Suppose the following conditions are satisfied:
 \begin{enumerate}
 \item
-$\vdash \Prog$ and $\vdash \Prog'$ and $\refines;\Actions \vdash \Prog \leadsto \Prog'$.
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$.
 \item 
 All finite executions of $\Prog'$ are safe.
 \item
@@ -1139,7 +1139,7 @@ The program $\Prog$ is commutativity-safe.
 \item
 The program $\Prog$ is interference-free.
 \item
-$\refines \jp Prog$ and $\refines \jr Prog$ and $\refines \jy Prog$.
+$\Refines \jp Prog$ and $\Refines \jr Prog$ and $\Refines \jy Prog$.
 \end{enumerate}
 Then all finite executions of $\Prog$ are safe.
 \end{theorem}
