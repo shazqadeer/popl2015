@@ -61,9 +61,9 @@ $\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, \ProcLins, \
 $
 \inferrule
 {
-\vdash (\varsG\cup\varsTL\cup\varsL, s) \trans (\varsG'\cup\varsTL'\cup\varsL', s')
+(\varsG\cup\varsTL\cup\varsL, s) \trans (\varsG'\cup\varsTL'\cup\varsL', s')
 }
-{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \trans (\varsG', \ProgCtxt[\varsTL'][\varsL'][s'])}
+{(\varsG, \ProgCtxt[\varsTL][\varsL][s]) \trans (\varsG', \ProgCtxt[\varsTL'][\varsL'][s'])}
 \;(\textsc{Program-Step})
 $
 \medskip
@@ -71,9 +71,9 @@ $
 $
 \inferrule
 {
-\vdash (\varsG\cup\varsTL\cup\varsL, s) \fails
+(\varsG\cup\varsTL\cup\varsL, s) \fails
 }
-{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][s]) \fails}
+{(\varsG, \ProgCtxt[\varsTL][\varsL][s]) \fails}
 \;(\textsc{Program-Fail})
 $
 \medskip
@@ -85,7 +85,7 @@ $
 \ProcLins(P) = (\lins, \lins') \\
 T' = (\varsTL, (\varsL, \yield{\phi,\lins};\bodies(P)))
 }
-{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt] \cdot T')}
+{(\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt] \cdot T')}
 \;(\textsc{Async})
 $
 \medskip
@@ -95,7 +95,7 @@ $
 {
 \\
 }
-{\vdash (\varsG, \YieldingThreads \cdot (\varsTL, (\varsL,\skipstmt)) \cdot \YieldingThreads') \trans (\varsG, \YieldingThreads \cdot \YieldingThreads')}
+{(\varsG, \YieldingThreads \cdot (\varsTL, (\varsL,\skipstmt)) \cdot \YieldingThreads') \trans (\varsG, \YieldingThreads \cdot \YieldingThreads')}
 \;(\textsc{Thread-End})
 $
 \medskip
@@ -107,7 +107,7 @@ $
 \ProcLins(P) = (\lins, \lins') \\
 \StmtStack = \yield{\phi,\lins};\bodies(P);\yield{\psi,\lins'}
 }
-{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\StmtStack}])}
+{(\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\StmtStack}])}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -117,7 +117,7 @@ $
 {
 \\
 }
-{\vdash (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{\varsL'}{\skipstmt}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt])}
+{(\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{\varsL'}{\skipstmt}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt])}
 \;{(\textsc{Return})}
 $
 %%%%%%%%%%%%%%%%%%%%
@@ -137,7 +137,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \true
 }
-{\vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
+{(\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
 \;{(\textsc{Assert-True})}
 $
 \medskip
@@ -147,7 +147,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \false
 }
-{\vdash (\vars, \assert{\locExpr}) \fails}
+{(\vars, \assert{\locExpr}) \fails}
 \;{(\textsc{Assert-False})}
 $
 \medskip
@@ -160,7 +160,7 @@ $
 (\vars, \vars') \vdash \alpha \\
 }
 {
-\vdash (\vars, \call{A}) \trans (\vars',\skipstmt)
+(\vars, \call{A}) \trans (\vars',\skipstmt)
 }
 \;{(\textsc{Atomic})}
 $
@@ -171,7 +171,7 @@ $
 {
 \\
 }
-{\vdash (\vars, \yield{e,\lins}) \trans (\vars, \skipstmt)}
+{(\vars, \yield{e,\lins}) \trans (\vars, \skipstmt)}
 \;{(\textsc{Yield})}
 $
 \medskip
@@ -180,7 +180,7 @@ $
 \inferrule
 {
 }
-{\vdash (\vars, \ablock{e,\lins}{\stmt}) \trans (\vars, \stmt)}
+{(\vars, \ablock{e,\lins}{\stmt}) \trans (\vars, \stmt)}
 \;{(\textsc{AtomicBlock})}
 $
 \medskip
@@ -190,7 +190,7 @@ $
 {
 \\
 }
-{\vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
+{(\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
 \;{\;\;\;\;\;\;\;\;\;\;\;\;(\textsc{Seq})}
 $
 \medskip
@@ -200,7 +200,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
+{(\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
 \;{(\textsc{If-True})}
 $
 \medskip
@@ -210,7 +210,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
+{(\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
 \;{(\textsc{If-False})}
 $
 \medskip
@@ -220,7 +220,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{\vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
+{(\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
 $
 \medskip
@@ -230,7 +230,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{\vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, s;\while{e,\alpha}{\locExpr}{s})}
+{(\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, s;\while{e,\alpha}{\locExpr}{s})}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%

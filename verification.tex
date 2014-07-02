@@ -1104,7 +1104,7 @@ $
 Let $\Prog$ and $\Prog'$ be two programs and $\Actions \subseteq \ActionName$ a set of action names such that the following conditions are satisfied:
 \begin{enumerate}
 \item
-$\vdash \Prog$ and $\vdash \Prog'$ and $\Prog \leadsto \Prog'$.
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Actions \vdash \Prog \leadsto \Prog'$.
 \item 
 All finite executions of $\Prog'$ are safe.
 \item
@@ -1114,7 +1114,7 @@ The program $\Prog$ is commutativity-safe.
 \item
 The program $\Prog$ is interference-free.
 \item
-$\jp Prog$, $\jr Prog$, and $\jy Prog$.
+$\jp Prog$ and $\jr Prog$ and $\jy Prog$.
 \end{enumerate}
 Then all finite executions of $\Prog$ are safe.
 \end{theorem}
