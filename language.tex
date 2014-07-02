@@ -141,7 +141,8 @@ $
 $
 \inferrule
 {
-\vars \vdash \locExpr \rightarrow \true
+\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
+\varsL \in \locExpr
 }
 {\actions \vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
 \;{(\textsc{Assert-True})}
@@ -151,7 +152,8 @@ $
 $
 \inferrule
 {
-\vars \vdash \locExpr \rightarrow \false
+\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
+\varsL \not \in \locExpr
 }
 {\actions \vdash (\vars, \assert{\locExpr}) \fails}
 \;{(\textsc{Assert-False})}
@@ -163,7 +165,7 @@ $
 \inferrule
 {
 \actions(A) = (\rho, \alpha, m) \\
-(\vars, \vars') \vdash \alpha \\
+(\vars, \vars') \in \alpha \\
 }
 {
 \actions \vdash (\vars, \call{A}) \trans (\vars',\skipstmt)
@@ -204,7 +206,8 @@ $
 $
 \inferrule
 {
-\vars \vdash \locExpr \rightarrow \mathit{true}
+\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
+\varsL \in \locExpr
 }
 {\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
 \;{(\textsc{If-True})}
@@ -214,7 +217,8 @@ $
 $
 \inferrule
 {
-\vars \vdash \locExpr \rightarrow \mathit{false}
+\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
+\varsL \not\in \locExpr
 }
 {\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
 \;{(\textsc{If-False})}
@@ -224,7 +228,8 @@ $
 $
 \inferrule
 {
-\vars \vdash \locExpr \rightarrow \mathit{false}
+\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
+\varsL \not\in \locExpr \\
 }
 {\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
@@ -234,7 +239,8 @@ $
 $
 \inferrule
 {
-\vars \vdash \locExpr \rightarrow \mathit{true}
+\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
+\varsL \in \locExpr
 }
 {\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, s;\while{e,\alpha}{\locExpr}{s})}
 \;{(\textsc{While-True})}

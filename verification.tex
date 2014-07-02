@@ -377,10 +377,10 @@ $
 {
 \procs;\actions;\RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi} \\ 
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Locals = \{\} \\
-\forall G, \varsTL.\ \phi(G,\varsTL) \Rightarrow \phi'(G, \varsTL,\varsL)
+\forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
 }
 {
-\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{(\varsL,\StmtStack)}{\psi}
+\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{(\varsL',\StmtStack)}{\psi}
 }
 \;(\textsc{StackFrame})
 $
