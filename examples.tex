@@ -1,0 +1,287 @@
+\section{Overview}
+\label{sec:overview}
+\begin{figure}
+\begin{verbatim}
+var x:int;
+\end{verbatim}
+\begin{verbatim}
+yielding procedure p()
+  requires x >= 5;
+  ensures  x >= 8;
+{
+  yield x >= 5;  x := x + 1;
+  yield x >= 6;  x := x + 1;
+  yield x >= 7;  x := x + 1;
+}
+\end{verbatim}
+\begin{verbatim}
+procedure q() modifies x; { x := x + 3; }
+\end{verbatim}
+\caption{Program~1}
+\label{fig:ex1}
+\end{figure}
+
+We present an overview of the \civl language through a sequence of examples.
+Figure~\ref{fig:ex1} shows Program~1 containing a procedure {\tt p}
+executing concurrently with another procedure {\tt q}. 
+An execution of a \civl program is non-preemptive; a thread explicitly yields control to the
+scheduler via the {\tt yield} statement following which execution continues on a 
+nondeterministically chosen thread.
+The {\tt yield} statement has a local assertion $\varphi$ attached to it.
+The yielding thread must establish $\varphi$ when it yields and the execution of other threads 
+must preserve $\varphi$; these two requirements are usually known as {\em sequential correctness}
+and {\em non-interference}, respectively.
+To check these requirements, the \civl verifier creates verification conditions, whose number is at most
+quadratic in the number of yield statements in the program.
+For example, in Program~1 each yield predicate in {\tt p} must be checked against the action 
+{\tt x := x + 3} in {\tt q}.
+
+\civl requires that a procedure that may potentially execute a yield statement during its execution 
+must be annotated as {\tt yielding}.
+This annotation is checked in a manner similar to the checking of modifies clauses; if a procedure is labeled 
+as {\tt yielding} so must all of its callers.
+A procedure marked as {\tt yielding} is exempt from providing a modifies clause; 
+the presence of {\tt yielding} allows the caller to conclude that any global variable could have changed
+potentially as a result of modification by a concurrently-executing thread.
+A procedure not labeled as {\tt yielding} is called atomic; such a procedure must supply a modifies clause as usual.
+
+\begin{figure}
+\begin{verbatim}
+var x:int;
+\end{verbatim}
+\begin{verbatim}
+yielding procedure yield_x(n:int)
+  requires x >= n;
+  ensures  x >= n;
+{
+  yield x >= n;
+}
+\end{verbatim}
+\begin{verbatim}
+yielding procedure p()
+  requires x >= 5;
+  ensures  x >= 8;
+{
+  call yield_x(5);  x := x + 1;
+  call yield_x(6);  x := x + 1;
+  call yield_x(7);  x := x + 1;
+}
+\end{verbatim}
+\caption{Program~2}
+\label{fig:ex2}
+\end{figure}
+
+{\bf From quadratic to linear verification conditions.}
+Figure~\ref{fig:ex2} shows Program~2, a variation of Program~1 in which the procedure {\tt yield\_x} 
+contains a single yield statement and {\tt p} calls {\tt yield\_x} instead of yielding directly.
+If the calls to {\tt yield\_x} are inlined in Program~2, then we will get Program~1.
+Both Program~1 and~2 are verifiable in \civl but the cost of verifying Program~2 is less because it has fewer yield statements.
+In fact, if it is possible to capture all interference in a concurrent program in a single yield predicate, 
+then the trick in Program~2 can be used to verify the program with a linear number of verification conditions.
+
+\begin{figure}
+\begin{verbatim}
+yielding procedure yield_x(n: int)
+  requires x >= n;
+  ensures  x >= n;
+{
+  yield x >= n;
+}
+\end{verbatim}
+\begin{verbatim}
+yielding procedure p()
+  requires x >= 5;
+  ensures  x >= 8;
+{
+  call yield_x(x);  x := x + 1;
+  call yield_x(x);  x := x + 1;
+  call yield_x(x);  x := x + 1;
+}
+\end{verbatim}
+\caption{Program~3}
+\label{fig:ex3}
+\end{figure}
+
+{\bf Encoding rely-guarantee specifications.}
+Figure~\ref{fig:ex3} shows Program~3, yet another variation of Programs~1 and~2 which shows how to encode a rely-guarantee-style~\cite{Jones83} (two-state invariant)
+proof using \civl's one-state yield statements. 
+The standard rely-guarantee specification to prove the assertions in {\tt p} is that the environment of {\tt p} 
+may only increase {\tt x}.
+We can encode this in \civl by first exploiting the trick in Program~2 to factor out the yield statement in a separate procedure
+and then passing the current value of {\tt x} as a parameter to {\tt yield\_x}.
+In fact, our implementation of \civl requires even less work; the value of {\tt x} upon entering {\tt yield\_x} is available 
+in the postcondition using the syntax {\tt old(x)}, allowing us to write {\tt yield\_x} without any parameter as follows:
+\begin{verbatim}
+yielding procedure yield_x()
+  ensures  x >= old(x);
+{
+  yield x >= old(x);
+}
+\end{verbatim}
+
+\begin{figure}
+\begin{verbatim}
+var x:int, y:int, z:int;
+\end{verbatim}
+\begin{verbatim}
+stable yielding procedure incr_x()
+  ensures  x >= old(x) + 1;
+{
+  yield x >= old(x);
+  x := x + 1;
+  yield x >= old(x) + 1;
+}
+\end{verbatim}
+\begin{verbatim}
+stable yielding procedure yield_y()
+  ensures  y >= old(y);
+{
+  yield y >= old(y);
+}
+\end{verbatim}
+\begin{verbatim}
+stable yielding procedure yield_z()
+  ensures  z >= old(z);
+{
+  yield z >= old(z);
+}
+\end{verbatim}
+\begin{verbatim}
+yielding procedure p()
+  requires x == 3 && y == 5 && z == 7;
+{
+  call incr_x() | yield_y() | yield_z();
+  assert x >= 4 && y >= 5 && z >= 7;
+}
+\end{verbatim}
+\caption{Program 4}
+\label{fig:ex4}
+\end{figure}
+
+{\bf Parallel calls.}
+Program~4 in Figure~\ref{fig:ex4} illustrates the parallel call feature of \civl,
+based on the standard Owicki-Gries rules for parallel composition of threads.  
+The statement {\tt call incr\_x() | yield\_y() | yield\_z()} in {\tt p} creates three threads 
+executing {\tt incr\_x}, {\tt yield\_y}, and {\tt yield\_z} respectively, yields control to the scheduler,
+and blocks until all three threads have terminated.
+For a procedure to be invoked in a parallel call, it must be annotated as {\tt stable}.
+This annotation indicates to the \civl verifier that the precondition and postcondition 
+of the procedure must be stable against interference.
+This requirement ensures that it is safe to assume the precondition in the callee
+and the postcondition in the caller.
+
+The threads created by {\tt p} for {\tt yield\_y} and {\tt yield\_z} are not doing any interesting computation; 
+their only purpose is to make available to their parent the conjunction of their respective postconditions
+(following Owicki-Gries rules for parallel composition).
+In this example, the postconditions of {\tt yield\_y} and {\tt yield\_z} preserve information about variables
+{\tt y} and {\tt z} that would otherwise be lost during the call to {\tt incr\_x},
+whose postcondition only supplies information about {\tt x} even though its yield statements potentially cause
+all global variables, including {\tt y} and {\tt z}, to change.
+This example shows that \civl allows modular proof structuring by factoring out yield assertions into a collection of procedures;
+the declaration of {\tt incr\_x} can focus on changes to {\tt x},
+without having to explicitly preserve invariants about all other variables in the program.
+
+\begin{figure}
+\begin{verbatim}
+type Tid;
+var linear alloc:[Tid]bool;
+const nil: Tid;
+procedure Allocate() returns (linear tid: Tid);
+  modifies alloc;
+  ensures tid != nil;
+\end{verbatim}
+\begin{verbatim}
+var a:[Tid]int;
+\end{verbatim}
+\begin{verbatim}
+yielding procedure main()
+{
+  var linear tid: Tid;
+  while (true) {
+    call tid := Allocate();
+    async call P(tid);
+    yield true;
+  }
+}
+\end{verbatim}
+\begin{verbatim}
+yielding procedure P(linear tid: Tid)
+  requires tid != nil;
+  ensures a[tid] == old(a)[tid] + 1;
+{
+  var t: int;
+  t := a[tid];
+  yield t == a[tid];
+  a[tid] := t + 1;
+}
+\end{verbatim}
+\caption{Program 5}
+\label{fig:ex5}
+\end{figure}
+
+{\bf Linear variables.}
+Program~5 in Figure~\ref{fig:ex5} introduces linear variables, a feature of \civl 
+that is useful for encoding disjointness among values contained in 
+different variables.  
+This example uses this feature for encoding the concept of an identifier 
+that is unique to each thread.
+Program~5 contains a shared global array {\tt a} indexed by an uninterpreted type {\tt Tid} 
+representing the set of thread identifiers.
+A collection of threads are executing procedure {\tt P} concurrently.
+The identifier of the thread executing {\tt P} is passed in as the parameter {\tt tid}.
+A thread with identifier {\tt tid} owns {\tt a[tid]} and can increment it without danger of interference.
+The yield assertion {\tt t == a[tid]} in {\tt P} indicates this expectation, yet it is not possible to prove it 
+unless the reasoning engine knows that the value of {\tt tid} in one thread is distinct 
+its value in a different thread.
+
+Instead of building a notion of thread identifiers into \civl, we provide a more 
+primitive and general notion of linear variables.
+The \civl type system ensures that values contained in linear variables cannot be duplicated.
+Consequently, the parameter {\tt tid} of distinct concurrent calls to {\tt P} are known to be distinct;
+the \civl verifier exploits this invariant while checking for non-interference.
+
+Program~5 also shows the mechanisms of allocation of thread identifiers,
+based on the use of global variable {\tt alloc}, the constant {\tt nil}, and the procedure 
+{\tt Allocate}.  
+Section~\ref{sec:formal} describes values and linear variables like {\tt nil} and {\tt alloc} in more detail.
+
+{\bf Refinement.}
+
+\begin{figure}
+\begin{verbatim}
+var Color:int;
+
+procedure {:yields} SetColGrayIfWhite({:cnst "tid"} tid:int)
+ensures {:atomic} [if (Color == WHITE())
+                        Color := GRAY();]
+{
+  call cNoLock:= GetColorNoLock();
+  call YieldColorOnlyGetsDarker();
+  if (cNoLock == WHITE()) {
+       call L_SetColorToGrayIfWhite(tid);
+  }
+}
+
+procedure {:yields} YieldColorOnlyGetsDarker()
+  ensures Color >= old(Color);
+
+procedure {:yields} L_SetColGrayIfWhite({:cnst "tid"} tid:int)
+ensures {:atomic} [if (Color == WHITE())
+                        Color := GRAY();]
+{
+  call AcquireLock(tid);
+  call cLock := GetColorLocked(tid);
+  if (cLock == WHITE()) {
+    call SetColorLocked(tid, GRAY());
+  } 
+  call ReleaseLock(tid);
+}
+\end{verbatim}
+\caption{Program 6}
+\label{fig:ex5}
+\end{figure}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "paper"
+%%% End: 
