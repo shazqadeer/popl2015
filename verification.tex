@@ -162,7 +162,8 @@ $
 \actions(A) = (\rho, \alpha, m) \\
 m \in \{B, L\} \Longrightarrow \forall \sigma \in \rho. \exists \sigma'. (\sigma, \sigma') \in \alpha \\
 A \in \mathit{range}(\refines) \Longrightarrow \accessVars(\rho) \subseteq \Locals \\
-A \in \mathit{range}(\refines) \Longrightarrow \alpha = ((\exists \Locals,\Locals'.\alpha) \wedge \mathit{\Same(\Locals,\Locals')}) \\
+\mathit{OldLocals} = \mathit{old}(\Locals) \\
+A \in \mathit{range}(\refines) \Longrightarrow \alpha = ((\exists \mathit{OldLocals},\Locals.\ \alpha) \wedge \Same(\Locals)) \\
 \forall (\sigma,\sigma') \in \alpha.
   \biguplus\{lv(\sigma'(x)) \mid x \in \lins'\} \subseteq
   \biguplus\{lv(\sigma(x)) \mid x \in \lins\}
@@ -486,7 +487,8 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \exists \Locals, \Locals'.\ \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ \actions(\refines(P')) = (\rho',\alpha',m) \\ 
+\mathit{OldLocals} = \mathit{old}(\Locals) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{OldLocals}, \Locals.\ \alpha
 }
 {P \jr \call{P'} : N}
 \;(\textsc{Call-Action})
@@ -516,7 +518,9 @@ $
 $
 \inferrule
 {
-\actions(\refines(P)) = (\rho,\alpha,m) \\ s \preceq \mathit{old}(e) \Rightarrow  \exists \Locals, \Locals'.\ \alpha
+\actions(\refines(P)) = (\rho,\alpha,m) \\ 
+\mathit{OldLocals} = \mathit{old}(\Locals) \\\\
+s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{OldLocals}, \Locals.\ \alpha
 }
 {P \jr \ablock{e,\lins}{s} : N}
 \;(\textsc{Ablock-Action})
