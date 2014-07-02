@@ -8,7 +8,7 @@ $
 {
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \skipstmt : \lins
+\lins;\ABlockAny \vdash \skipstmt : \lins
 }
 \;(\textsc{Skip})
 $
@@ -19,7 +19,7 @@ $
 {
 }
 {
-\lins;\RefinementAny;\ABlockOutside \vdash \assert{\locExpr} : \lins
+\lins;\ABlockOutside \vdash \assert{\locExpr} : \lins
 }
 \;(\textsc{Assert})
 $
@@ -31,7 +31,7 @@ $
 \lins_y \subseteq \lins
 }
 {
-\lins;\RefinementAny;\ABlockOutside \vdash \yield{e,\lins_y} : \lins
+\lins;\ABlockOutside \vdash \yield{e,\lins_y} : \lins
 }
 \;(\textsc{Yield})
 $
@@ -43,7 +43,7 @@ $
 \ProcLins(A) = (\lins,\lins')
 }
 {
-\lins;\RefinementAny;\ABlockInside \vdash \call{A} : \lins'
+\lins;\ABlockInside \vdash \call{A} : \lins'
 }
 \;(\textsc{Atomic})
 $
@@ -53,10 +53,9 @@ $
 \inferrule
 {
 \ProcLins(P) = (\lins,\lins') \\
-\RefinementAny = \RefinementInside \Longrightarrow P \in \dom(\refines)
 }
 {
-\lins;\RefinementAny;\ABlockOutside \vdash \call{P} : \lins'
+\lins;\ABlockOutside \vdash \call{P} : \lins'
 }
 \;(\textsc{Proc})
 $
@@ -68,10 +67,9 @@ $
 \lins_G \subseteq \Globals \\
 \lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocals \\
 \ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
-\RefinementAny = \RefinementInside \Longrightarrow P \in \dom(\refines)
 }
 {
-\lins_G,\lins,\lins_P;\RefinementAny;\ABlockOutside \vdash \async{P} : \lins_G,\lins
+\lins_G,\lins,\lins_P;\ABlockOutside \vdash \async{P} : \lins_G,\lins
 }
 \;(\textsc{Async})
 $
@@ -80,11 +78,11 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockInside \vdash \stmt : \lins' \\
+\lins;\ABlockInside \vdash \stmt : \lins' \\
 \lins_a \subseteq \lins
 }
 {
-\lins;\RefinementAny;\ABlockOutside \vdash \ablock{e,\lins_a}{\stmt} : \lins'
+\lins;\ABlockOutside \vdash \ablock{e,\lins_a}{\stmt} : \lins'
 }
 \;(\textsc{Ablock})
 $
@@ -93,10 +91,10 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockAny \vdash \StmtStack : \lins'
+\lins;\ABlockAny \vdash \StmtStack : \lins'
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash (\varsL,\StmtStack) : \lins'
+\lins;\ABlockAny \vdash (\varsL,\StmtStack) : \lins'
 }
 \;(\textsc{StackFrame})
 $
@@ -105,11 +103,11 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockAny \vdash \StmtStack : \lins' \\
-\lins';\RefinementAny;\ABlockAny \vdash \stmt : \lins''
+\lins;\ABlockAny \vdash \StmtStack : \lins' \\
+\lins';\ABlockAny \vdash \stmt : \lins''
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \StmtStack;\stmt : \lins''
+\lins;\ABlockAny \vdash \StmtStack;\stmt : \lins''
 }
 \;(\textsc{Seq})
 $
@@ -118,11 +116,11 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockAny \vdash s_1 : \lins' \\
-\lins;\RefinementAny;\ABlockAny \vdash s_2 : \lins'
+\lins;\ABlockAny \vdash s_1 : \lins' \\
+\lins;\ABlockAny \vdash s_2 : \lins'
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \ite{\locExpr}{s_1}{s_2} : \lins'
+\lins;\ABlockAny \vdash \ite{\locExpr}{s_1}{s_2} : \lins'
 }
 \;(\textsc{Ite})
 $
@@ -131,10 +129,10 @@ $
 $
 \inferrule
 {
-\lins;\RefinementAny;\ABlockAny \vdash s : \lins
+\lins;\ABlockAny \vdash s : \lins
 }
 {
-\lins;\RefinementAny;\ABlockAny \vdash \while{e,\alpha}{\locExpr}{s} : \lins
+\lins;\ABlockAny \vdash \while{e,\alpha}{\locExpr}{s} : \lins
 }
 \;(\textsc{While})
 $
@@ -144,8 +142,7 @@ $
 \inferrule
 {
 \ProcLins(P) = (\lins,\lins') \\
-\RefinementAny = \RefinementInside \Longleftrightarrow P \in \dom(\refines) \\
-\lins;\RefinementAny;\ABlockOutside \vdash \bodies(P) : \lins'
+\lins;\ABlockOutside \vdash \bodies(P) : \lins'
 }
 {
 \vdash P
@@ -179,7 +176,7 @@ $
 \inferrule
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
-\lins;\RefinementOutside;\ABlockOutside \vdash \StmtStack : \lins'
+\lins;\ABlockOutside \vdash \StmtStack : \lins'
 }
 {
 \lins \vdash T
