@@ -5,9 +5,9 @@
 $g$ & $\in$ & $\Globals \subseteq \VarName$ \\
 $\tl$ & $\in$ & $\ThreadLocals \subseteq \VarName$ \\
 $l$ & $\in$ & $\Locals \subseteq \VarName$ \\
-$x,y$ & $\in$ & $\Var = \Globals \cup \ThreadLocals \cup \Locals$ \\
+$x,y$ & $\in$ & $\Vars = \Globals \cup \ThreadLocals \cup \Locals$ \\
 $v$ &  $\in$ & $\Value$ \\
-$\sigma$ & $\in$ & $\Store = \Var \rightarrow \Value$ \\
+$\sigma$ & $\in$ & $\Store = \Vars \rightarrow \Value$ \\
 $\varsG$ & $\in$ & $StoreGlobals = \Globals \rightarrow \Value$ \\
 $\varsTL$ & $\in$ & $StoreThreadLocals = \ThreadLocals  \rightarrow \Value$ \\
 $\varsL$ & $\in$ & $StoreLocals = \Locals \rightarrow \Value$ \\
@@ -16,10 +16,9 @@ $\alpha, \beta$ & $\in$ & $\TransExpr = 2^{(\Store,\Store)}$ \\
 $\locExpr$ & $\in$ & $\LocalStateExpr = 2^{\StoreLocals}$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
-$\bodies$ & $\in$ & $\ProcName \rightarrow \Stmt$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
-$\specs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocals, \StateExpr)$ \\
+$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocals, \StateExpr, \Stmt)$ \\
 $\refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
 $\lins$ & $\in$ & $\LinearVars = 2^{\Globals \cup \ThreadLocals}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVars, \LinearVars)$ \\
@@ -36,18 +35,19 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e,\lins} 
                   & & $\while{e,\alpha}{\locExpr}{s}$ \\ 
 $\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
-\\
+$\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \\
+~\\
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
 $\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, ([]_{\Locals}, \StmtCtxt)) \mid$ \\
  & &$([]_{\ThreadLocals}, (\varsL, \StmtStackCtxt))$ \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
-$\ProgCtxt \in \mathit{ProgCtxt}$ &::= &$\YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads$ \\
+$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Globals}, \YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads)$ \\
 \end{tabular}
 ~\\
 ~\\
 \begin{tabular}{rcl}
-$\Prog$ & $\in$ & $\Program = (\bodies, \actions, \specs, \refines, \ProcLins, \varsG, \TS)$ \\
+
 \end{tabular}
 \setlength{\tabcolsep}{6pt}
 \caption{Syntax}
@@ -63,7 +63,7 @@ $
 {
 (\varsG\cup\varsTL\cup\varsL, s) \trans (\varsG'\cup\varsTL'\cup\varsL', s')
 }
-{(\varsG, \ProgCtxt[\varsTL][\varsL][s]) \trans (\varsG', \ProgCtxt[\varsTL'][\varsL'][s'])}
+{\ProgCtxt[\varsG][\varsTL][\varsL][s] \trans \ProgCtxt[\varsG'][\varsTL'][\varsL'][s']}
 \;(\textsc{Program-Step})
 $
 \medskip
@@ -73,7 +73,7 @@ $
 {
 (\varsG\cup\varsTL\cup\varsL, s) \fails
 }
-{(\varsG, \ProgCtxt[\varsTL][\varsL][s]) \fails}
+{\ProgCtxt[\varsG][\varsTL][\varsL][s]) \fails}
 \;(\textsc{Program-Fail})
 $
 \medskip
@@ -81,11 +81,15 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \mods, \psi) \\
+\procs(P) = (\phi, \mods, \psi,\stmt) \\
 \ProcLins(P) = (\lins, \lins') \\
-T' = (\varsTL, (\varsL, \yield{\phi,\lins};\bodies(P)))
+T' = (\varsTL, (\varsL, \yield{\phi,\lins};\stmt))
 }
-{(\varsG, \ProgCtxt[\varsTL][\varsL][\async{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt] \cdot T')}
+{
+(\procs, \actions, \ProcLins, \varsG, \ThreadCtxt[\varsTL][\varsL][\async{P}])
+\trans
+(\procs, \actions, \ProcLins, \varsG, \ThreadCtxt[\varsTL][\varsL][\skipstmt] \cdot T')
+}
 \;(\textsc{Async})
 $
 \medskip
@@ -95,7 +99,7 @@ $
 {
 \\
 }
-{(\varsG, \YieldingThreads \cdot (\varsTL, (\varsL,\skipstmt)) \cdot \YieldingThreads') \trans (\varsG, \YieldingThreads \cdot \YieldingThreads')}
+{(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot (\varsTL, (\varsL,\skipstmt)) \cdot \YieldingThreads') \trans (\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot \YieldingThreads')}
 \;(\textsc{Thread-End})
 $
 \medskip
@@ -103,11 +107,11 @@ $
 $
 \inferrule
 {
-\specs(P) = (\phi, \mods, \psi) \\
+\procs(P) = (\phi, \mods, \psi,\stmt) \\
 \ProcLins(P) = (\lins, \lins') \\
-\StmtStack = \yield{\phi,\lins};\bodies(P);\yield{\psi,\lins'}
+\StmtStack = \yield{\phi,\lins};\stmt;\yield{\psi,\lins'}
 }
-{(\varsG, \ProgCtxt[\varsTL][\varsL][\call{P}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{L}{\StmtStack}])}
+{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\Frame{L}{\StmtStack}]}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -117,7 +121,7 @@ $
 {
 \\
 }
-{(\varsG, \ProgCtxt[\varsTL][\varsL][\Frame{\varsL'}{\skipstmt}]) \trans (\varsG, \ProgCtxt[\varsTL][\varsL][\skipstmt])}
+{\ProgCtxt[\varsG][\varsTL][\varsL][\Frame{\varsL'}{\skipstmt}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\skipstmt]}
 \;{(\textsc{Return})}
 $
 %%%%%%%%%%%%%%%%%%%%
