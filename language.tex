@@ -61,7 +61,8 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Glo
 $
 \inferrule
 {
-(\varsG\cup\varsTL\cup\varsL, s) \trans (\varsG'\cup\varsTL'\cup\varsL', s')
+\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\
+\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \trans (\MakeStore{\varsG'}{\varsTL'}{\varsL'}, s')
 }
 {\ProgCtxt[\varsG][\varsTL][\varsL][s] \trans \ProgCtxt[\varsG'][\varsTL'][\varsL'][s']}
 \;(\textsc{Program-Step})
@@ -71,7 +72,8 @@ $
 $
 \inferrule
 {
-(\varsG\cup\varsTL\cup\varsL, s) \fails
+\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\
+\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \fails
 }
 {\ProgCtxt[\varsG][\varsTL][\varsL][s]) \fails}
 \;(\textsc{Program-Fail})
@@ -141,7 +143,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \true
 }
-{(\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
+{\actions \vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
 \;{(\textsc{Assert-True})}
 $
 \medskip
@@ -151,7 +153,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \false
 }
-{(\vars, \assert{\locExpr}) \fails}
+{\actions \vdash (\vars, \assert{\locExpr}) \fails}
 \;{(\textsc{Assert-False})}
 $
 \medskip
@@ -164,7 +166,7 @@ $
 (\vars, \vars') \vdash \alpha \\
 }
 {
-(\vars, \call{A}) \trans (\vars',\skipstmt)
+\actions \vdash (\vars, \call{A}) \trans (\vars',\skipstmt)
 }
 \;{(\textsc{Atomic})}
 $
@@ -175,7 +177,7 @@ $
 {
 \\
 }
-{(\vars, \yield{e,\lins}) \trans (\vars, \skipstmt)}
+{\actions \vdash (\vars, \yield{e,\lins}) \trans (\vars, \skipstmt)}
 \;{(\textsc{Yield})}
 $
 \medskip
@@ -184,7 +186,7 @@ $
 \inferrule
 {
 }
-{(\vars, \ablock{e,\lins}{\stmt}) \trans (\vars, \stmt)}
+{\actions \vdash (\vars, \ablock{e,\lins}{\stmt}) \trans (\vars, \stmt)}
 \;{(\textsc{AtomicBlock})}
 $
 \medskip
@@ -194,7 +196,7 @@ $
 {
 \\
 }
-{(\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
+{\actions \vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
 \;{\;\;\;\;\;\;\;\;\;\;\;\;(\textsc{Seq})}
 $
 \medskip
@@ -204,7 +206,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{(\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
+{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
 \;{(\textsc{If-True})}
 $
 \medskip
@@ -214,7 +216,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{(\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
+{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
 \;{(\textsc{If-False})}
 $
 \medskip
@@ -224,7 +226,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{false}
 }
-{(\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
+{\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
 $
 \medskip
@@ -234,7 +236,7 @@ $
 {
 \vars \vdash \locExpr \rightarrow \mathit{true}
 }
-{(\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, s;\while{e,\alpha}{\locExpr}{s})}
+{\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, s;\while{e,\alpha}{\locExpr}{s})}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%

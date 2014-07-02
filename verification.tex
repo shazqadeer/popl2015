@@ -217,7 +217,7 @@ $
 \inferrule
 {
 }
-{\RefinementAny;\{\} \jp \FH{\phi}{\skipstmt}{\phi}}
+{\procs;\actions;\RefinementAny;\{\} \jp \FH{\phi}{\skipstmt}{\phi}}
 \;(\textsc{Skip})
 $
 \medskip
@@ -226,7 +226,7 @@ $
 \inferrule
 {
 }
-{\RefinementOutside;\{\} \jp \FH{\phi}{\assert{\locExpr}}{\phi}}
+{\procs;\actions;\RefinementOutside;\{\} \jp \FH{\phi}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert1})
 $
 \medskip
@@ -235,7 +235,7 @@ $
 \inferrule
 {
 }
-{\RefinementInside;\{\} \jp \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
+{\procs;\actions;\RefinementInside;\{\} \jp \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert2})
 $
 \medskip
@@ -244,7 +244,7 @@ $
 \inferrule
 {
 }
-{\RefinementAny;\{\} \jp \FH{e}{\yield{e,\lins}}{e}}
+{\procs;\actions;\RefinementAny;\{\} \jp \FH{e}{\yield{e,\lins}}{e}}
 \;(\textsc{Yield})
 $
 \medskip
@@ -259,7 +259,7 @@ $
 \phi \Rightarrow \rho \\ 
 \Unsat{\phi \circ \alpha \circ \neg \psi} \\
 }
-{\RefinementAny;\mods \jp \FH{\phi}{\call{A}}{\psi}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{A}}{\psi}}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -269,7 +269,7 @@ $
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\ P \not \in \dom(\refines)
 }
-{\RefinementAny;\mods \jp \FH{\phi}{\call{P}}{\psi}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc1})
 $
 \medskip
@@ -277,9 +277,9 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\ P \in \dom(\refines) \\\\ \RefinementAny;\mods \jp \FH{\phi}{\call{\refines(P)}}{\psi}
+\procs(P) = (\phi, \mods, \psi, \stmt) \\ P \in \dom(\refines) \\\\ \procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{\refines(P)}}{\psi}
 }
-{\RefinementAny;\mods \jp \FH{\phi}{\call{P}}{\psi}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\call{P}}{\psi}}
 \;(\textsc{Proc2})
 $
 \medskip
@@ -289,7 +289,7 @@ $
 {
 \procs(P) = (\phi, \mods, \psi, \stmt)
 }
-{\RefinementAny;\{\} \jp \FH{\rho \wedge \phi}{\async{P}}{\rho}}
+{\procs;\actions;\RefinementAny;\{\} \jp \FH{\rho \wedge \phi}{\async{P}}{\rho}}
 \;(\textsc{Async})
 $
 \medskip
@@ -298,9 +298,9 @@ $
 $
 \inferrule
 {
-\RefinementAny;\mods \jp \FH{\phi_1 \wedge e}{s}{\phi_2}
+\procs;\actions;\RefinementAny;\mods \jp \FH{\phi_1 \wedge e}{s}{\phi_2}
 }
-{\RefinementAny;\mods \jp \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2}}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -308,9 +308,10 @@ $
 $
 \inferrule
 {
-\RefinementAny;\mods_1 \jp \FH{\phi_1}{\StmtStack}{\phi_2} \\ \RefinementAny;\mods_2 \jp \FH{\phi_2}{s}{\phi_3}
+\procs;\actions;\RefinementAny;\mods_1 \jp \FH{\phi_1}{\StmtStack}{\phi_2} \\ 
+\procs;\actions;\RefinementAny;\mods_2 \jp \FH{\phi_2}{s}{\phi_3}
 }
-{\RefinementAny;\mods_1 \cup \mods_2 \jp \FH{\phi_1}{\StmtStack;s}{\phi_3}}
+{\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2 \jp \FH{\phi_1}{\StmtStack;s}{\phi_3}}
 \;(\textsc{Seq})
 $
 \medskip
@@ -318,9 +319,10 @@ $
 $
 \inferrule
 {
-\RefinementAny;\mods_1 \jp \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ \RefinementAny;\mods_2 \jp \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
+\procs;\actions;\RefinementAny;\mods_1 \jp \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ 
+\procs;\actions;\RefinementAny;\mods_2 \jp \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
 }
-{\RefinementAny;\mods_1 \cup \mods_2 \jp \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
+{\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2 \jp \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
 \;(\textsc{Ite})
 $
 \medskip
@@ -328,9 +330,9 @@ $
 $
 \inferrule
 {
-\RefinementAny;\mods \jp \FH{e \wedge \locExpr}{s}{e}
+\procs;\actions;\RefinementAny;\mods \jp \FH{e \wedge \locExpr}{s}{e}
 }
-{\RefinementAny;\mods \jp \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 $
 \medskip
@@ -338,9 +340,9 @@ $
 $
 \inferrule
 {
-\RefinementAny;\mods \jp \phi \Rightarrow \phi' \\ \RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi'} \\ \psi' \Rightarrow \psi
+\phi \Rightarrow \phi' \\ \procs;\actions;\RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi'} \\ \psi' \Rightarrow \psi
 }
-{\RefinementAny;\mods \jp \FH{\phi}{\StmtStack}{\psi}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\StmtStack}{\psi}}
 \;(\textsc{Weaken})
 $
 \medskip
@@ -348,9 +350,9 @@ $
 $
 \inferrule
 {
-\RefinementAny;\mods \jp \FH{\phi}{\StmtStack}{\psi} \\ \accessVars(\rho) \cap \mods = \{\}
+\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{\StmtStack}{\psi} \\ \accessVars(\rho) \cap \mods = \{\}
 }
-{\RefinementAny;\mods \jp \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi}}
 \;(\textsc{Frame})
 $
 \medskip
@@ -360,11 +362,11 @@ $
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
 \RefinementAny = \RefinementInside \Longleftrightarrow P \in \dom(\refines) \\\\
-\RefinementAny;\mods' \jp \FH{\phi}{\stmt}{\psi} \\
+\procs;\actions;\RefinementAny;\mods' \jp \FH{\phi}{\stmt}{\psi} \\
 \mods' \subseteq \mods
 }
 {
-\jp P
+\procs;\actions;\refines \jp P
 }
 \;(\textsc{Procedure})
 $
@@ -373,12 +375,12 @@ $
 $
 \inferrule
 {
-\RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi} \\ 
+\procs;\actions;\RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi} \\ 
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Locals = \{\} \\
 \forall G, \varsTL.\ \phi(G,\varsTL) \Rightarrow \phi'(G, \varsTL,\varsL)
 }
 {
-\RefinementAny;\mods \jp \FH{\phi}{(\varsL,\StmtStack)}{\psi}
+\procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{(\varsL,\StmtStack)}{\psi}
 }
 \;(\textsc{StackFrame})
 $
@@ -388,11 +390,11 @@ $
 \inferrule
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
-G\!\cdot\!\varsTL\!\cdot\!\varsL \vdash \phi \rightarrow \true \\\\
-\RefinementOutside;\mods \jp \FH{\phi}{(\varsL,\StmtStack)}{\true}
+\MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \\
+\procs;\actions;\RefinementOutside;\mods \jp \FH{\phi}{\StmtStack}{\true}
 }
 {
-G \jp T
+\procs;\actions;\varsG \jp T
 }
 \;(\textsc{Thread})
 $
@@ -401,11 +403,11 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName.\ \jp P \\
-\forall 1 \le i \le n.\ G \jp T_i
+\forall P \in \ProcName.\ \procs;\actions;\refines \jp P \\
+\forall 1 \le i \le n.\ \procs;\actions;\varsG \jp T_i
 }
 {
-\jp (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\refines \jp (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -503,7 +505,7 @@ $
 $
 \inferrule
 {
-s \preceq \mathit{old}(e) \Rightarrow \Havoc(L)
+\actions \vdash s \preceq \mathit{old}(e) \Rightarrow \Havoc(L)
 }
 {\refines;\actions;P \jr \ablock{e,\lins}{s} : \epsilon}
 \;(\textsc{Ablock-Loop})
@@ -515,7 +517,7 @@ $
 {
 \actions(\refines(P)) = (\rho,\alpha,m) \\ 
 \mathit{OldLocals} = \mathit{old}(\Locals) \\\\
-s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{OldLocals}, \Locals.\ \alpha
+\actions \vdash s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{OldLocals}, \Locals.\ \alpha
 }
 {\refines;\actions;P \jr \ablock{e,\lins}{s} : N}
 \;(\textsc{Ablock-Action})
@@ -578,7 +580,7 @@ $
 \inferrule
 {
 }
-{\skipstmt \preceq \Havoc(\{\})}
+{\actions \vdash \skipstmt \preceq \Havoc(\{\})}
 \;(\textsc{Skip})
 $
 \medskip
@@ -587,7 +589,7 @@ $
 \inferrule
 {
 }
-{\assert{\locExpr} \preceq \Havoc(\{\})}
+{\actions \vdash \assert{\locExpr} \preceq \Havoc(\{\})}
 \;(\textsc{Assert})
 $
 \medskip
@@ -596,7 +598,7 @@ $
 \inferrule
 {
 }
-{\yield{e,\lins} \preceq \false}
+{\actions \vdash \yield{e,\lins} \preceq \false}
 \;(\textsc{Yield})
 $
 \medskip
@@ -606,7 +608,7 @@ $
 {
 \actions(A) = (\rho, \alpha, m) 
 }
-{\call{A} \preceq \alpha}
+{\actions \vdash \call{A} \preceq \alpha}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -615,7 +617,7 @@ $
 \inferrule
 {
 }
-{\call{P} \preceq \false}
+{\actions \vdash \call{P} \preceq \false}
 \;(\textsc{Call})
 $
 \medskip
@@ -624,7 +626,7 @@ $
 \inferrule
 {
 }
-{\async{P} \preceq \Havoc(\{\})}
+{\actions \vdash \async{P} \preceq \Havoc(\{\})}
 \;(\textsc{Async})
 $
 \medskip
@@ -634,7 +636,7 @@ $
 {
 s \preceq \alpha
 }
-{\ablock{e,\lins}{s} \preceq \alpha}
+{\actions \vdash \ablock{e,\lins}{s} \preceq \alpha}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -642,9 +644,9 @@ $
 $
 \inferrule
 {
-s_1 \preceq \alpha_1 \\ s_2 \preceq \alpha_2
+\actions \vdash s_1 \preceq \alpha_1 \\ \actions \vdash s_2 \preceq \alpha_2
 }
-{s_1;s_2 \preceq \alpha_1 \circ \alpha_2}
+{\actions \vdash s_1;s_2 \preceq \alpha_1 \circ \alpha_2}
 \;(\textsc{Seq})
 $
 \medskip
@@ -652,9 +654,9 @@ $
 $
 \inferrule
 {
-s_1 \preceq \alpha_1 \\ s_2 \preceq \alpha_2
+\actions \vdash s_1 \preceq \alpha_1 \\ \actions \vdash s_2 \preceq \alpha_2
 }
-{\ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \circ \alpha_1) \vee (\neg \locExpr \circ \alpha_2)}
+{\actions \vdash \ite{\locExpr}{s_1}{s_2} \preceq (\locExpr \circ \alpha_1) \vee (\neg \locExpr \circ \alpha_2)}
 \;(\textsc{Ite})
 $
 \medskip
@@ -662,9 +664,9 @@ $
 $
 \inferrule
 {
-s \preceq \beta \\ \neg \locExpr \circ \Havoc(\{\}) \Rightarrow \alpha \\ \beta \circ \alpha \Rightarrow \alpha 
+\actions \vdash s \preceq \beta \\ \neg \locExpr \circ \Havoc(\{\}) \Rightarrow \alpha \\ \beta \circ \alpha \Rightarrow \alpha 
 }
-{\while{e,\alpha}{\locExpr}{s} \preceq e \circ \alpha \circ \neg \locExpr}
+{\actions \vdash \while{e,\alpha}{\locExpr}{s} \preceq e \circ \alpha \circ \neg \locExpr}
 \;(\textsc{While})
 $
 \medskip
@@ -672,9 +674,9 @@ $
 $
 \inferrule
 {
-s \preceq \alpha \\ \alpha \Rightarrow \alpha'
+\actions \vdash s \preceq \alpha \\ \alpha \Rightarrow \alpha'
 }
-{s \preceq \alpha'}
+{\actions \vdash s \preceq \alpha'}
 \;(\textsc{Weaken})
 $
 \medskip
