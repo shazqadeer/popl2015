@@ -251,6 +251,36 @@ $
 \label{fig:operational-semantics2}
 \end{figure}
 
+In this paper, we will formalize our verification method on a core concurrent programming language \civl.
+In this section, we present the syntax and operational semantics of our language.
+Figure~\ref{fig:definitions} contains basic definitions; 
+Figure~\ref{fig:syntax} uses these definitions to define the syntax of a (dynamically executing) \civl program;
+Figures~\ref{fig:operational-semantics1} and~\ref{fig:operational-semantics2} provide the formal rules according 
+to which a \civl program evolves.
+
+Informally, a \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
+thread-local variables that are shared across procedures, and local variables inside a procedure.
+The sets $\Globals$, $\ThreadLocals$, and $\Locals$ are the names of global, thread-local, and procedure-local variables 
+respectively; these sets are mutually disjoint and $\Vars$ denotes their union.
+There is an uninterpreted set $\Value$ of values that may be stored in these variables;
+$\Store$ is the set of all valuations from $\Vars$
+A \civl program is a tuple $(\procs, \actions, \ProcLins, G, \TS)$ with the following components:
+\begin{itemize}
+\item 
+$\procs$ maps a procedure name $P \in \ProcName$ to a tuple $(\phi, \mods, \psi, \stmt)$, 
+where $\phi$ is the precondition of $P$, $\mods$ is the set of thread-local variables potentially modified by $P$, 
+$\psi$ is the postcondition of $P$, and $\stmt$ is the body of $P$.
+The predicates $\phi$ and $\psi$ should not refer to procedure-local variables.
+Procedures do not have parameters; however, parameters may be modeled using thread-local variables.
+\item
+$\actions$ maps an action name $A \in \ActionName$ to a tuple $(\rho,\alpha,m)$.
+Actions are used inside procedure bodies to access variables.
+The predicate $\rho$ is the precondition of $A$ and the predicate $\alpha$
+\item
+$\ProcLins$
+\item
+$\TS$
+\end{itemize}
 
 %%% Local Variables: 
 %%% mode: latex
