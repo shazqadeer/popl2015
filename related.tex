@@ -1,5 +1,3 @@
-\section{Related work}
-
 Concurrent separation logic~\cite{OHearn07} started as a way to reason about concurrency without having to explicitly check for non-interference between threads.
 In particular, the use of separating conjunction allows programs to partition heap locations and locked resources between threads so that only one thread has access at a time.
 \civl's linear variables also express this sort of partitioning; for example, \civl can express linear maps for partitioning heaps among threads.
@@ -22,10 +20,12 @@ VCC and \civl also differ in how framing is supported. For variables accessed by
 
 QED~\cite{QEDRef} is a proof system for concurrent programs written using a variant of Boogie. QED supports abstraction and reduction to simplify concurrent programs and to carry out refinement proofs. Key differences between QED and \civl are as follows.
 \begin{itemize}
-\item QED is interactive at a much smaller level of granularity, where a proof step corresponds to a single action being abstracted, or two statements being combined using a reduction step. \civl is designed to support larger proof steps in order to enable proofs of the scale of the garbage collector.  
-\item Owicki-Gries and rely-guarantee-style reasoning, as well as linear variables are important additional features in \civl which make it a more powerful refinement verification tool, as demonstrated in Section~\ref{}. For instance, a method can be proven to satisfy its atomic action spec without all yield's needing to be eliminated from its implementation. In fact, {\tt yield}s and their predicates may be helpful in a refinement proof. This was not possible in QED. The user is forced to eliminate all {\tt yield}s using reduction first. This makes especially reasoning about loops clumsy and difficult.
-\item In QED, a global invariant is part of the proof state and can only be strengthened. In \civl, yield annotations (therefore invariants) are per proof phase. Combined with variable hiding, this allows completely different invariant specifications at different levels of abstraction, e.g. at a certain proof step, invariants for a library may disappear once its methods are proven atomic, and its client's invariants may appear instead. \civl is able to span a larger abstraction gap in practice, due to this design choice.
-\item Modularity is a primary concern in \civl. In QED, procedure calls can only be inlined or replaced with atomic action specifications. \civl provides procedure-level modularity for procedures without atomic specifications as well.  
+\item Owicki-Gries and rely-guarantee-style reasoning, as well as linear variables are important additional features in \civl which make it a more powerful refinement verification tool than QED, as demonstrated in Section~\ref{}. 
+% For instance, a method can be proven to satisfy its atomic action spec without all yield's needing to be eliminated from its implementation. In fact, {\tt yield}s and their predicates may be helpful in a refinement proof. This was not possible in QED. The user is forced to eliminate all {\tt yield}s using reduction first. This makes especially reasoning about loops clumsy and difficult.
+\item In QED, a global invariant is part of the proof state and can only be strengthened. In \civl, yield annotations (therefore invariants) are per proof phase. Combined with variable hiding, this allows completely different invariants at different levels of abstraction
+% , e.g. at a certain proof step, invariants for a library may disappear once its methods are proven atomic, and its client's invariants may appear instead. \civl is able to span a larger abstraction gap in practice, due to this design choice.
+\item QED proof steps are small. They correspond to a single action being abstracted, or two statements being combined using reduction. \civl is designed to support larger proof steps in which a set of procedures are replaced by their atomic action specifications. This facilitates larger proofs of the scale of the garbage collector.  
+\item Modularity is a primary concern in \civl. In QED, procedure calls can only be inlined or replaced with atomic action specifications. \civl provides procedure-level modularity for procedures without atomic specifications as well. This allows \civl to be more efficient at lower levels of the proof where most procedures have not yet been proven atomic. 
 \end{itemize}
 
 \section{Conclusions}
@@ -36,3 +36,8 @@ Two-state invariants in the style of rely-guarantee arise naturally from procedu
 modular factoring of invariants arises naturally using parallel calls to procedures with yield statements;
 and disjoint thread identifiers and monitors arise naturally from the linear type system. The combination of these techniques and reduction and abstraction supports refinement verification, allowing users to formally relate representations of their program described at different levels of abstraction and atomicity. 
 The resulting system is sound, automated, efficient, and ready to use.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "paper"
+%%% End: 
