@@ -259,8 +259,7 @@ pass, \civl verifies that {\tt L\_SetColGrayIfWhite} is atomic and
 satisfies its specification. In the second, higher-level 
 pass, using the atomic action specification for {\tt
   L\_SetColGrayIfWhite}, Owicki-Gries-style reasoning using the yield
-predicate in {\tt
-  YieldColorsGetDarker()} and refinement reasoning, \civl verifies
+predicate in {\tt YieldColorsGetDarker()} and refinement reasoning, \civl verifies
 that {\tt SetColGrayIfWht()} satisfies its atomic action
 specification. 
 
@@ -272,8 +271,7 @@ set, represented by a map from {\tt addr} to {\tt bool} in this
 example. 
 
  
-The procedure  
-\exC{L\_SetColGrayIfWhite} holds a global lock while reading
+The procedure  \exC{L\_SetColGrayIfWhite} holds a global lock while reading
 reading and possibly modifying {\tt Color[addr]} and inserting {\tt
   addr} into the set. 
 As a performance optimization \exC{SetColGrayIfWhite}, before calling
@@ -293,7 +291,7 @@ ordinary static reduction reasoning. The verification of atomicity for
 \exC{SetColGrayIfWht} highlights the capability of \civl to combine
 Owicki-Gries-style reasoning and reduction to verify refinement.
 
-Observe that in the procedure \exC{L\_SetColGrayIfWht}, there are no {\tt
+{\bf Yield Elimination} Observe that in the procedure \exC{L\_SetColGrayIfWht}, there are no {\tt
   yield}s between statements. Since threds explicitly yield
 control, this means that the entire body of \exC{L\_SetColGrayIfWht}
 is executed atomically. In a real execution, control can switch
