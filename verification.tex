@@ -419,7 +419,9 @@ $
 \end{figure}
 
 {\bf Non-interference.}
-Let $\Yields$ be the union of the following sets:
+Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program
+and $\Refines$ be a refinement map.
+Let $\Yields(\Prog)$ be the union of the following sets:
 \begin{itemize}
 \item
 $\{(\phi,\lins) \mid \yield{\phi,\lins}~\mathrm{appears~in~\Prog}\}$.
@@ -428,27 +430,28 @@ $\{(\phi,\lins) \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stm
 \item
 $\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
 \end{itemize}
-Let $\Ablocks$ be the set of atomic blocks in the program except those inside the bodies of procedures
+Let $\Ablocks(\Prog,\Refines)$ be the set of atomic blocks in $\Prog$ except those inside the bodies of procedures
 in $\dom(\Refines)$.
+
 Let $\FV \subseteq \VarName \setminus \Vars$ be a set of fresh variables and $\Lambda$ be a one-one 
 substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
 Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
-We define
+The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
+if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$, the following conditions are satisfied:
+\begin{enumerate}
+\item
+For each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks(\Prog,\Refines)$, the judgment
 \[
-D(\lins_y,\lins_a) = 
-\disjoint(\{x \mid x \in \lins_y\} \cup \{x \mid x \in \lins_a\})
+\FH{\Lambda(\phi) \wedge e \wedge \disjoint(\Lambda(\lins_y \setminus \Globals) \cup \lins_a)}{s}{\Lambda(\phi)}
 \]
-For each predicate ($\phi,\lins_y) \in \Yields$
-and for each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks$, we prove the following judgment:
+holds.
+\item
+For each $A \in \range(\Refines)$ such that $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins_a,\lins'_a)$, 
 \[
-\FH{\Lambda(\phi) \wedge e \wedge D(\Lambda(\lins_y \setminus \Globals),\lins_a)}{s}{\Lambda(\phi)}
+(\Lambda(\phi) \wedge \rho \wedge \disjoint(\Lambda(\lins_y \setminus \Globals) \cup \lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
 \]
-For each predicate $\phi \in \Yields$ and for each $A \in \range(\Refines)$ such that
-$\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins_a,\lins'_a)$, 
-we prove the following to be unsatisfiable:
-\[
-(\Lambda(\phi) \wedge \rho \wedge D(\Lambda(\lins_y \setminus \Globals),\lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
-\]
+is unsatisfiable.
+\end{enumerate}
 
 \subsection{Refinement}
 \begin{figure}
@@ -702,31 +705,49 @@ $
 Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Vars$ be two sets of disjoint fresh variables.
 Let $\Lambda_1$ and $\Lambda_2$ be one-one 
 substitution functions from $\ThreadLocals \cup \Locals$ to $\FV_1$ and $\FV_2$ respectively.
-For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
-$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and$\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
-if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$ then prove the following valid:
+A program $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
+if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
+all of the following conditions are satisfied:
+\begin{enumerate}
+\item
+If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
 \[
 \begin{array}{l}
-(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2) \wedge D(\Lambda_1(\lins_1 \setminus \Globals), \Lambda_2(\lins_2))) \\
-\circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
-\Rightarrow (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2))
+(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Globals) \cup \Lambda_2(\lins_2)))\ \circ \\
+(\Lambda_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
+\Rightarrow \\
+(\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2))
 \end{array}
 \]
-For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
-if $m_1 \in \{B,R\}$ then prove the following unsatisfiable:
+is valid.
+\item
+If $m_1 \in \{B,R\}$, then 
 \[
-\Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ D(\Lambda_1(\lins_1 \setminus \Globals), \Lambda_2(\lins_2)) \circ \Lambda_2(\alpha_2)) \circ \neg \Lambda_1(\rho_1)
+\begin{array}{l}
+\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Globals) \cup \Lambda_2(\lins_2))\ \circ \\
+\Lambda_2(\rho_2) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
+\neg \Lambda_1(\rho_1)
+\end{array}
 \]
-For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
-if $m_1 \in \{B,L\}$ then prove the following unsatisfiable:
+is unsatisfiable.
+\item
+If $m_1 \in \{B,L\}$, then 
 \[
-\neg \Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ D(\Lambda_1(\lins_1 \setminus \Globals), \Lambda_2(\lins_2)) \circ \Lambda_2(\alpha_2)) \circ \Lambda_1(\rho_1)
+\begin{array}{l}
+\neg \Lambda_1(\rho_1)\ \circ \\
+\Lambda_2(\rho_2) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
+\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins'_1 \setminus \Globals) \cup \Lambda_2(\lins'_2))
+\end{array}
 \]
-For all $A \in \ActionName$ such that $\actions(A) = (\rho,\alpha,m)$ and $m \in \{B, L\}$,
-prove the following valid:
+is unsatisfiable.
+\item
+If $m_1 \in \{B, L\}$, then
 \[
-\forall \sigma \in \rho.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha
+\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1
 \]
+is valid.
+\end{enumerate}
 
 \begin{figure}
 \includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
@@ -1149,9 +1170,9 @@ All finite executions of $\Prog'$ are safe.
 \item
 All infinite executions of $\Prog'$ are responsive.
 \item
-The program $\Prog$ is commutativity-safe.
+$\CommutativitySafe(\Prog)$.
 \item
-The program $\Prog$ is interference-free.
+$\InterferenceFree(\Prog,\Refines)$.
 \item
 $\Refines \jp Prog$ and $\Refines \jr Prog$ and $\Refines \jy Prog$.
 \end{enumerate}
