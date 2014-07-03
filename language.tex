@@ -1,25 +1,25 @@
 \begin{figure}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{rclcl}
-$g$ & $\in$ & $\Globals \subseteq \VarName$ \\
-$\tl$ & $\in$ & $\ThreadLocals \subseteq \VarName$ \\
-$l$ & $\in$ & $\Locals \subseteq \VarName$ \\
-$x,y$ & $\in$ & $\Vars = \Globals \cup \ThreadLocals \cup \Locals$ \\
+$g$ & $\in$ & $\Global \subseteq \VarName$ \\
+$\tl$ & $\in$ & $\ThreadLocal \subseteq \VarName$ \\
+$l$ & $\in$ & $\Local \subseteq \VarName$ \\
+$x,y$ & $\in$ & $\Var = \Global \cup \ThreadLocal \cup \Local$ \\
 $v$ &  $\in$ & $\Value$ \\
-$\sigma$ & $\in$ & $\Store = \Vars \rightarrow \Value$ \\
-$\varsG$ & $\in$ & $StoreGlobals = \Globals \rightarrow \Value$ \\
-$\varsTL$ & $\in$ & $StoreThreadLocals = \ThreadLocals  \rightarrow \Value$ \\
-$\varsL$ & $\in$ & $StoreLocals = \Locals \rightarrow \Value$ \\
+$\sigma$ & $\in$ & $\Store = \Var \rightarrow \Value$ \\
+$\varsG$ & $\in$ & $\StoreGlobal = \Global \rightarrow \Value$ \\
+$\varsTL$ & $\in$ & $\StoreThreadLocal = \ThreadLocal  \rightarrow \Value$ \\
+$\varsL$ & $\in$ & $\StoreLocal = \Local \rightarrow \Value$ \\
 $e, \phi, \psi, \rho$ & $\in$ & $\StateExpr = 2^{\Store}$ \\
 $\alpha, \beta$ & $\in$ & $\TransExpr = 2^{(\Store,\Store)}$ \\
-$\locExpr$ & $\in$ & $\LocalStateExpr = 2^{\StoreLocals}$ \\
+$\locExpr$ & $\in$ & $\LocalStateExpr = 2^{\StoreLocal}$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
-$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocals, \StateExpr, \Stmt)$ \\
-$\lins$ & $\in$ & $\LinearVars = 2^{\Globals \cup \ThreadLocals}$ \\
-$\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVars, \LinearVars)$ \\
+$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocal, \StateExpr, \Stmt)$ \\
+$\lins$ & $\in$ & $\LinearVar = 2^{\Global \cup \ThreadLocal}$ \\
+$\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVar, \LinearVar)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
 $\RefinementAny$ & $\in$ & $\mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
 $\Refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
@@ -42,11 +42,11 @@ $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
 $\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \\
 ~\\
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
-$\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
-$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, ([]_{\Locals}, \StmtCtxt)) \mid$ \\
- & &$([]_{\ThreadLocals}, (\varsL, \StmtStackCtxt))$ \\
+$\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Local}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
+$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, ([]_{\Local}, \StmtCtxt)) \mid$ \\
+ & &$([]_{\ThreadLocal}, (\varsL, \StmtStackCtxt))$ \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
-$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Globals}, \YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads)$
+$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads)$
 \end{tabular}
 \caption{Syntax}
 \label{fig:syntax}
@@ -260,10 +260,10 @@ to which a \civl program evolves.
 
 Informally, a \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
 thread-local variables that are shared across procedures, and local variables inside a procedure.
-The sets $\Globals$, $\ThreadLocals$, and $\Locals$ are the names of global, thread-local, and procedure-local variables 
-respectively; these sets are mutually disjoint and $\Vars$ denotes their union.
+The sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
+respectively; these sets are mutually disjoint and $\Var$ denotes their union.
 There is an uninterpreted set $\Value$ of values that may be stored in these variables;
-$\Store$ is the set of all valuations from $\Vars$
+$\Store$ is the set of all valuations from $\Var$
 A \civl program is a tuple $(\procs, \actions, \ProcLins, G, \TS)$ with the following components:
 \begin{itemize}
 \item 

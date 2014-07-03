@@ -64,8 +64,8 @@ $
 $
 \inferrule
 {
-\lins_G \subseteq \Globals \\
-\lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocals \\
+\lins_G \subseteq \Global \\
+\lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocal \\
 \ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
 }
 {
@@ -156,7 +156,7 @@ $
 \inferrule
 {
 \ProcLins(A) = (\lins,\lins') \\
-\lins \cap \Globals = \lins' \cap \Globals \\
+\lins \cap \Global = \lins' \cap \Global \\
 \actions(A) = (\rho, \alpha, m) \\
 \forall (\sigma,\sigma') \in \alpha.
   \disjoint(\{\sigma(x) \mid x \in \lins\}) \wedge
@@ -189,9 +189,9 @@ $
 {
 \forall P \in \ProcName. \vdash P \\
 \forall A \in \ActionName. \vdash A \\
-\lins_G \subseteq \Globals \\
+\lins_G \subseteq \Global \\
 \forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
-\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocals) \\
+\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocal) \\
 \forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
 \disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
   \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
@@ -254,8 +254,8 @@ $
 \inferrule
 {
 \actions(A) = (\rho, \alpha, m) \\ 
-\mods \subseteq \ThreadLocals \\
-\alpha \Rightarrow \Havoc(\Globals \cup \mods \cup \Locals) \\
+\mods \subseteq \ThreadLocal \\
+\alpha \Rightarrow \Havoc(\Global \cup \mods \cup \Local) \\
 \phi \Rightarrow \rho \\ 
 \Unsat{\phi \circ \alpha \circ \neg \psi} \\
 }
@@ -376,7 +376,7 @@ $
 \inferrule
 {
 \procs;\actions;\RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi} \\ 
-(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Locals = \{\} \\
+(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\
 \forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
 }
 {
@@ -433,8 +433,8 @@ $\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \st
 Let $\Ablocks(\Prog,\Refines)$ be the set of atomic blocks in $\Prog$ except those inside the bodies of procedures
 in $\dom(\Refines)$.
 
-Let $\FV \subseteq \VarName \setminus \Vars$ be a set of fresh variables and $\Lambda$ be a one-one 
-substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
+Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Lambda$ be a one-one 
+substitution function from $\ThreadLocal \cup \Local$ to $\FV$.
 Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
 The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$, the following conditions are satisfied:
@@ -442,13 +442,13 @@ if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$, the following conditi
 \item
 For each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks(\Prog,\Refines)$, the judgment
 \[
-\FH{\Lambda(\phi) \wedge e \wedge \disjoint(\Lambda(\lins_y \setminus \Globals) \cup \lins_a)}{s}{\Lambda(\phi)}
+\FH{\Lambda(\phi) \wedge e \wedge \disjoint(\Lambda(\lins_y \setminus \Global) \cup \lins_a)}{s}{\Lambda(\phi)}
 \]
 holds.
 \item
 For each $A \in \range(\Refines)$ such that $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins_a,\lins'_a)$, 
 \[
-(\Lambda(\phi) \wedge \rho \wedge \disjoint(\Lambda(\lins_y \setminus \Globals) \cup \lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
+(\Lambda(\phi) \wedge \rho \wedge \disjoint(\Lambda(\lins_y \setminus \Global) \cup \lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
 \]
 is unsatisfiable.
 \end{enumerate}
@@ -499,7 +499,7 @@ $
 \inferrule
 {
 P' \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\ 
-\mathit{OldLocals} = \mathit{old}(\Locals) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{OldLocals}, \Locals.\ \alpha
+\mathit{OldLocals} = \mathit{old}(\Local) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{OldLocals}, \Local.\ \alpha
 }
 {\Refines;\actions;P \jr \call{P'} : N}
 \;(\textsc{Call-Action})
@@ -530,8 +530,8 @@ $
 \inferrule
 {
 \actions(\Refines(P)) = (\rho,\alpha,m) \\ 
-\mathit{OldLocals} = \mathit{old}(\Locals) \\\\
-\actions \vdash s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{OldLocals}, \Locals.\ \alpha
+\mathit{OldLocals} = \mathit{old}(\Local) \\\\
+\actions \vdash s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{OldLocals}, \Local.\ \alpha
 }
 {\Refines;\actions;P \jr \ablock{e,\lins}{s} : N}
 \;(\textsc{Ablock-Action})
@@ -702,9 +702,9 @@ $
 \subsection{Yield sufficiency}
 
 {\bf Commutativity.}
-Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Vars$ be two sets of disjoint fresh variables.
+Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
 Let $\Lambda_1$ and $\Lambda_2$ be one-one 
-substitution functions from $\ThreadLocals \cup \Locals$ to $\FV_1$ and $\FV_2$ respectively.
+substitution functions from $\ThreadLocal \cup \Local$ to $\FV_1$ and $\FV_2$ respectively.
 A program $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
 if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
 $\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
@@ -714,7 +714,7 @@ all of the following conditions are satisfied:
 If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
 \[
 \begin{array}{l}
-(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Globals) \cup \Lambda_2(\lins_2)))\ \circ \\
+(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Global) \cup \Lambda_2(\lins_2)))\ \circ \\
 (\Lambda_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
 \Rightarrow \\
 (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2))
@@ -725,7 +725,7 @@ is valid.
 If $m_1 \in \{B,R\}$, then 
 \[
 \begin{array}{l}
-\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Globals) \cup \Lambda_2(\lins_2))\ \circ \\
+\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Global) \cup \Lambda_2(\lins_2))\ \circ \\
 \Lambda_2(\rho_2) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
 \neg \Lambda_1(\rho_1)
 \end{array}
@@ -737,7 +737,7 @@ If $m_1 \in \{B,L\}$, then
 \begin{array}{l}
 \neg \Lambda_1(\rho_1)\ \circ \\
 \Lambda_2(\rho_2) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
-\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins'_1 \setminus \Globals) \cup \Lambda_2(\lins'_2))
+\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins'_1 \setminus \Global) \cup \Lambda_2(\lins'_2))
 \end{array}
 \]
 is unsatisfiable.
@@ -1109,9 +1109,9 @@ $
 $
 \inferrule
 {
-\accessVars(\rho) \cap \Locals = \emptyset \\
-\mathit{OldLocals} = \mathit{old}(\Locals) \\
-\alpha = ((\exists \mathit{OldLocals},\Locals.\ \alpha) \wedge \Same(\Locals)) \\
+\accessVars(\rho) \cap \Local = \emptyset \\
+\mathit{OldLocals} = \mathit{old}(\Local) \\
+\alpha = ((\exists \mathit{OldLocals},\Local.\ \alpha) \wedge \Same(\Local)) \\
 }
 {
 \Refines;\RemovedActions \vdash (\rho,\alpha,m) \leadsto (\rho,\alpha,m)
