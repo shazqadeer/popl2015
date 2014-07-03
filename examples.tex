@@ -5,7 +5,7 @@
 var x:int;
 \end{verbatim}
 \begin{verbatim}
-yielding procedure p()
+procedure p()
   requires x >= 5;
   ensures  x >= 8;
 {
@@ -50,7 +50,7 @@ A procedure not labeled as {\tt yielding} is called atomic; such a procedure mus
 var x:int;
 \end{verbatim}
 \begin{verbatim}
-yielding procedure yield_x(n:int)
+procedure yield_x(n:int)
   requires x >= n;
   ensures  x >= n;
 {
@@ -58,7 +58,7 @@ yielding procedure yield_x(n:int)
 }
 \end{verbatim}
 \begin{verbatim}
-yielding procedure p()
+procedure p()
   requires x >= 5;
   ensures  x >= 8;
 {
@@ -81,7 +81,7 @@ then the trick in Program~2 can be used to verify the program with a linear numb
 
 \begin{figure}
 \begin{verbatim}
-yielding procedure yield_x(n: int)
+procedure yield_x(n: int)
   requires x >= n;
   ensures  x >= n;
 {
@@ -89,7 +89,7 @@ yielding procedure yield_x(n: int)
 }
 \end{verbatim}
 \begin{verbatim}
-yielding procedure p()
+procedure p()
   requires x >= 5;
   ensures  x >= 8;
 {
@@ -112,74 +112,13 @@ and then passing the current value of {\tt x} as a parameter to {\tt yield\_x}.
 In fact, our implementation of \civl requires even less work; the value of {\tt x} upon entering {\tt yield\_x} is available 
 in the postcondition using the syntax {\tt old(x)}, allowing us to write {\tt yield\_x} without any parameter as follows:
 \begin{verbatim}
-yielding procedure yield_x()
+procedure yield_x()
   ensures  x >= old(x);
 {
   yield x >= old(x);
 }
 \end{verbatim}
 
-\begin{figure}
-\begin{verbatim}
-var x:int, y:int, z:int;
-\end{verbatim}
-\begin{verbatim}
-stable yielding procedure incr_x()
-  ensures  x >= old(x) + 1;
-{
-  yield x >= old(x);
-  x := x + 1;
-  yield x >= old(x) + 1;
-}
-\end{verbatim}
-\begin{verbatim}
-stable yielding procedure yield_y()
-  ensures  y >= old(y);
-{
-  yield y >= old(y);
-}
-\end{verbatim}
-\begin{verbatim}
-stable yielding procedure yield_z()
-  ensures  z >= old(z);
-{
-  yield z >= old(z);
-}
-\end{verbatim}
-\begin{verbatim}
-yielding procedure p()
-  requires x == 3 && y == 5 && z == 7;
-{
-  call incr_x() | yield_y() | yield_z();
-  assert x >= 4 && y >= 5 && z >= 7;
-}
-\end{verbatim}
-\caption{Program 4}
-\label{fig:ex4}
-\end{figure}
-
-{\bf Parallel calls.}
-Program~4 in Figure~\ref{fig:ex4} illustrates the parallel call feature of \civl,
-based on the standard Owicki-Gries rules for parallel composition of threads.  
-The statement {\tt call incr\_x() | yield\_y() | yield\_z()} in {\tt p} creates three threads 
-executing {\tt incr\_x}, {\tt yield\_y}, and {\tt yield\_z} respectively, yields control to the scheduler,
-and blocks until all three threads have terminated.
-For a procedure to be invoked in a parallel call, it must be annotated as {\tt stable}.
-This annotation indicates to the \civl verifier that the precondition and postcondition 
-of the procedure must be stable against interference.
-This requirement ensures that it is safe to assume the precondition in the callee
-and the postcondition in the caller.
-
-The threads created by {\tt p} for {\tt yield\_y} and {\tt yield\_z} are not doing any interesting computation; 
-their only purpose is to make available to their parent the conjunction of their respective postconditions
-(following Owicki-Gries rules for parallel composition).
-In this example, the postconditions of {\tt yield\_y} and {\tt yield\_z} preserve information about variables
-{\tt y} and {\tt z} that would otherwise be lost during the call to {\tt incr\_x},
-whose postcondition only supplies information about {\tt x} even though its yield statements potentially cause
-all global variables, including {\tt y} and {\tt z}, to change.
-This example shows that \civl allows modular proof structuring by factoring out yield assertions into a collection of procedures;
-the declaration of {\tt incr\_x} can focus on changes to {\tt x},
-without having to explicitly preserve invariants about all other variables in the program.
 
 \begin{figure}
 \begin{verbatim}
@@ -194,7 +133,7 @@ procedure Allocate() returns (linear tid: Tid);
 var a:[Tid]int;
 \end{verbatim}
 \begin{verbatim}
-yielding procedure main()
+procedure main()
 {
   var linear tid: Tid;
   while (true) {
@@ -205,7 +144,7 @@ yielding procedure main()
 }
 \end{verbatim}
 \begin{verbatim}
-yielding procedure P(linear tid: Tid)
+procedure P(linear tid: Tid)
   requires tid != nil;
   ensures a[tid] == old(a)[tid] + 1;
 {
@@ -215,7 +154,7 @@ yielding procedure P(linear tid: Tid)
   a[tid] := t + 1;
 }
 \end{verbatim}
-\caption{Program 5}
+\caption{Program 4}
 \label{fig:ex5}
 \end{figure}
 
@@ -245,41 +184,131 @@ based on the use of global variable {\tt alloc}, the constant {\tt nil}, and the
 {\tt Allocate}.  
 Section~\ref{sec:formal} describes values and linear variables like {\tt nil} and {\tt alloc} in more detail.
 
-{\bf Refinement.}
-
 \begin{figure}
 \begin{verbatim}
-var Color:int;
+var Color:[int]int; // 1: WHT(), 2: GRY(), 3: BLK()
+var Set:[int]bool;
 
-procedure {:yields} SetColGrayIfWhite({:cnst "tid"} tid:int)
-ensures {:atomic} [if (Color == WHITE())
-                        Color := GRAY();]
+procedure SetColGrayIfWht({:cnst "tid"} tid:int,
+                                       addr:int)
+ensures {:atomic} [if (Color[addr] == WHT(){)
+                     Color[addr] := GRY();
+                     Set[addr] := true;
+                   }]
 {
   call cNoLock:= GetColorNoLock();
   call YieldColorOnlyGetsDarker();
-  if (cNoLock == WHITE()) {
-       call L_SetColorToGrayIfWhite(tid);
+  if (cNoLock == WHT()) {
+       call L_SetColorToGrayIfWht(tid,addr);
   }
 }
 
-procedure {:yields} YieldColorOnlyGetsDarker()
+procedure YieldColorOnlyGetsDarker()
   ensures Color >= old(Color);
 
-procedure {:yields} L_SetColGrayIfWhite({:cnst "tid"} tid:int)
-ensures {:atomic} [if (Color == WHITE())
-                        Color := GRAY();]
+procedure L_SetColGrayIfWht({:cnst "tid"} tid:int,
+                                         addr:int)
+ensures {:atomic} [if (Color[addr] == WHT(){)
+                     Color[addr] := GRY();
+                     Set[addr] := true;
+                   }]
 {
   call AcquireLock(tid);
   call cLock := GetColorLocked(tid);
-  if (cLock == WHITE()) {
-    call SetColorLocked(tid, GRAY());
+  if (cLock == WHT()) {
+    call SetColorLocked(tid, GRY());
+    call InsertSetLocked(tid, addr);
   } 
   call ReleaseLock(tid);
 }
+
+procedure AcquireLock({:cnst "tid"} tid: X);
+  ensures {:right} [ ...]
+procedure ReleaseLock({:cnst "tid"} tid: X);
+  ensures {:left} [...]
+procedure InsertSetLocked(
+              {:cnst "tid"} tid:X, addr:int); 
+  ensures {:both} [...]
+procedure SetColorLocked(
+                {:cnst "tid"} tid:X, nC:int); 
+  ensures {:both} [...]
+procedure GetColorLocked(
+       {:cnst "tid"} tid:X) returns (cl:int);
+  ensures {:both} [...];
+
 \end{verbatim}
-\caption{Program 6}
-\label{fig:ex5}
+\caption{Program 5}
+\label{fig:reft}
 \end{figure}
+
+{\bf Refinement.} 
+
+\civl supports the
+verification of a refinement relationship between different versions of a
+program. In higher-level versions, calls to some procedures in the
+lower levels are
+replaced by their atomic action specifications. 
+Program 5 in Figure~\ref{fig:reft} introduces refinement in \civl. 
+Atomic action specifications are shown in square brackets. 
+
+In earlier phases of verification (not shown) \civl has verified that
+the implementations of the five procedures called in {\tt
+  L\_SetColGrayIfWht} satisfy their atomic action specifications, shown
+at the bottom of the figure. In Program 5, in the first refinement
+pass, \civl verifies that {\tt L\_SetColGrayIfWhite} is atomic and
+satisfies its specification. In the second, higher-level 
+pass, using the atomic action specification for {\tt
+  L\_SetColGrayIfWhite}, Owicki-Gries-style reasoning using the yield
+predicate in {\tt
+  YieldColorsGetDarker()} and refinement reasoning, \civl verifies
+that {\tt SetColGrayIfWht()} satisfies its atomic action
+specification. 
+
+This example is a simplified version of a pattern in the garbage
+collector we verified. Here, several threads concurrenty check 
+whether the global variable {\tt Color[addr]} has the value {\tt WHITE()}
+and set it to {\tt GRAY()} and insert {\tt addr} into a 
+set, represented by a map from {\tt addr} to {\tt bool} in this
+example. 
+
+ 
+The procedure  
+\exC{L\_SetColGrayIfWhite} holds a global lock while reading
+reading and possibly modifying {\tt Color[addr]} and inserting {\tt
+  addr} into the set. 
+As a performance optimization \exC{SetColGrayIfWhite}, before calling
+\exC{L\_SetColGrayIfWhite}, reads \exC{Color[addr]} without holding a lock
+and checks if it has the value {\tt WHITE()}. The correctness of this
+optimization is not obvious -- if {\tt Color[addr]} is {\tt GRAY()} when
+read without holding a lock, but can be set to {\tt WHITE()} by other 
+threads before {\tt SetColGrayIfWht()} returns, then the atomic action
+specification of the procedure may not be satisfied. The yield
+predicate in {\tt YieldColorsOnlyGetDarker()} expresses the fact that
+other threads in the environment of the thread running {\tt
+  SetColGrayIfWht} can only modify {\tt Color[addr]} to a higher
+value. \civl verifies that this is the case, 
+
+Other than phrasing reduction as a type-checking problem, this is
+ordinary static reduction reasoning. The verification of atomicity for
+\exC{SetColGrayIfWht} highlights the capability of \civl to combine
+Owicki-Gries-style reasoning and reduction to verify refinement.
+
+Observe that in the procedure \exC{L\_SetColGrayIfWht}, there are no {\tt
+  yield}s between statements. Since threds explicitly yield
+control, this means that the entire body of \exC{L\_SetColGrayIfWht}
+is executed atomically. In a real execution, control can switch
+between threads at any point in the code. The absence of {\tt yield}s,
+and treating the entire body of \exC{L\_SetColGrayIfWht} as atomic 
+is justified by reasoning about mover types and reduction. The
+four procedures called in \exC{L\_SetColGrayIfWht} have the mover
+types claimed in their declarations and verified by \civl. Given
+the mover types of all statements, including accesses to local
+variables, calls to procedures with and without atomic action
+specifications, a ``yield type checker'' in the \civl verifier 
+(explained in Section~\ref{}) checks whether the absence of yields is
+justified using reduction.  \civl then verifies that the body of
+\exC{L\_SetColGrayIfWht} satisfies its atomic specification. 
+
 
 %%% Local Variables: 
 %%% mode: latex
