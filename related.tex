@@ -1,0 +1,56 @@
+\section{Related work}
+
+Concurrent separation logic~\cite{OHearn07} started as a way to reason about concurrency without having to explicitly check for non-interference between threads.
+In particular, the use of separating conjunction allows programs to partition heap locations and locked resources between threads so that only one thread has access at a time.
+\civl's linear variables also express this sort of partitioning; for example, \civl can express linear maps for partitioning heaps among threads.
+Linear type systems do impose a larger burden on programmers, since operations on linear variables make all separation and framing explicit, while separation logics can implicitly move resources between separating conjuncts using separation logic rules.
+On the other hand, \civl does not require a theorem prover for separation logic, allowing it to work with existing fast classical logic solvers such as Z3.
+Although systems like Smallfoot~\cite{Smallfoot}, CAVE~\cite{Cave}, and SLAyer~\cite{Slayer} provide some automated reasoning for separation logic formulas, these systems tend to support subsets of separation logic and datatypes rather than fully general support for separation logic.
+
+In the absence of interference checking, the original work on concurrent separation logic~\cite{OHearn07} had to bake in abstractions for locking and resources.
+More recent papers reintroduce reasoning about interference into separation logic using rely-guarantee reasoning~\cite{SAGL,RGSep}.
+This allows programmers to encode their own locks and lock-free structures.
+\civl's combination of interference checking and linear variables can be thought of as an extreme example of this trend, supplying very primitive abstractions and letting programmers mix and match these abstractions freely.
+Parkinson~\cite{SepLog700} points that reintroducing interference checking for state, even in the relatively controlled form of rely-guarantee reasoning, may break valuable modularity properties, and advocates deny-guarantee reasoning instead.
+It remains to be seen whether automated tools for logics like deny-guarantee will emerge.
+
+VCC~\cite{VCC} is a tool for verifying concurrent C programs using the Z3 SMT solver.
+VCC's reasoning is based on objects, and the VCC implementation builds in a notion of object ownership and VCC programs attach invariants directly to object types.
+By contrast, \civl's reasoning is based on more primitive abstractions.  \civl does not build invariants directly into types or modules;
+programs in \civl use yield statements to express invariants and encapsulate yield statements in procedures
+to express invariants shared among many program points.
+
+\civl is designed to carry out hierarchical proofs of concurrent programs, where a program is represented at several different levels of abstraction, each with its own annotations.
+Mover actions, abstract atomicity, variable and procedure hiding are key reasoning tools that support such hierarchical reasoning. By contrast, VCC is designed to reason only at the level of the concrete C program. 
+
+VCC and \civl also differ in how framing is supported. For variables accessed by a single thread throughout a procedure, object ownership in VCC and linear variables in \civl provide roughly similar framing support. However, for variables that are not under exclusive control of a thread throughout an abstract-atomic procedure, in \civl, the abstract atomic action specification precisely describes the set of variables modified by the procedure in the high-level program. Such an approach is not possible in VCC because the program representation is flat. 
+In VCC, all facts about concurrently-accessed objects preserved after a function call must be encapsulated in the form of a ``claim'', passed as an argument and returned by the procedure. Finally, VCCs method for verifying non-interference is less powerful than \civl's as \civl makes use of yield annotations of other threads. 
+
+QED~\cite{QED} is a proof system for concurrent programs written using a variant of Boogie. QED supports abstraction and reduction to simplify concurrent programs and to carry out refinement proofs. Compared with \civl, QED is interactive at a much smaller level of granularity. For instance, to verify the garbage collector in this paper, all higher levels of the GC representation (e.g. OG specs and explicit refinement specs) would have to be written into the proof script in QED, which would have made it very difficult for a human to use. In \civl, all representations of the program at different levels of abstraction are present in a single file and their relationships are also spelled out in the file, intertwined with the program structure. This is really helpful in organizing and carrying out a large hierarchical proof such as the GC.
+ 
+More techniques available:
+\begin{itemize}
+  \item O-G and rely-guarantee style reasoning, linear types and maps. OG and rely-guarantee-style reasoning, as well as linear variables are new in \civl. (We need a name.)  While one could in theory encode OG specifications as conjuncts in a global invariant, the QED tool does not support for OG style reasoning directly and none of our proofs of benchmarks in the literature about QED make use of OG.
+  \item Modularity better in \civl
+6- QED got criticized a lot for lack of modularity. Modularity is a primary concern in \civl. For instance, in QED, with procedure calls you only had two options inlining the procedure or making the procedure atomic and replacing it with its atomic specification. In \civl, procedure calls can be desugared using the requires/ensures clauses. 
+
+  \item Refinement in \civl is more powerful:
+  \begin{itemize}
+    \item Large steps
+    \item All phases encoded in one file
+    \item Invariants can be hidden
+2.       QED does not allow invariants to be hidden.  In the current system, the OG specs from one phase could be totally different from another.  The invariants of the client are written and verified separately from the library.
+    \item Don't need abstraction and reduction to go all the way to atomicity. Can verify refinement otherwise.
+3- In \civl you can verify atomicity of a procedure even if it has remaining “yield”s in it. In QED this was not possible. You needed to get rid of all yields using reduction first. This made especially reasoning about loops clumsy and difficult. 
+5- \civl can use OG to verify atomicity of a procedure better than QED can. In QED, OG helped you in this task only if the invariant enabled you to verify that all actions in the procedure body are the desired kinds of movers.  In \civl, even when yields and yield predicates remain in a procedure body, yield predicates help you prove refinement easier. yield \phi … yield \psi gets desugared to havoc … assume \phi and the assume \phi helps you.
+  \end{itemize}
+\end{itemize}
+
+\section{Conclusions}
+
+By combining a generalized implementation of interference checking, a powerful linear type checking system, and a refinement verification system that supports reduction and abstraction, 
+\civl supports many forms of reasoning about concurrency without committing programmers to a particular methodology.
+Two-state invariants in the style of rely-guarantee arise naturally from procedures that encapsulate one-state yield statements;
+modular factoring of invariants arises naturally using parallel calls to procedures with yield statements;
+and disjoint thread identifiers and monitors arise naturally from the linear type system. The combination of these techniques and reduction and abstraction supports refinement verification, allowing users to formally relate representations of their program described at different levels of abstraction and atomicity. 
+The resulting system is sound, automated, efficient, and ready to use.
