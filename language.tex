@@ -1,6 +1,5 @@
 \begin{figure}
 \setlength{\tabcolsep}{3pt}
-{\bf Program Syntax} \\
 \begin{tabular}{rclcl}
 $g$ & $\in$ & $\Globals \subseteq \VarName$ \\
 $\tl$ & $\in$ & $\ThreadLocals \subseteq \VarName$ \\
@@ -19,14 +18,19 @@ $A$ & $\in$ & $\ActionName$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
 $\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocals, \StateExpr, \Stmt)$ \\
-$\Refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
 $\lins$ & $\in$ & $\LinearVars = 2^{\Globals \cup \ThreadLocals}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVars, \LinearVars)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
 $\RefinementAny$ & $\in$ & $\mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
+$\Refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
+$\RemovedActions$ & $\in$ & $2^\ActionName$ 
 \end{tabular}
-~\\
-~\\
+\caption{Definitions}
+\label{fig:definitions}
+\end{figure}
+
+\begin{figure}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{rclcl}
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e,\lins} \mid$ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
@@ -42,14 +46,8 @@ $\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Locals}, \StmtCtxt) \m
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocals}, ([]_{\Locals}, \StmtCtxt)) \mid$ \\
  & &$([]_{\ThreadLocals}, (\varsL, \StmtStackCtxt))$ \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
-$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Globals}, \YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads)$ \\
+$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Globals}, \YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads)$
 \end{tabular}
-~\\
-~\\
-\begin{tabular}{rcl}
-
-\end{tabular}
-\setlength{\tabcolsep}{6pt}
 \caption{Syntax}
 \label{fig:syntax}
 \end{figure}
@@ -65,7 +63,7 @@ $
 \actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \trans (\MakeStore{\varsG'}{\varsTL'}{\varsL'}, s')
 }
 {\ProgCtxt[\varsG][\varsTL][\varsL][s] \trans \ProgCtxt[\varsG'][\varsTL'][\varsL'][s']}
-\;(\textsc{Program-Step})
+\;(\textsc{Step})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -76,7 +74,7 @@ $
 \actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \fails
 }
 {\ProgCtxt[\varsG][\varsTL][\varsL][s]) \fails}
-\;(\textsc{Program-Fail})
+\;(\textsc{Fail})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -85,12 +83,14 @@ $
 {
 \procs(P) = (\phi, \mods, \psi,\stmt) \\
 \ProcLins(P) = (\lins, \lins') \\
-T' = (\varsTL, (\varsL, \yield{\phi,\lins};\stmt))
+T' = (\varsTL, (\varsL, \yield{\phi,\lins};\stmt)) \\
+\TS = \ThreadCtxt[\varsTL][\varsL][\async{P}] \\
+\TS' = \ThreadCtxt[\varsTL][\varsL][\skipstmt]
 }
 {
-(\procs, \actions, \ProcLins, \varsG, \ThreadCtxt[\varsTL][\varsL][\async{P}])
+(\procs, \actions, \ProcLins, \varsG, \TS)
 \trans
-(\procs, \actions, \ProcLins, \varsG, \ThreadCtxt[\varsTL][\varsL][\skipstmt] \cdot T')
+(\procs, \actions, \ProcLins, \varsG, \TS' \cdot T')
 }
 \;(\textsc{Async})
 $
@@ -99,10 +99,10 @@ $
 $
 \inferrule
 {
-\\
+T = (\varsTL, (\varsL,\skipstmt)) 
 }
-{(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot (\varsTL, (\varsL,\skipstmt)) \cdot \YieldingThreads') \trans (\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot \YieldingThreads')}
-\;(\textsc{Thread-End})
+{(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads') \trans (\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot \YieldingThreads')}
+\;(\textsc{End})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -135,7 +135,6 @@ $
 
 \begin{figure}
 \scriptsize{
-\medskip
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
@@ -207,10 +206,10 @@ $
 \inferrule
 {
 \vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \in \locExpr
+\varsL \not\in \locExpr
 }
-{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
-\;{(\textsc{If-True})}
+{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
+\;{(\textsc{If-False})}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -218,10 +217,10 @@ $
 \inferrule
 {
 \vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \not\in \locExpr
+\varsL \in \locExpr
 }
-{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
-\;{(\textsc{If-False})}
+{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
+\;{(\textsc{If-True})}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -240,9 +239,10 @@ $
 \inferrule
 {
 \vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \in \locExpr
+\varsL \in \locExpr \\
+\stmt' = \while{e,\alpha}{\locExpr}{\stmt}
 }
-{\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, s;\while{e,\alpha}{\locExpr}{s})}
+{\actions \vdash (\vars, \stmt') \trans (\vars, \stmt;\stmt')}
 \;{(\textsc{While-True})}
 $
 %%%%%%%%%%%%%%%%%%%%
@@ -250,6 +250,7 @@ $
 \caption{Operational semantics for statement}
 \label{fig:operational-semantics2}
 \end{figure}
+
 
 %%% Local Variables: 
 %%% mode: latex
