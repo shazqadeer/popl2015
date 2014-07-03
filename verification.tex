@@ -419,24 +419,35 @@ $
 \end{figure}
 
 {\bf Non-interference.}
-Let $\Yields$ be the set of yield predicates, preconditions, and postconditions in the program.
+Let $\Yields$ be the union of the following sets:
+\begin{itemize}
+\item
+$\{(\phi,\lins) \mid \yield{\phi,\lins}~\mathrm{appears~in~\Prog}\}$.
+\item
+$\{(\phi,\lins) \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
+\item
+$\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
+\end{itemize}
 Let $\Ablocks$ be the set of atomic blocks in the program except those inside the bodies of procedures
 in $\dom(\Refines)$.
 Let $\FV \subseteq \VarName \setminus \Vars$ be a set of fresh variables and $\Lambda$ be a one-one 
 substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
 Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
+We define
+\[
+D(\Lambda,\lins_y,\lins_a) = 
+\disjoint(\{\Lambda(x) \mid x \in \lins_y \setminus \Globals\} \cup \{x \mid x \in \lins_a\})
+\]
 For each predicate ($\phi,\lins_y) \in \Yields$
 and for each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks$, we prove the following judgment:
 \[
-\FH{\Lambda(\phi) \wedge e \wedge
-  \disjoint(\{\Lambda(x) \mid x \in \lins_y\} \cup
-  \{x \mid x \in \lins_a\})
-}{s}{\Lambda(\phi)}
+\FH{\Lambda(\phi) \wedge e \wedge D(\Lambda,\lins_y,\lins_a)}{s}{\Lambda(\phi)}
 \]
-For each predicate $\phi \in \Yields$ and for each $P \in \dom(\Refines)$ such that
-$\actions(\Refines(P)) = (\rho, \alpha, m)$, we prove the following to be unsatisfiable:
+For each predicate $\phi \in \Yields$ and for each $A \in \range(\Refines)$ such that
+$\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins_a,\lins'_a)$, 
+we prove the following to be unsatisfiable:
 \[
-\Lambda(\phi) \circ \rho \circ \alpha \circ \neg\Lambda(\phi)
+(\Lambda(\phi) \wedge \rho \wedge D(\Lambda,\lins_y,\lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
 \]
 
 \subsection{Refinement}
