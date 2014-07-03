@@ -435,19 +435,19 @@ substitution function from $\ThreadLocals \cup \Locals$ to $\FV$.
 Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
 We define
 \[
-D(\Lambda,\lins_y,\lins_a) = 
-\disjoint(\{\Lambda(x) \mid x \in \lins_y \setminus \Globals\} \cup \{x \mid x \in \lins_a\})
+D(\lins_y,\lins_a) = 
+\disjoint(\{x \mid x \in \lins_y\} \cup \{x \mid x \in \lins_a\})
 \]
 For each predicate ($\phi,\lins_y) \in \Yields$
 and for each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks$, we prove the following judgment:
 \[
-\FH{\Lambda(\phi) \wedge e \wedge D(\Lambda,\lins_y,\lins_a)}{s}{\Lambda(\phi)}
+\FH{\Lambda(\phi) \wedge e \wedge D(\Lambda(\lins_y \setminus \Globals),\lins_a)}{s}{\Lambda(\phi)}
 \]
 For each predicate $\phi \in \Yields$ and for each $A \in \range(\Refines)$ such that
 $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins_a,\lins'_a)$, 
 we prove the following to be unsatisfiable:
 \[
-(\Lambda(\phi) \wedge \rho \wedge D(\Lambda,\lins_y,\lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
+(\Lambda(\phi) \wedge \rho \wedge D(\Lambda(\lins_y \setminus \Globals),\lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
 \]
 
 \subsection{Refinement}
@@ -702,23 +702,25 @@ $
 Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Vars$ be two sets of disjoint fresh variables.
 Let $\Lambda_1$ and $\Lambda_2$ be one-one 
 substitution functions from $\ThreadLocals \cup \Locals$ to $\FV_1$ and $\FV_2$ respectively.
-For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and$\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
 if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$ then prove the following valid:
 \[
 \begin{array}{l}
-(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Lambda_1(\alpha_2) \wedge \Same(\FV_1)) \\ 
-\Rightarrow (\Lambda_1(\alpha_2) \wedge \Same(\FV_1)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2))
+(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2) \wedge D(\Lambda_1(\lins_1 \setminus \Globals), \Lambda_2(\lins_2))) \\
+\circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
+\Rightarrow (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2))
 \end{array}
 \]
 For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
 if $m_1 \in \{B,R\}$ then prove the following unsatisfiable:
 \[
-\Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ \Lambda_2(\alpha_2)) \circ \neg \Lambda_1(\rho_1)
+\Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ D(\Lambda_1(\lins_1 \setminus \Globals), \Lambda_2(\lins_2)) \circ \Lambda_2(\alpha_2)) \circ \neg \Lambda_1(\rho_1)
 \]
 For all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$ and $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
 if $m_1 \in \{B,L\}$ then prove the following unsatisfiable:
 \[
-\neg \Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ \Lambda_2(\alpha_2)) \circ \Lambda_1(\rho_1)
+\neg \Lambda_1(\rho_1) \circ (\Lambda_2(\rho_2) \circ D(\Lambda_1(\lins_1 \setminus \Globals), \Lambda_2(\lins_2)) \circ \Lambda_2(\alpha_2)) \circ \Lambda_1(\rho_1)
 \]
 For all $A \in \ActionName$ such that $\actions(A) = (\rho,\alpha,m)$ and $m \in \{B, L\}$,
 prove the following valid:
@@ -1117,7 +1119,8 @@ $
 \forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
 \forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
 \forall A \in \range(\Refines).\ \Refines;\RemovedActions \vdash \actions(A) \leadsto \actions(A) \\
-\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P)
+\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P) \\
+\forall P \in \dom(\Refines).\ \ProcLins(P) = \ProcLins(\Refines(P)) \\
 }
 {
 \Refines;\RemovedActions \vdash \Prog \leadsto \Prog'
@@ -1160,9 +1163,9 @@ Then all finite executions of $\Prog$ are safe.
 \[
 \inferrule
 {
-\FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \mathit{old}(f) > f)
+\procs;\actions;\RefinementAny;\mods \jp \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \mathit{old}(f) > f)
 }
-{\FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\procs;\actions;\RefinementAny;\mods \jp \FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 \]
 
