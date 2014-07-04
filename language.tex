@@ -34,9 +34,9 @@ $\RemovedActions$ & $\in$ & $2^\ActionName$
 \begin{tabular}{rclcl}
 $\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e,\lins} \mid$ \\
                   & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-                  & & $\ablock{e,\lins}{s} \mid s;\;s \mid$\\
-                  & & $\ite{\locExpr}{s}{s} \mid$ \\
-                  & & $\while{e,\alpha}{\locExpr}{s}$ \\ 
+                  & & $\ablock{e,\lins}{\stmt} \mid \stmt;\;\stmt \mid$\\
+                  & & $\ite{\locExpr}{\stmt}{\stmt} \mid$ \\
+                  & & $\while{e,\alpha}{\locExpr}{\stmt}$ \\ 
 $\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
 $\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \\
@@ -268,33 +268,61 @@ $\Store$, $\StoreGlobal$, $\StoreThreadLocal$, and $\StoreLocal$ are the set of 
 from $\Var$, $\Global$, $\ThreadLocal$, and $\Local$ respectively.
 We denote elements of $\Store$, $\StoreGlobal$, $\StoreThreadLocal$, and $\StoreLocal$
 by $\sigma$, $\varsG$, $\varsTL$, and $\varsL$ respectively.
+Formally, a \civl program is a tuple $(\procs, \actions, \ProcLins, G, \TS)$ with the following components.
 
-Formally, a \civl program is a tuple $(\procs, \actions, \ProcLins, G, \TS)$ with the following components:
-\begin{itemize}
-\item 
+\noindent
+{\bf Procedures.}
 $\procs$ maps a procedure name $P \in \ProcName$ to a tuple $(\phi, \mods, \psi, \stmt)$, 
 where $\phi$ is the precondition of $P$, $\mods$ is the set of thread-local variables potentially modified by $P$, 
 $\psi$ is the postcondition of $P$, and $\stmt$ is the body of $P$.
 The predicates $\phi$ and $\psi$ should not refer to procedure-local variables.
 Procedures do not have parameters; however, parameters may be modeled using thread-local variables.
-\item
+
+\noindent
+{\bf Actions.}
 $\actions$ maps an action name $A \in \ActionName$ to a tuple $(\rho,\alpha,m)$.
 Actions are used inside procedure bodies to access variables.
 The predicate $\rho$ is the precondition and the predicate $\alpha$ is the transition relation of $A$;
 $\rho$ is a predicate over $\Store$ and $\alpha$ is a predicate over $\Store \times \Store$.
 The final component $m$ is one of four values in $\{B,R,L,N\}$;
 it denotes the commutativity type of the action, $B$ for both mover, $R$ for right mover, $L$ for left mover, 
-and $N$ for non mover. 
-\item
+and $N$ for non mover~\cite{FlanaganFLQ08}. 
+
+\noindent
+{\bf Linear interfaces.}
 $\ProcLins$ maps each procdure and action name in $\ProcName \cup \ActionName$ to a linear interface 
 $(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
 The procedure (or action) requires that the set $\lins$ be available at the beginning of its invocation 
 and makes available the set $\lins'$ at the end of its invocation.
-\item
+
+\noindent
+{\bf Global store.}
+$\varsG$ is the global store of the program.
+
+\noindent
+{\bf Threads.}
 $\TS$ is a sequence of threads.
-Each thread $T$ in $\TS$ is a pair $(\varsTL, (\varsL, \StmtStack))$, where $\varsTL$ and $(\varsL, \StmtStack)$ 
-are the thread-local variables and stack of $T$.
-\end{itemize}
+Each thread $T$ in $\TS$ is a pair $(\varsTL, (\varsL, \StmtStack))$, where $\varsTL$ is the thread-local 
+store and $(\varsL, \StmtStack)$ the continuation of $T$.  
+The continuation $(\varsL, \StmtStack)$ comprises a procedure-local store $\varsL$ and a statement stack $\StmtStack$.
+Informally, $\varsL$ is the local store at the top of the pending stack of computation $\StmtStack$ of the thread.
+A statement stack $\StmtStack$ is recursively defined to be either a statement $\stmt$ 
+or a continuation $(\varsL,\StmtStack)$ or the sequential composition $\stmt;\StmtStack$ of a statement $\stmt$ with 
+a statement stack $\StmtStack$.
+
+A statement $\stmt$ in \civl is one of the following: 
+$\skipstmt$ has no side effect and is used as a marker in the formal operational semantics;
+$\assert{\locExpr}$ fails if $\locExpr$ is false and otherwise has no effect;
+$\yield{e,\lins}$ yields control to the scheduler which may pick any existing thread to execute;
+$\call{A}$ invokes the action $A$;
+$\call{P}$ invokes the procedure $P$;
+$\async{P}$ creates a new thread that begins by invoking the procedure $P$;
+$\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield inside it and consequently executes atomically;
+$\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$;
+$\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr$ is true and otherwise executes $\stmt_2$;
+$\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
+
+\subsection{Operational semantics}
 
 %%% Local Variables: 
 %%% mode: latex
