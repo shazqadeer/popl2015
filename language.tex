@@ -379,6 +379,18 @@ There are implicit yields associated with the call and the return.
 The stable predicates for the yields at call and return are the precondition and postcondition of $P$ respectively.
 The linear permissions for the yields at call and return are the input and output linear permissions of $P$ respectively.
 
+$\Prog$ is {\em unsafe\/} if there exists $\Prog'$ such that $\Prog \trans^* \Prog'$ and $\Prog'$ fails.
+$\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
+Define the predicate $\Yielding$ as follows:
+\[
+\begin{array}{lcl}
+\Yielding(\Prog) & = & \mathit{let}\ \Prog = (\procs, \actions, \ProcLins, G, \TS)\ \mathit{in}\\
+                 &   & ~~~~~~\forall T \in \TS.\ T \in \mathit{YieldingThread}.
+\end{array}
+\]
+$\Prog$ is {\em responsive\/}, denoted $\Responsive(\Prog)$, iff every infinite execution from $\Prog$ satisfies $\Yielding$ infinitely often.
+
+
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "paper"
