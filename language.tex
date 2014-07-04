@@ -292,7 +292,8 @@ and $N$ for non mover~\cite{FlanaganFLQ08}.
 $\ProcLins$ maps each procdure and action name in $\ProcName \cup \ActionName$ to a linear interface 
 $(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
 The procedure (or action) requires that the set $\lins$ be available at the beginning of its invocation 
-and makes available the set $\lins'$ at the end of its invocation.
+and makes available the set $\lins'$ at the end of its invocation; 
+we refer to $\lins$ and $\lins'$ as the input and output linear permissions respectively.
 
 \noindent
 {\bf Global store.}
@@ -309,17 +310,27 @@ A statement stack $\StmtStack$ is recursively defined to be either a statement $
 or a continuation $(\varsL,\StmtStack)$ or the sequential composition $\stmt;\StmtStack$ of a statement $\stmt$ with 
 a statement stack $\StmtStack$.
 
-A statement $\stmt$ in \civl is one of the following: 
-$\skipstmt$ has no side effect and is used as a marker in the formal operational semantics;
-$\assert{\locExpr}$ fails if $\locExpr$ is false and otherwise has no effect;
-$\yield{e,\lins}$ yields control to the scheduler which may pick any existing thread to execute;
-$\call{A}$ invokes the action $A$;
-$\call{P}$ invokes the procedure $P$;
-$\async{P}$ creates a new thread that begins by invoking the procedure $P$;
-$\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield inside it and consequently executes atomically;
-$\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$;
-$\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr$ is true and otherwise executes $\stmt_2$;
-$\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
+We now describe the statements in \civl.
+The statement $\skipstmt$ has no side effect and is used as a marker in the formal operational semantics.
+The statement $\assert{\locExpr}$ fails if $\locExpr$ is false and otherwise has no effect.
+The statement $\yield{e,\lins}$ yields control to the scheduler which may pick any existing thread to execute.
+The predicate $e$, called a stable predicate, is expected to be established by the executing thread and preserved across
+execution of other threads subsequent to the yield.
+Similarly, the linear permissions $\lins$ are expected to be available as long as the control of the thread
+is at the yield.
+The statement $\call{A}$ invokes the action $A$;
+if $\actions(A) = (\rho, \alpha, m)$, then the predicate $\rho$ is expected to hold at the invocation and 
+the store is updated according to the transition relation $\alpha$.
+The statement $\call{P}$ invokes the procedure $P$;
+if $\procs(P) = (\phi, \mods, \psi, \stmt)$, then the precondition $\phi$ is expected to hold at the invocation
+and the statement $\stmt$ begins execution.
+The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
+The statement $\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield inside it and consequently executes atomically;
+the predicate $e$ is expected to hold and the permissions $\lins$ expected to be available at the beginning.
+The statement $\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$.
+The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr$ is true and otherwise executes $\stmt_2$.
+The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
+The expression $e$ is a loop invariant and the expression $\alpha$ is a loop summary for yield-free executions.
 
 \subsection{Operational semantics}
 We present the operational semantics of a \civl program by extending the syntax of statements with an embedded context~\cite{WrightF94}.
@@ -358,7 +369,7 @@ the rule \textsc{Seq} erases the $\skipstmt$ to move control to the next stateme
 Rule \textsc{Async} describes the creation of a thread via $\async{P}$.  
 There is an implicit yield at the beginning of the freshly-created thread.
 The stable predicate and the linear permission associated with this yield are 
-the precondition and the first component of the linear interface of $P$.
+the precondition and the input linear permission of $P$.
 The new thread is added to the sequence of threads in the program.
 Since it is a yielding thread, the invariant that at most one thread is non-yielding is preserved.
 Rule \textsc{End} describes the termination of a thread; the terminating thread is removed
@@ -366,7 +377,7 @@ from the sequence of threads in the program.
 Rules \textsc{Call} and \textsc{Return} describe the call and return of a procedure via $\call{P}$.
 There are implicit yields associated with the call and the return.
 The stable predicates for the yields at call and return are the precondition and postcondition of $P$ respectively.
-The linear permissions for the yields at call and return are the first and second components of the linear interface of $P$ respectively.
+The linear permissions for the yields at call and return are the input and output linear permissions of $P$ respectively.
 
 %%% Local Variables: 
 %%% mode: latex
