@@ -335,6 +335,7 @@ A thread context $\ThreadCtxt$ has three contexts embedded inside it, $[]_{\Thre
 $[]_{\Local}$ for substituting a procedure-local store, and $[]_{\Stmt}$ for substituting a statement.
 The result of substituting a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ThreadCtxt$ 
 is a thread and is denoted by $\ThreadCtxt[\varsTL][\varsL][\stmt]$.
+
 Finally, the result of substituting a global store $\varsG$, a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ProgCtxt$ 
 is a program and is denoted by $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$.
 It is important to note that all except at most one thread in a program are yielding threads blocked at a yield statement;
@@ -354,6 +355,18 @@ The rules in  in Figure~\ref{fig:operational-semantics2} are straightforward.
 The execution of primitive statements results in the store begin updated and the statement being rewritten to $\skipstmt$;
 the rule \textsc{Seq} erases the $\skipstmt$ to move control to the next statement.
 
+Rule \textsc{Async} describes the creation of a thread via $\async{P}$.  
+There is an implicit yield at the beginning of the freshly-created thread.
+The stable predicate and the linear permission associated with this yield are 
+the precondition and the first component of the linear interface of $P$.
+The new thread is added to the sequence of threads in the program.
+Since it is a yielding thread, the invariant that at most one thread is non-yielding is preserved.
+Rule \textsc{End} describes the termination of a thread; the terminating thread is removed
+from the sequence of threads in the program.
+Rules \textsc{Call} and \textsc{Return} describe the call and return of a procedure via $\call{P}$.
+There are implicit yields associated with the call and the return.
+The stable predicates for the yields at call and return are the precondition and postcondition of $P$ respectively.
+The linear permissions for the yields at call and return are the first and second components of the linear interface of $P$ respectively.
 
 %%% Local Variables: 
 %%% mode: latex
