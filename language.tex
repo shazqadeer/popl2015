@@ -322,6 +322,20 @@ $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr$ is true and 
 $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
 
 \subsection{Operational semantics}
+We present the operational semantics of a \civl program by extending the syntax of statements with an embedded context~\cite{WrightF94}.
+A statement context $\StmtCtxt$ is either a context $[]_{\Stmt}$ or the sequential composition of a 
+statement context and a statement.
+Thus, each statement context has a unique context $[]_{\Stmt}$ inside it.
+The result of substituting a statement $\stmt$ inside the statement context $\StmtCtxt$ is another statement and is denoted by $\StmtCtxt[\stmt]$.
+Similarly, we define a statement stack context $\StmtStackCtxt$ with two contexts embedded inside it, $[]_{\Local}$ for substituting a procedure-local store
+and $[]_{\Stmt}$ for substituting a statement.
+The result of substituting a procedure-local store $\varsL$ and a statement $\stmt$ inside $\StmtStackCtxt$ is a statement stack and is denoted by $\StmtStackCtxt[\varsL][\stmt]$.
+A thread context $\ThreadCtxt$ has three contexts embedded inside it, $[]_{\ThreadLocal}$ for substituting a thread-local store, 
+$[]_{\Local}$ for substituting a procedure-local store, and $[]_{\Stmt}$ for substituting a statement.
+The result of substituting a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ThreadCtxt$ 
+is a thread and is denoted by $\ThreadCtxt[\varsTL][\varsL][\stmt]$.
+Finally, the result of substituting a global store $\varsG$, a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ProgCtxt$ 
+is a program and is denoted by $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$.
 
 %%% Local Variables: 
 %%% mode: latex
