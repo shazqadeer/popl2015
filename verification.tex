@@ -1,5 +1,5 @@
 \subsection{Type checking}
-\begin{figure}
+\begin{figure*}
 \scriptsize{
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -96,7 +96,7 @@ $
 {
 \lins;\ABlockAny \vdash (\varsL,\StmtStack) : \lins'
 }
-\;(\textsc{StackFrame})
+\;(\textsc{Stack})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -142,32 +142,13 @@ $
 \inferrule
 {
 \ProcLins(P) = (\lins,\lins') \\
-\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\procs(P) = (\phi, \mods, \psi, \stmt) \\\\
 \lins;\ABlockOutside \vdash \stmt : \lins'
 }
 {
 \vdash P
 }
 \;(\textsc{Procedure})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProcLins(A) = (\lins,\lins') \\
-\lins \cap \Global = \lins' \cap \Global \\
-\actions(A) = (\rho, \alpha, m) \\
-\forall (\sigma,\sigma') \in \alpha.
-  \disjoint(\{\sigma(x) \mid x \in \lins\}) \wedge
-  \disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
-\forall (\sigma,\sigma') \in \alpha.
-  \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
-}
-{
-\vdash A
-}
-\;(\textsc{Action})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -181,6 +162,25 @@ T = (\varsTL, (\varsL, \StmtStack)) \\
 \lins \vdash T
 }
 \;(\textsc{Thread})
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(A) = (\lins,\lins') \\
+\lins \cap \Global = \lins' \cap \Global \\
+\actions(A) = (\rho, \alpha, m) \\\\
+\forall (\sigma,\sigma') \in \alpha.
+  \disjoint(\{\sigma(x) \mid x \in \lins\}) \wedge
+  \disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
+\forall (\sigma,\sigma') \in \alpha.
+  \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
+}
+{
+\vdash A
+}
+\;(\textsc{Action})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -206,7 +206,7 @@ $
 }
 \caption{Type checking rules}
 \label{fig:type-checking}
-\end{figure}
+\end{figure*}
 
 \subsection{Safety}
 \begin{figure}
@@ -220,7 +220,7 @@ $
 {\procs;\actions;\RefinementAny;\{\} \jp \FH{\phi}{\skipstmt}{\phi}}
 \;(\textsc{Skip})
 $
-\medskip
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -248,7 +248,6 @@ $
 \;(\textsc{Yield})
 $
 \medskip
-~\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -292,8 +291,7 @@ $
 {\procs;\actions;\RefinementAny;\{\} \jp \FH{\rho \wedge \phi}{\async{P}}{\rho}}
 \;(\textsc{Async})
 $
-\medskip
-~\\
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -375,14 +373,14 @@ $
 $
 \inferrule
 {
-\procs;\actions;\RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi} \\ 
-(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\
+\procs;\actions;\RefinementAny;\mods \jp \FH{\phi'}{\StmtStack}{\psi} \\\\
+(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
 \forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
 }
 {
 \procs;\actions;\RefinementAny;\mods \jp \FH{\phi}{(\varsL',\StmtStack)}{\psi}
 }
-\;(\textsc{StackFrame})
+\;(\textsc{Stack})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -403,7 +401,7 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName.\ \procs;\actions;\Refines \jp P \\
+\forall P \in \ProcName.\ \procs;\actions;\Refines \jp P \\\\
 \forall 1 \le i \le n.\ \procs;\actions;\varsG \jp T_i
 }
 {
@@ -462,7 +460,7 @@ $
 \inferrule
 {
 }
-{\Refines;\actions;P \jr \skipstmt : \epsilon}
+{\Refines;\actions;P \jr \skipstmt : \false}
 \;(\textsc{Skip})
 $
 \medskip
@@ -471,7 +469,7 @@ $
 \inferrule
 {
 }
-{\Refines;\actions;P \jr \assert{\locExpr} : \epsilon}
+{\Refines;\actions;P \jr \assert{\locExpr} : \false}
 \;(\textsc{Assert})
 $
 \medskip
@@ -480,7 +478,7 @@ $
 \inferrule
 {
 }
-{\Refines;\actions;P \jr \yield{e,\lins} : \epsilon}
+{\Refines;\actions;P \jr \yield{e,\lins} : \false}
 \;(\textsc{Yield})
 $
 \medskip
@@ -490,19 +488,19 @@ $
 {
 P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
-{\Refines;\actions;P \jr \call{P'} : \epsilon}
-\;(\textsc{Call-Loop})
+{\Refines;\actions;P \jr \call{P'} : \false}
+\;(\textsc{Call1})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
-P' \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\ 
-\mathit{OldLocals} = \mathit{old}(\Local) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{OldLocals}, \Local.\ \alpha
+P' \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\ 
+\actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{old}(\Local), \Local.\ \alpha
 }
-{\Refines;\actions;P \jr \call{P'} : N}
-\;(\textsc{Call-Action})
+{\Refines;\actions;P \jr \call{P'} : \true}
+\;(\textsc{Call2})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -511,7 +509,7 @@ $
 {
 P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
 }
-{\Refines;\actions;P \jr \async{P'} : \epsilon}
+{\Refines;\actions;P \jr \async{P'} : \false}
 \;(\textsc{Async})
 $
 \medskip
@@ -521,29 +519,28 @@ $
 {
 \actions \vdash s \preceq \mathit{old}(e) \Rightarrow \Havoc(L)
 }
-{\Refines;\actions;P \jr \ablock{e,\lins}{s} : \epsilon}
-\;(\textsc{Ablock-Loop})
+{\Refines;\actions;P \jr \ablock{e,\lins}{s} : \false}
+\;(\textsc{Ablock1})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
-\actions(\Refines(P)) = (\rho,\alpha,m) \\ 
-\mathit{OldLocals} = \mathit{old}(\Local) \\\\
-\actions \vdash s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{OldLocals}, \Local.\ \alpha
+\actions(\Refines(P)) = (\rho,\alpha,m) \\\\
+\actions \vdash s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{old}(\Local), \Local.\ \alpha
 }
-{\Refines;\actions;P \jr \ablock{e,\lins}{s} : N}
-\;(\textsc{Ablock-Action})
+{\Refines;\actions;P \jr \ablock{e,\lins}{s} : \true}
+\;(\textsc{Ablock2})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
-\Refines;\actions;P \jr s_1 : \re_1 \\ \Refines;\actions;P \jr s_2 : \re_2
+\Refines;\actions;P \jr s_1 : b_1 \\ \Refines;\actions;P \jr s_2 : b_2 \\ \neg(b_1 \wedge b_2)
 }
-{\Refines;\actions;P \jr s_1;s_2 : \re_1\cdot\re_2}
+{\Refines;\actions;P \jr s_1;s_2 : b_1 \vee b_2}
 \;(\textsc{Seq})
 $
 \medskip
@@ -551,9 +548,9 @@ $
 $
 \inferrule
 {
-\Refines;\actions;P \jr s_1 : \re_1 \\ \Refines;\actions;P \jr s_2 : \re_2
+\Refines;\actions;P \jr s_1 : b \\ \Refines;\actions;P \jr s_2 : b
 }
-{\Refines;\actions;P \jr \ite{\locExpr}{s_1}{s_2} : \re_1+\re_2}
+{\Refines;\actions;P \jr \ite{\locExpr}{s_1}{s_2} : b}
 \;(\textsc{Ite})
 $
 \medskip
@@ -561,9 +558,9 @@ $
 $
 \inferrule
 {
-\Refines;\actions;P \jr s : \re
+\Refines;\actions;P \jr s : \false
 }
-{\Refines;\actions;P \jr \while{e,\alpha}{\locExpr}{s} : \re^*}
+{\Refines;\actions;P \jr \while{e,\alpha}{\locExpr}{s} : \false}
 \;(\textsc{While})
 $
 \medskip
@@ -571,8 +568,8 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\
-\forall P \in \dom(\Refines).\ \Refines;\actions;P \jr \stmt : \{N\}
+\procs(P) = (\phi, \mods, \psi, \stmt) \\\\
+\forall P \in \dom(\Refines).\ \Refines;\actions;P \jr \stmt : \true
 }
 {
 \Refines \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
@@ -658,7 +655,7 @@ $
 $
 \inferrule
 {
-\actions \vdash s_1 \preceq \alpha_1 \\ \actions \vdash s_2 \preceq \alpha_2
+\actions \vdash s_1 \preceq \alpha_1 \\\\ \actions \vdash s_2 \preceq \alpha_2
 }
 {\actions \vdash s_1;s_2 \preceq \alpha_1 \circ \alpha_2}
 \;(\textsc{Seq})
@@ -755,7 +752,7 @@ is valid.
 \label{fig:YieldTypeCheckingAutomaton}
 \end{figure}
 
-\begin{figure}
+\begin{figure*}
 \scriptsize{
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -785,7 +782,6 @@ $
 \;(\textsc{Yield})
 $
 \medskip
-~\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -793,7 +789,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, B)
 }
 {\Refines;\actions \jy \call{P} : (x, x)}
-\;(\textsc{CallBothMover})
+\;(\textsc{BothMover})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -803,7 +799,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, R)
 }
 {\Refines;\actions \jy \call{P} : (\RM, \RM)}
-\;(\textsc{CallRightMover})
+\;(\textsc{RightMover})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -813,7 +809,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, L)
 }
 {\Refines;\actions \jy \call{P} : (x, \LM)}
-\;(\textsc{CallLeftMover})
+\;(\textsc{LeftMover})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -823,7 +819,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, N)
 }
 {\Refines;\actions \jy \call{P} : (\RM, \LM)}
-\;(\textsc{CallNonMover})
+\;(\textsc{NonMover})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -907,7 +903,7 @@ $
 {
 \Refines;\actions \jy (\varsL,\StmtStack) : (x,y)
 }
-\;(\textsc{StackFrame})
+\;(\textsc{Stack})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -940,11 +936,11 @@ $
 }
 \caption{Yield sufficiency rules}
 \label{fig:yield-sufficiency}
-\end{figure}
+\end{figure*}
 
 \subsection{Program refinement}
 
-\begin{figure}
+\begin{figure*}
 \scriptsize{
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1052,7 +1048,7 @@ $
 {
 \Refines;\RemovedActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
 }
-\;(\textsc{StackFrame})
+\;(\textsc{Stack})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1110,8 +1106,7 @@ $
 \inferrule
 {
 \accessVars(\rho) \cap \Local = \emptyset \\
-\mathit{OldLocals} = \mathit{old}(\Local) \\
-\alpha = ((\exists \mathit{OldLocals},\Local.\ \alpha) \wedge \Same(\Local)) \\
+\alpha = ((\exists \mathit{old}(\Local), \Local.\ \alpha) \wedge \Same(\Local)) \\
 }
 {
 \Refines;\RemovedActions \vdash (\rho,\alpha,m) \leadsto (\rho,\alpha,m)
@@ -1153,7 +1148,7 @@ $
 }
 \caption{Program refinement}
 \label{fig:program-refinement}
-\end{figure}
+\end{figure*}
 
 \subsection{Soundness}
 
