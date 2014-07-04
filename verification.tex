@@ -142,7 +142,7 @@ $
 \inferrule
 {
 \ProcLins(P) = (\lins,\lins') \\
-\procs(P) = (\phi, \mods, \psi, \stmt) \\\\
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
 \lins;\ABlockOutside \vdash \stmt : \lins'
 }
 {
@@ -163,7 +163,7 @@ T = (\varsTL, (\varsL, \StmtStack)) \\
 }
 \;(\textsc{Thread})
 $
-\medskip\\
+\medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -786,6 +786,16 @@ $
 $
 \inferrule
 {
+P \not \in \dom(\Refines)
+}
+{\Refines;\actions \jy \call{P} : (x, \RM)}
+\;(\textsc{Call})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, B)
 }
 {\Refines;\actions \jy \call{P} : (x, x)}
@@ -820,16 +830,6 @@ P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, N)
 }
 {\Refines;\actions \jy \call{P} : (\RM, \LM)}
 \;(\textsc{NonMover})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \not \in \dom(\Refines)
-}
-{\Refines;\actions \jy \call{P} : (x, \RM)}
-\;(\textsc{CallYield})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
