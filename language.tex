@@ -325,7 +325,8 @@ $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$
 We present the operational semantics of a \civl program by extending the syntax of statements with an embedded context~\cite{WrightF94}.
 A statement context $\StmtCtxt$ is either a context $[]_{\Stmt}$ or the sequential composition of a 
 statement context and a statement.
-Thus, each statement context has a unique context $[]_{\Stmt}$ inside it.
+Thus, each statement context has a unique context $[]_{\Stmt}$ inside it;
+this context encodes the current position of the program execution.
 The result of substituting a statement $\stmt$ inside the statement context $\StmtCtxt$ is another statement and is denoted by $\StmtCtxt[\stmt]$.
 Similarly, we define a statement stack context $\StmtStackCtxt$ with two contexts embedded inside it, $[]_{\Local}$ for substituting a procedure-local store
 and $[]_{\Stmt}$ for substituting a statement.
@@ -336,6 +337,23 @@ The result of substituting a thread-local store $\varsTL$, a procedure-local sto
 is a thread and is denoted by $\ThreadCtxt[\varsTL][\varsL][\stmt]$.
 Finally, the result of substituting a global store $\varsG$, a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ProgCtxt$ 
 is a program and is denoted by $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$.
+It is important to note that all except at most one thread in a program are yielding threads blocked at a yield statement;
+such a thread is captured by the symbol $\YieldingThread$ in Figure~\ref{fig:syntax}.
+The one (possibly) non-yielding thread is the only one allowed to execute until it reaches a yield statement and becomes a yielding thread.
+At that point, all threads are yielding and any one can be picked for execution.
+
+Figures~\ref{fig:operational-semantics1} and~\ref{fig:operational-semantics2} together present the operational semantics as a relation $\trans$ between a pair of programs.
+These figures use the notation $\MakeStore{\varsG}{\varsTL}{\varsL}$ to denote the concatenation of the stores $\varsG$, $\varsTL$, and $\varsL$.
+Rule \textsc{Step} in Figure~\ref{fig:operational-semantics2} allows the program $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ to move 
+to $\ProgCtxt[\varsG'][\varsTL'][\varsL'][\stmt']$
+if $(\MakeStore{\varsG}{\varsTL}{\varsL}, \stmt)$ can move to $(\MakeStore{\varsG'}{\varsTL'}{\varsL'}, \stmt)$ 
+according to any rule in Figure~\ref{fig:operational-semantics2} except for rule \textsc{Assert-False}.
+Similarly, rule~\textsc{Fail} allows $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ to fail if $(\MakeStore{\varsG}{\varsTL}{\varsL}, \stmt)$
+fails according to rule \textsc{Assert-False}. 
+The rules in  in Figure~\ref{fig:operational-semantics2} are straightforward.
+The execution of primitive statements results in the store begin updated and the statement being rewritten to $\skipstmt$;
+the rule \textsc{Seq} erases the $\skipstmt$ to move control to the next statement.
+
 
 %%% Local Variables: 
 %%% mode: latex
