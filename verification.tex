@@ -1,3 +1,58 @@
+Suppose a program $\Prog'$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
+invocation $\call{P}$ of a procedure that is implemented using low-level actions.
+The main contribution of this paper is a verification method that allows us to safely refine
+program $\Prog'$ to another program $\Prog$ so that 
+safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
+
+We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
+\[
+\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'.
+\]
+In this judgment,
+$\Refines \in \ProcName \pf \ActionName$ is an injective partial function from procedure names to action names
+and $\RemovedActions \in 2^{\ActionName}$ is a set of action names that is disjoint from $\range(\Refines)$.
+This judgment expresses the intention that $\Prog$ refines $\Prog'$
+by exploiting the set of actions in $\RemovedActions$ and replacing 
+occurrences of $\call{\Refines(P)}$ by $\call{P}$ for all $P \in \dom(\Refines)$.
+Consequently, actions in $\RemovedActions$ and procedures in $\dom(\Refines)$ are used only in $\Prog$.
+
+To motivate our verification method, we begin by presenting our soundness theorem and discussing the various 
+judgments used in it.
+\begin{theorem}
+Let $\Prog$ and $\Prog'$ be two programs, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
+and $\RemovedActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
+\begin{enumerate}
+\item
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$.
+\item
+$\Refines \jp \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
+\item
+$\Refines \jr \Prog$.
+\item
+$\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
+\end{enumerate}
+If $\Safe(\Prog')$ and $\Responsive(\Prog')$, then $\Safe(\Prog)$.
+\end{theorem}
+
+The judgment $\vdash \Prog$ checks that $\Prog$ uses linear variables appropriately and that the statement
+inside any atomic block does not contain any yield.
+The former is important because appropriate use of linear variables gives our verifier access to free disjointness
+assumptions that are important for precise non-interference and commutativity reasoning (as described later in this section).
+The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
+in one thread is preserved by each atomic block in a different thread.
+
+The judgments $\Refines \jp \Prog$ and $\InterferenceFree(\Prog, \Refines)$ together establish that all annotations in $\Prog$ 
+are consistent.  
+The former checks the sequential correctness of $\Prog$ while the latter checks that different threads main each other's 
+yield predicates.
+
+$\Refines \jr \Prog$
+
+
 \subsection{Type checking}
 \begin{figure*}
 \scriptsize{
@@ -1032,6 +1087,7 @@ $
 $
 \inferrule
 {
+P \not\in \dom(\Refines)
 }
 {
 \Refines;\RemovedActions \vdash \async{P} \leadsto \async{P}
@@ -1105,41 +1161,27 @@ $
 $
 \inferrule
 {
-\accessVars(\rho) \cap \Local = \emptyset \\
-\alpha = ((\exists \mathit{old}(\Local), \Local.\ \alpha) \wedge \Same(\Local)) \\
+\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
 }
 {
-\Refines;\RemovedActions \vdash (\rho,\alpha,m) \leadsto (\rho,\alpha,m)
-}
-\;(\textsc{Action})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack' \\
-}
-{
-\Refines;\RemovedActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack')) \\
+\Refines;\RemovedActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
 }
 \;(\textsc{Thread})
 $
-\medskip
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
-\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \\
-\Prog' = (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n') \\
+\range(\Refines) \cap \RemovedActions = \{\} \\
+\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\exists \mathit{old}(\Local), \Local.\ \alpha) \wedge \Same(\Local))) \\
+\Injective(\Refines) \\
 \forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
 \forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
-\forall A \in \range(\Refines).\ \Refines;\RemovedActions \vdash \actions(A) \leadsto \actions(A) \\
 \forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P)
-%\forall P \in \dom(\Refines).\ \ProcLins(P) = \ProcLins(\Refines(P)) \\
 }
 {
-\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'
+\Refines;\RemovedActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
 }
 \;(\textsc{Program})
 $
@@ -1152,27 +1194,6 @@ $
 
 \subsection{Soundness}
 
-\begin{theorem}
-Let $\Prog$ and $\Prog'$ be two programs.
-Let $\Refines \in \ProcName \pf \ActionName$ be a partial function from procedure names to action names.
-Let $\RemovedActions \in 2^{\ActionName}$ be a set of action names.
-Suppose the following conditions are satisfied:
-\begin{enumerate}
-\item
-$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$.
-\item 
-All finite executions of $\Prog'$ are safe.
-\item
-All infinite executions of $\Prog'$ are responsive.
-\item
-$\CommutativitySafe(\Prog)$.
-\item
-$\InterferenceFree(\Prog,\Refines)$.
-\item
-$\Refines \jp Prog$ and $\Refines \jr Prog$ and $\Refines \jy Prog$.
-\end{enumerate}
-Then all finite executions of $\Prog$ are safe.
-\end{theorem}
 
 \subsection{Responsiveness}
 
