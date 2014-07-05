@@ -414,9 +414,9 @@ $
 $
 \inferrule
 {
-\actions \vdash \stmt_1 \preceq \alpha_1 \\ \actions \vdash \stmt_2 \preceq \alpha_2
+\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\ \actions \vdash \stmt_2 \preceq \ga{\neg \locExpr}{\alpha_2}
 }
-{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq (\locExpr \circ \alpha_1) \vee (\neg \locExpr \circ \alpha_2)}
+{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \vee \alpha_2}
 \;(\textsc{Ite})
 $
 \medskip
@@ -490,7 +490,7 @@ $
 \inferrule
 {
 P' \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\ 
-\actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \exists \mathit{old}(\Local), \Local.\ \alpha
+\actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \exists \old(\Local), \Local.\ \alpha
 }
 {\Refines;\actions;P \jr \call{P'} : \true}
 \;(\textsc{Call2})
@@ -510,7 +510,7 @@ $
 $
 \inferrule
 {
-\actions \vdash s \preceq \mathit{old}(e) \Rightarrow \Havoc(\Local)
+\actions \vdash s \preceq \ga{e}{\Havoc(\Local)}
 }
 {\Refines;\actions;P \jr \ablock{e,\lins}{s} : \false}
 \;(\textsc{Ablock1})
@@ -521,7 +521,7 @@ $
 \inferrule
 {
 \actions(\Refines(P)) = (\rho,\alpha,m) \\\\
-\actions \vdash s \preceq \mathit{old}(e) \Rightarrow  \exists \mathit{old}(\Local), \Local.\ \alpha
+\actions \vdash s \preceq \ga{e}{\exists \old(\Local), \Local.\ \alpha}
 }
 {\Refines;\actions;P \jr \ablock{e,\lins}{s} : \true}
 \;(\textsc{Ablock2})
@@ -587,18 +587,29 @@ which allows procedure-local variables to be modified arbitrarily but requires t
 The judgment for simulating a code block with a transition relation is $\actions \vdash \stmt \preceq \alpha$; the rules for this judgment 
 are presented in Figure~\ref{fig:statement-summarization}.
 In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
-Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution may also be needed.
+Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution or the invariants
+of the loop inside the atomic block may also be needed.
 Proving such predicates throughout the program is the job of the judgments $\Refines \js \Prog$ and $\InterferenceFree(\Prog, \Refines)$.
 The rules for the former are presented in Figure~\ref{fig:sequential-correctness} and the latter is formalized in text towards the end of this 
 subsection.
 
-We first examine the rules for judgment $\actions \vdash \stmt \preceq \alpha$ in Figure~\ref{fig:statement-summarization}.
+We first examine the rules for the judgment $\actions \vdash \stmt \preceq \alpha$ in Figure~\ref{fig:statement-summarization}.
 We ignore the rules \textsc{Assert}, \textsc{Yield}, \textsc{Call}, \textsc{Async}, and \textsc{Ablock} for now since the 
 statements corresponding to these do not occur inside atomic blocks; we will use these rules later in Section~\ref{sec:responsiveness}.
 The rule \textsc{Skip} states that $\skipstmt$ is simulated by the transition relation $\Havoc(\{\})$ which leaves all variables unchanged.
 The rule \textsc{Seq} states that if $\stmt_1$ and $\stmt_2$ are simulated by $\alpha_1$ and $\alpha_2$ respectively, 
 then $\stmt_1;\stmt_2$ is simulated by the relational composition $\alpha_1 \circ \alpha_2$.
+The rule \textsc{Ite} uses the notation $\ga{\locExpr}{\alpha}$ which represents the set of all transitions $(\sigma, \sigma')$ 
+such that $\sigma \in \locExpr \Rightarrow (\sigma,\sigma') \in \alpha$.
+It states that if $\stmt_1$ is simulated by $\ga{\locExpr}{\alpha_1}$ and $\stmt_2$ is simulated by $\ga{\neg \locExpr}{\alpha_2}$,
+then $\ite{\locExpr}{\stmt_1}{\stmt_2}$ is simulated by $\alpha_1 \vee \alpha_2$.
+The rule \textsc{While} summarizes the body of the while loop by the transition relation $\beta$ and checks that the 
+loop summary $\alpha$ provided by the programmer is inductive.
+These checks allow the rule to conclude that the loop is summarized by $e \circ \alpha \circ \neg \locExpr$.
+Here (and elsewhere in this section), we overload a predicate $e$ over the store as the transition relation $\{(\sigma,\sigma') \mid \sigma \in e\}$.
+Note that the computed loop summary assumes the loop invariant $e$ since it is checked using the other judgments discussed later in this section.
 
+Next we examine the rules for the the judgment $\Refines \jr \Prog$ in Figure~\ref{fig:refinement}.
 
 \begin{figure}
 \scriptsize{
@@ -1268,7 +1279,7 @@ $
 \inferrule
 {
 \range(\Refines) \cap \RemovedActions = \{\} \\
-\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\exists \mathit{old}(\Local), \Local.\ \alpha) \wedge \Same(\Local))) \\
+\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\exists \old(\Local), \Local.\ \alpha) \wedge \Same(\Local))) \\
 \Injective(\Refines) \\
 \forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
 \forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
@@ -1311,7 +1322,7 @@ Our soundness theorem, stated above, concludes the safety of $\Prog$ from the sa
 \[
 \inferrule
 {
-\procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \mathit{old}(f) > f)
+\procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \old(f) > f)
 }
 {\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
