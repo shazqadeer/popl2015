@@ -1135,8 +1135,8 @@ $
 \forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
 \forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
 \forall A \in \range(\Refines).\ \Refines;\RemovedActions \vdash \actions(A) \leadsto \actions(A) \\
-\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P) \\
-\forall P \in \dom(\Refines).\ \ProcLins(P) = \ProcLins(\Refines(P)) \\
+\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P)
+%\forall P \in \dom(\Refines).\ \ProcLins(P) = \ProcLins(\Refines(P)) \\
 }
 {
 \Refines;\RemovedActions \vdash \Prog \leadsto \Prog'
