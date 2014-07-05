@@ -229,10 +229,10 @@ $
 \ProcLins(A) = (\lins,\lins') \\
 \lins \cap \Global = \lins' \cap \Global \\
 \actions(A) = (\rho, \alpha, m) \\\\
-\forall (\sigma,\sigma') \in \alpha.
-  \disjoint(\{\sigma(x) \mid x \in \lins\}) \wedge
+\forall (\sigma,\sigma') \in \alpha.\ 
+  \disjoint(\{\sigma(x) \mid x \in \lins\}) \Rightarrow
   \disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
-\forall (\sigma,\sigma') \in \alpha.
+\forall (\sigma,\sigma') \in \alpha.\ 
   \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
 }
 {
@@ -248,8 +248,8 @@ $
 \forall P \in \ProcName. \vdash P \\
 \forall A \in \ActionName. \vdash A \\
 \lins_G \subseteq \Global \\
-\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocal) \\
+\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
 \disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
   \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
@@ -262,9 +262,58 @@ $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 }
-\caption{Type checking rules}
-\label{fig:type-checking}
+\caption{Linear variables and atomic blocks}
+\label{fig:linearity}
 \end{figure*}
+
+The judgment $\vdash \Prog$, formalized in Figure~\ref{fig:linearity}, checks that
+linear variables and atomic blocks are used appropriately in $\Prog$.
+Starting from the bottom of Figure~\ref{fig:linearity}, rule \textsc{Program} checks 
+all procedures, actions, and threads in $\Prog$.
+To check a thread $T_i$, the initial set of linear permissions, global and thread-local,
+are required. 
+The rule guesses a set of global linear variables $\lins_G$
+and a set of thread-local linear variables $\lins_i$ and checks $T_i$ in an environment
+containing their union $\lins_G,\lins_i$.
+Rule \textsc{Program} uses the predicate $\disjoint(\Lambda)$ where $\Lambda$ is a subset 
+of $\Global \cup \ThreadLocal$.
+This predicate is used to encode a disjointness invariant enforced by the linear type checker
+with respect to an arbitrary function $\Set$ (provided by the programmer) from $\Value$ to $2^\Value$.
+$\disjoint(\Lambda)$ states that the sets $\Set(\lins)$ for $\lins \in \Lambda$ are pairwise disjoint.
+The judgment $\vdash \Prog$ enforces that linear permissions are never duplicated during the 
+execution of $\Prog$.
+Rule \textsc{Program} also checks that the disjointness invariant holds in the initial state of $\Prog$.
+Consequently, it holds throughout the execution of $\Prog$.
+
+Rule \textsc{Action} checks each action $A$ locally, using its linear interface $(\lins,\lins')$,
+to ensure that it does violate the disjointness invariant.
+%Since only actions can update the program store, this check suffices to ensure the preservation of the
+%invariant throughout the program's execution.
+There are three conditions being checked.
+First, the set of global linear permissions does not change from the input to the output.
+Second, if the disjointness invariant holds for input permissions it also holds for output permissions.
+Finally, the union of the sets constructed from output permissions is a subset of the union of sets
+constructed from input permissions.  
+This last condition is important because it allows via local checking to conclude that the disjointness invariant holds globally
+for linear permissions held by all threads.
+
+Rule \textsc{Thread} checks the statement stack $\StmtStack$ inside a thread
+with the initial set of linear permissions $\lins$ handed down by rule \textsc{Program} 
+and an arbitrary set of final permissions $\lins'$.
+In addition to appropriate usage of linear variables, it also checks that each atomic block does not contain any 
+occurrences of $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it.
+This latter check is performed by introducing another parameter, one of two values in $\{\ABlockOutside,\ABlockInside\}$, 
+to the judgment.
+$\ABlockOutside$ states that the current statement is outside any atomic block;
+$\ABlockInside$ states that the current statement is inside some atomic block.
+Rule \textsc{Procedure} is similar to the rule \textsc{Thread};
+it checks the procedure body against its linear interface.
+Both these rules use $\ABlockOutside$ to indicate that the current control is outside any atomic block.
+
+Rules \textsc{Stack}, \textsc{Seq}, \textsc{Ite}, and \textsc{While} are straightforward.
+Rule \textsc{Ablock} checks that the linear permissions associated with the atomic block are available
+and then checks the body of the atomic block in the context $\ABlockInside$.
+Note that we do not allow nested atomic blocks as indicated by the presence of $\ABlockOutside$ below the line.
 
 \subsection{Refinement}
 \label{sec:refinement}
@@ -472,7 +521,7 @@ $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 }
-\caption{Sequential rules for partial correctness}
+\caption{Sequential correctness}
 \label{fig:sequential-correctness}
 \end{figure}
 
@@ -491,22 +540,22 @@ $\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \st
 Let $\Ablocks(\Prog,\Refines)$ be the set of atomic blocks in $\Prog$ except those inside the bodies of procedures
 in $\dom(\Refines)$.
 
-Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Lambda$ be a one-one 
+Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Subst$ be a one-one 
 substitution function from $\ThreadLocal \cup \Local$ to $\FV$.
-Let $\Lambda(\phi)$ represent the result of applying $\Lambda$ to the expression $\phi$.
+Let $\Subst(\phi)$ represent the result of applying $\Subst$ to the expression $\phi$.
 The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$, the following conditions are satisfied:
 \begin{enumerate}
 \item
 For each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks(\Prog,\Refines)$, the judgment
 \[
-\FH{\Lambda(\phi) \wedge e \wedge \disjoint(\Lambda(\lins_y \setminus \Global) \cup \lins_a)}{s}{\Lambda(\phi)}
+\FH{\Subst(\phi) \wedge e \wedge \disjoint(\Subst(\lins_y \setminus \Global) \cup \lins_a)}{s}{\Subst(\phi)}
 \]
 holds.
 \item
 For each $A \in \range(\Refines)$ such that $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins_a,\lins'_a)$, 
 \[
-(\Lambda(\phi) \wedge \rho \wedge \disjoint(\Lambda(\lins_y \setminus \Global) \cup \lins_a)) \circ \alpha \circ \neg\Lambda(\phi)
+(\Subst(\phi) \wedge \rho \wedge \disjoint(\Subst(\lins_y \setminus \Global) \cup \lins_a)) \circ \alpha \circ \neg\Subst(\phi)
 \]
 is unsatisfiable.
 \end{enumerate}
@@ -638,7 +687,7 @@ $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 }
-\caption{Refinement rules}
+\caption{Refinement}
 \label{fig:refinement}
 \end{figure}
 
@@ -751,8 +800,8 @@ $
 $
 \medskip
 }
-\caption{Abstracting statements by actions}
-\label{fig:statement-to-action}
+\caption{Statement summarization}
+\label{fig:statement-summarization}
 \end{figure}
 
 \subsection{Yield elimination}
@@ -760,7 +809,7 @@ $
 
 {\bf Commutativity.}
 Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
-Let $\Lambda_1$ and $\Lambda_2$ be one-one 
+Let $\Subst_1$ and $\Subst_2$ be one-one 
 substitution functions from $\ThreadLocal \cup \Local$ to $\FV_1$ and $\FV_2$ respectively.
 A program $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
 if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
@@ -771,10 +820,10 @@ all of the following conditions are satisfied:
 If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
 \[
 \begin{array}{l}
-(\Lambda_1(\rho_1) \wedge \Lambda_2(\rho_2) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Global) \cup \Lambda_2(\lins_2)))\ \circ \\
-(\Lambda_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
+(\Subst_1(\rho_1) \wedge \Subst_2(\rho_2) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2)))\ \circ \\
+(\Subst_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
 \Rightarrow \\
-(\Lambda_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Lambda_1(\alpha_1) \wedge \Same(\FV_2))
+(\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Subst_1(\alpha_1) \wedge \Same(\FV_2))
 \end{array}
 \]
 is valid.
@@ -782,9 +831,9 @@ is valid.
 If $m_1 \in \{B,R\}$, then 
 \[
 \begin{array}{l}
-\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins_1 \setminus \Global) \cup \Lambda_2(\lins_2))\ \circ \\
-\Lambda_2(\rho_2) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
-\neg \Lambda_1(\rho_1)
+\Subst_1(\rho_1) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2))\ \circ \\
+\Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
+\neg \Subst_1(\rho_1)
 \end{array}
 \]
 is unsatisfiable.
@@ -792,9 +841,9 @@ is unsatisfiable.
 If $m_1 \in \{B,L\}$, then 
 \[
 \begin{array}{l}
-\neg \Lambda_1(\rho_1)\ \circ \\
-\Lambda_2(\rho_2) \circ (\Lambda_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
-\Lambda_1(\rho_1) \wedge \disjoint(\Lambda_1(\lins'_1 \setminus \Global) \cup \Lambda_2(\lins'_2))
+\neg \Subst_1(\rho_1)\ \circ \\
+\Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
+\Subst_1(\rho_1) \wedge \disjoint(\Subst_1(\lins'_1 \setminus \Global) \cup \Subst_2(\lins'_2))
 \end{array}
 \]
 is unsatisfiable.
@@ -994,8 +1043,8 @@ $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 }
-\caption{Yield sufficiency rules}
-\label{fig:yield-sufficiency}
+\caption{Yield elimination}
+\label{fig:yield-elimination}
 \end{figure*}
 
 \subsection{Program transformation}
@@ -1194,8 +1243,8 @@ $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 }
-\caption{Program refinement}
-\label{fig:program-refinement}
+\caption{Program transformation}
+\label{fig:program-transformation}
 \end{figure*}
 
 \subsection{Correctness}
