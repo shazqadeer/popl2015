@@ -20,38 +20,43 @@ by exploiting the set of actions in $\RemovedActions$ and replacing
 occurrences of $\call{\Refines(P)}$ by $\call{P}$ for all $P \in \dom(\Refines)$.
 Consequently, actions in $\RemovedActions$ and procedures in $\dom(\Refines)$ are used only in $\Prog$.
 
-To motivate our verification method, we begin by presenting our soundness theorem and discussing the various 
-judgments used in it.
-\begin{theorem}
-Let $\Prog$ and $\Prog'$ be two programs, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
-and $\RemovedActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
-\begin{enumerate}
-\item
-$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$.
-\item
-$\Refines \jp \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
-\item
-$\Refines \jr \Prog$.
-\item
-$\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
-\end{enumerate}
-If $\Safe(\Prog')$ and $\Responsive(\Prog')$, then $\Safe(\Prog)$.
-\end{theorem}
-
-The judgment $\vdash \Prog$ checks that $\Prog$ uses linear variables appropriately and that the statement
+To motivate our verification method, we begin by discussing the various judgments used in our soundness theorem.
+The judgment $\vdash \Prog$, described in Section~\ref{sec:linearity}, 
+checks that $\Prog$ uses linear variables appropriately and that the statement
 inside any atomic block does not contain any yield.
 The former is important because appropriate use of linear variables gives our verifier access to free disjointness
 assumptions that are important for precise non-interference and commutativity reasoning (as described later in this section).
 The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
 in one thread is preserved by each atomic block in a different thread.
 
-The judgments $\Refines \jp \Prog$ and $\InterferenceFree(\Prog, \Refines)$ together establish that all annotations in $\Prog$ 
-are consistent.  
-The former checks the sequential correctness of $\Prog$ while the latter checks that different threads main each other's 
-yield predicates.
+The judgments $\Refines \jp \Prog$ and $\InterferenceFree(\Prog, \Refines)$ and $\Refines \jr \Prog$, 
+described in Section~\ref{sec:refinement},
+together establish that all program annotations are consistent and that 
+each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
+for all $P \in \dom(\Refines)$.
+The implement of these judgments generalizes the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
+The judgment $\Refines \jp \Prog$ checks sequential correctness of each computation;
+the judgment $\InterferenceFree(\Prog, \Refines)$ checks that each thread preserves the
+yield predicate of every other thread;
+the judgment $\Refines \jr \Prog$ uses the assertions established by the previous two judgments to check that 
+the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
 
+Finally, the judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, described in Section~\ref{sec:yield-elimination},
+ allow us to further simplify reasoning 
+about the abstract program $\Prog'$ by soundly eliminating yields between the invocations of atomic actions in $\range(\Refines)$.
+Yield elimination is extremely important to reduce the complexity of annotations and invariants 
+required for proving the correctness of concurrent programs;
+in our framework, it would be useful for simplifying the proof of the abstract program $\Prog'$.
+We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
+to perform yield elimination soundly.
 
-\subsection{Type checking}
+After discussing the judgments mentioned above, we will formalize the program transformation judgment 
+$\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$ in Section~\ref{sec:transformation}
+and present our soundness theorem and its correctness argument in Section~\ref{sec:correctness}.
+
+\subsection{Using linear variables}
+\label{sec:linearity}
+
 \begin{figure*}
 \scriptsize{
 \medskip
@@ -261,7 +266,9 @@ $
 \label{fig:type-checking}
 \end{figure*}
 
-\subsection{Safety}
+\subsection{Refinement}
+\label{sec:refinement}
+
 \begin{figure}
 \scriptsize{
 \medskip
@@ -504,7 +511,6 @@ For each $A \in \range(\Refines)$ such that $\actions(A) = (\rho, \alpha, m)$ an
 is unsatisfiable.
 \end{enumerate}
 
-\subsection{Refinement}
 \begin{figure}
 \scriptsize{
 \medskip
@@ -749,7 +755,8 @@ $
 \label{fig:statement-to-action}
 \end{figure}
 
-\subsection{Yield sufficiency}
+\subsection{Yield elimination}
+\label{sec:yield-elimination}
 
 {\bf Commutativity.}
 Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
@@ -991,7 +998,8 @@ $
 \label{fig:yield-sufficiency}
 \end{figure*}
 
-\subsection{Program refinement}
+\subsection{Program transformation}
+\label{sec:transformation}
 
 \begin{figure*}
 \scriptsize{
@@ -1190,8 +1198,24 @@ $
 \label{fig:program-refinement}
 \end{figure*}
 
-\subsection{Soundness}
+\subsection{Correctness}
+\label{sec:correctness}
 
+\begin{theorem}
+Let $\Prog$ and $\Prog'$ be two programs, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
+and $\RemovedActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
+\begin{enumerate}
+\item
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$.
+\item
+$\Refines \jp \Prog$ and $\InterferenceFree(\Prog,\Refines)$ and $\Refines \jr \Prog$.
+\item
+$\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$.
+\end{enumerate}
+If $\Safe(\Prog')$ and $\Responsive(\Prog')$, then $\Safe(\Prog)$.
+\end{theorem}
+
+Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety and responsiveness of $\Prog'$ 
 
 \subsection{Responsiveness}
 
