@@ -1176,7 +1176,48 @@ Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
 Rules \textsc{Skip} and \textsc{Assert} leave the state of the automaton unchanged.
 
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
-Consider, for example, the following 
+Consider the following program with a global variable {\tt x}, a thread-local variable {\tt t},
+a procedure {\tt Nop}, and two threads (shown on the left).
+\begin{tabular}{lll}
+\begin{tabular}[t]{l}
+{\tt [ x := 0 ];} \\
+{\tt yield;} \\
+{\tt [ t := x ];} \\
+{\tt assert t == 0;} \\
+{\tt yield;} \\
+\end{tabular} 
+&
+\begin{tabular}[t]{l}
+{\tt yield;} \\
+{\tt [x := x + 1];} \\
+{\tt while (true) } \\
+{\tt ~~call Nop;} \\
+{\tt yield;} \\
+\end{tabular} 
+&
+\begin{tabular}[t]{l}
+{\tt procedure Nop()} \\
+{\tt ~~refines [~]} \\
+{\tt ~~\{~\}}
+\end{tabular}
+\end{tabular}
+The first thread sets {\tt x} to $0$ in an atomic action (indicated {\tt [x := 0]}),
+yields, reads {\tt x} into {\tt t}, and asserts that {\tt t == 0}.
+At the yield, the second thread may be scheduled; it changes {\tt x} to $1$ and then calls
+{\tt Nop} repeatedly in an infinite loop.
+Our method allows {\tt Nop} to be abstracted by the atomic action {\tt [~]} which does nothing
+and is clearly a left mover (in fact, a both mover).
+As a result, the code of the program will satisfy the yield elimination check described earlier.
+However, the program as shown fails because of the implicit yields at the boundaries of {\tt Nop},
+whereas replacing {\tt call Nop} with the action {\tt [~]} does not fail.
+
+To address this soundness problem in the presence of left and both movers, we require additionally 
+that the abstract program is responsive (formally defined at the end of Section~\ref{sec:language}),
+that is, it yields infinitely often in any infinite execution.
+The abstract program in the example above is not responsive.
+
+{\bf TBD.} We revise the \textsc{While} rule in the judgment 
+$\procs;\actions;\RefinementAny;\mods \js \Prog$.
 \[
 \inferrule
 {
