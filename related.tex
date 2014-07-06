@@ -28,6 +28,26 @@ QED~\cite{ElmasQT09} is a proof system for concurrent programs written using a v
 \item Modularity is a primary concern in \civl. In QED, procedure calls can only be inlined or replaced with atomic action specifications. \civl provides procedure-level modularity for procedures without atomic specifications as well. This allows \civl to be more efficient at lower levels of the proof where most procedures have not yet been proven atomic. 
 \end{itemize}
 
+Most work on mechanical verification of garbage collectors has focused on sequential collectors~\cite{mccr07,hawb09},
+with some support for incremental collection~\cite{mccr07},
+but without the fine-grained interleaving that makes concurrent collection so challenging.
+Gonthier~\cite{gont96} verified the invariants of a concurrent mark-sweep algorithm,
+although not down to the level of individual statements and memory operations
+(``it was necessary to abstract from control flow and list management details to have a manageable proof''~\cite{gont96}),
+and without using refinement to prove simple atomic specifications.
+
+More recently,
+Jagannathan et al~\cite{Jagannathan14} used a refinement style of proof in Coq to verify the atomicity of various GC-related operations,
+such as free-list allocation,
+part of a write barrier, and parts of a collector.
+Furthermore, they build atomicity from a very low-level model assuming weak consistency (TSO) rather than sequential consistency.
+However, they don't yet fully verify the collector,
+but rather assume invariants needed by the atomicity proofs
+(``the proofs justifying the rely conditions as in the example above,
+have not been fully carried out in Coq''~\cite{Jagannathan14}).
+Nevertheless, combining their low-level TSO model with our complete,
+higher-level proof could potentially produce a practical verified collector for modern hardware.
+
 \section{Conclusions}
 
 By combining a generalized implementation of interference checking, a powerful linear type checking system, and a refinement verification system that supports reduction and abstraction, 
