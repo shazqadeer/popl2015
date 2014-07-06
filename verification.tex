@@ -47,7 +47,7 @@ $
 {
 \Refines;\AvailableActions \vdash \ablock{e,\lins}{s} \leadsto s'
 }
-\;(\textsc{Ablock-Elim})
+\;(\textsc{Ablock1})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -59,7 +59,7 @@ $
 {
 \Refines;\AvailableActions \vdash s \leadsto \ablock{e,\lins}{s'}
 }
-\;(\textsc{Ablock-Intro})
+\;(\textsc{Ablock2})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -230,7 +230,16 @@ The judgment uses the notation $\elim{\Local}.\ \alpha$, defined to be the follo
 Finally, this rule constrains actions in $\AvailableActions$ to be identical and then rewrites all threads
 and all procedures that continue to be used in $\Prog'$.
 
-Rule \textsc{Thread}
+Rule \textsc{Thread}, \textsc{Procedure}, \textsc{While}, \textsc{Ite}, \textsc{Seq}, and \textsc{Stack} are straightforward.
+If $P \in \dom(\Refines)$, rule \textsc{Proc1} rewrites $\call{P}$ to $\call{\Refines(P)}$;
+otherwise, rule \textsc{Proc2} leaves $\call{P}$ unchanged.
+Rule \textsc{Async} leaves the call unchanged but checks that $P \not \in \dom(\Refines)$.
+Rule \textsc{Ablock2} breaks up atomic blocks that contain calls
+to atomic actions that are being refined to procedures.
+Rule \textsc{Ablock1} allows smaller atomic blocks to be created in the refined program.
+Rule \textsc{Atomic} checks that $A \in \AvailableActions$ before leaving $\call{A}$ unchanged;
+this rule ensures that the abstract program only uses actions in $\AvailableActions$.
+Rules \textsc{Skip}, \textsc{Assert}, and \textsc{Yield} leave their respective statements unchanged.
 
 The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
 To justify the transformation, a collection of auxiliary judgments need to be proved.
