@@ -479,7 +479,7 @@ $
 $
 \inferrule
 {
-P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
+P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\\\ \rho' \circ \alpha' \Rightarrow \Havoc(\Local)
 }
 {\Refines;\actions;P \jr \call{P'} : \false}
 \;(\textsc{Call1})
@@ -490,7 +490,7 @@ $
 \inferrule
 {
 P' \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\ 
-\actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \exists \old(\Local), \Local.\ \alpha
+\actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \elim{\Local}.\ \alpha
 }
 {\Refines;\actions;P \jr \call{P'} : \true}
 \;(\textsc{Call2})
@@ -500,7 +500,7 @@ $
 $
 \inferrule
 {
-P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\{\})
+P' \in \dom(\Refines) \\ \actions(\Refines(P')) = (\rho',\alpha',m) \\ \rho' \circ \alpha' \Rightarrow \Havoc(\Local)
 }
 {\Refines;\actions;P \jr \async{P'} : \false}
 \;(\textsc{Async})
@@ -521,7 +521,7 @@ $
 \inferrule
 {
 \actions(\Refines(P)) = (\rho,\alpha,m) \\\\
-\actions \vdash s \preceq \ga{e}{\exists \old(\Local), \Local.\ \alpha}
+\actions \vdash s \preceq \ga{e}{\elim{\Local}.\ \alpha}
 }
 {\Refines;\actions;P \jr \ablock{e,\lins}{s} : \true}
 \;(\textsc{Ablock2})
@@ -610,6 +610,28 @@ Here (and elsewhere in this section), we overload a predicate $e$ over the store
 Note that the computed loop summary assumes the loop invariant $e$ since it is checked using the other judgments discussed later in this section.
 
 Next we examine the rules for the the judgment $\Refines \jr \Prog$ in Figure~\ref{fig:refinement}.
+The crux of these rules is the judgment $\Refines;\actions;P \jr \stmt : b$, 
+where $P$ is a procedure in $\dom(\Refines)$, $\stmt$ is a statement inside the body of $P$, and $b$ is a 
+$\mathit{Boolean}$ value.
+Suppose $\Refines(P) = A$ and $\actions(A) = (\rho, \alpha, m)$.
+Let us denote by $\elim{\Local}.\ \alpha$ the transition relation 
+$\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}$.
+If $b$ is $\true$, this judgment indicates that during any execution of $\stmt$, 
+an atomic block that could be simulated by $\elim{\Local}.\ \alpha$ happened exactly once;
+this unique atomic modifies global and thread-local variables as constrained by $\alpha$.
+If $b$ is $\false$, this judgment indicates that during any execution of $\stmt$, each atomic block
+was simulated by $\Havoc(\Local)$, that is, it did not modify any global or thread-local variables.
+Informally, we say that $\stmt$ {\em acts\/} if $b$ is $\true$ and {\em stutters\/} if $b$ is $\false$.
+
+Starting from the bottom, rule \textsc{Program} checks that $\Refines;\actions;P \jr \stmt : \true$
+for each $P \in \dom(\Refines)$.
+The rule \textsc{While} checks that the body of the loop stutters and concludes that the loop itself stutters.
+The rule \textsc{Ite} checks that both branches behave in the same way.
+The rule \textsc{Seq} for $\stmt_1;\stmt_2$ guesses the behavior of $\stmt_1$ and $\stmt_2$ but constrains
+at most one of them to act.
+Rules \textsc{Ablock1} and \textsc{Ablock2} for $\ablock{e,\lins}{s}$ have been described informally in the last paragraph.  
+The main difference in the formal rules is that the simulation check is weakened using the predicate $e$
+assumed to hold upon entry into the atomic block.
 
 \begin{figure}
 \scriptsize{
@@ -958,7 +980,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, B)
 }
 {\Refines;\actions \jy \call{P} : (x, x)}
-\;(\textsc{BothMover})
+\;(\textsc{Both})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -968,7 +990,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, R)
 }
 {\Refines;\actions \jy \call{P} : (\RM, \RM)}
-\;(\textsc{RightMover})
+\;(\textsc{Right})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -978,7 +1000,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, L)
 }
 {\Refines;\actions \jy \call{P} : (x, \LM)}
-\;(\textsc{LeftMover})
+\;(\textsc{Left})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -988,7 +1010,7 @@ $
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, N)
 }
 {\Refines;\actions \jy \call{P} : (\RM, \LM)}
-\;(\textsc{NonMover})
+\;(\textsc{Non})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1279,7 +1301,7 @@ $
 \inferrule
 {
 \range(\Refines) \cap \RemovedActions = \{\} \\
-\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\exists \old(\Local), \Local.\ \alpha) \wedge \Same(\Local))) \\
+\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
 \Injective(\Refines) \\
 \forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
 \forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
