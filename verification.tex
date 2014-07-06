@@ -595,7 +595,7 @@ subsection.
 
 We first examine the rules for the judgment $\actions \vdash \stmt \preceq \alpha$ in Figure~\ref{fig:statement-summarization}.
 We ignore the rules \textsc{Assert}, \textsc{Yield}, \textsc{Call}, \textsc{Async}, and \textsc{Ablock} for now since the 
-statements corresponding to these do not occur inside atomic blocks; we will use these rules later in Section~\ref{sec:responsiveness}.
+statements corresponding to these do not occur inside atomic blocks; we will use these rules later in Section~\ref{sec:yield-elimination}.
 The rule \textsc{Skip} states that $\skipstmt$ is simulated by the transition relation $\Havoc(\{\})$ which leaves all variables unchanged.
 The rule \textsc{Seq} states that if $\stmt_1$ and $\stmt_2$ are simulated by $\alpha_1$ and $\alpha_2$ respectively, 
 then $\stmt_1;\stmt_2$ is simulated by the relational composition $\alpha_1 \circ \alpha_2$.
@@ -632,6 +632,15 @@ at most one of them to act.
 Rules \textsc{Ablock1} and \textsc{Ablock2} for $\ablock{e,\lins}{s}$ have been described informally in the last paragraph.  
 The main difference in the formal rules is that the simulation check is weakened using the predicate $e$
 assumed to hold upon entry into the atomic block.
+The other interesting rules are \textsc{Call1}, \textsc{Call2}, and \textsc{Async}.
+These rules require that the called procedure $P'$ is in $\dom(\Refines)$;
+thus, the set of procedures being introduced during refinement must be closed under the call relation.
+The rule for ordinary call $\call{P'}$ is similar to that of atomic blocks with the action $\Refines(P')$
+taking on the role of the atomic block;
+the gate and transition relation of $\Refines(P')$ are used analogously to the predicate and the code of the atomic block.
+The rule for asynchronous call $\async{P'}$ checks that $\Refines(P')$ stutters.
+
+{\bf TBD.} discuss $\Refines \js \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
 
 \begin{figure}
 \scriptsize{
@@ -929,7 +938,7 @@ is valid.
 
 \begin{figure}
 \includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
-\caption{Specification for yield sufficiency}
+\caption{Automaton for yield elimination}
 \label{fig:YieldTypeCheckingAutomaton}
 \end{figure}
 
@@ -1118,6 +1127,15 @@ $
 \caption{Yield elimination}
 \label{fig:yield-elimination}
 \end{figure*}
+
+\[
+\inferrule
+{
+\procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \old(f) > f)
+}
+{\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+\;(\textsc{While})
+\]
 
 \subsection{Program transformation}
 \label{sec:transformation}
@@ -1338,15 +1356,4 @@ If $\Safe(\Prog')$ and $\Responsive(\Prog')$, then $\Safe(\Prog)$.
 
 Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety and responsiveness of $\Prog'$.
 
-\subsection{Responsiveness}
-\label{sec:responsiveness}
-
-\[
-\inferrule
-{
-\procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \old(f) > f)
-}
-{\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
-\;(\textsc{While})
-\]
 
