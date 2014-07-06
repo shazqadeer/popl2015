@@ -884,61 +884,12 @@ For each $A \in \range(\Refines)$ such that $\actions(A) = (\rho, \alpha, m)$ an
 is unsatisfiable.
 \end{enumerate}
 
-
 \subsection{Yield elimination}
 \label{sec:yield-elimination}
 
-{\bf Commutativity.}
-Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
-Let $\Subst_1$ and $\Subst_2$ be one-one 
-substitution functions from $\ThreadLocal \cup \Local$ to $\FV_1$ and $\FV_2$ respectively.
-A program $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
-if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
-$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
-all of the following conditions are satisfied:
-\begin{enumerate}
-\item
-If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
-\[
-\begin{array}{l}
-(\Subst_1(\rho_1) \wedge \Subst_2(\rho_2) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2)))\ \circ \\
-(\Subst_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
-\Rightarrow \\
-(\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Subst_1(\alpha_1) \wedge \Same(\FV_2))
-\end{array}
-\]
-is valid.
-\item
-If $m_1 \in \{B,R\}$, then 
-\[
-\begin{array}{l}
-\Subst_1(\rho_1) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2))\ \circ \\
-\Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
-\neg \Subst_1(\rho_1)
-\end{array}
-\]
-is unsatisfiable.
-\item
-If $m_1 \in \{B,L\}$, then 
-\[
-\begin{array}{l}
-\neg \Subst_1(\rho_1)\ \circ \\
-\Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
-\Subst_1(\rho_1) \wedge \disjoint(\Subst_1(\lins'_1 \setminus \Global) \cup \Subst_2(\lins'_2))
-\end{array}
-\]
-is unsatisfiable.
-\item
-If $m_1 \in \{B, L\}$, then
-\[
-\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1
-\]
-is valid.
-\end{enumerate}
-
 \begin{figure}
 \includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
-\caption{Automaton for yield elimination}
+\caption{Automaton for yield sufficiency}
 \label{fig:YieldTypeCheckingAutomaton}
 \end{figure}
 
@@ -1128,10 +1079,107 @@ $
 \label{fig:yield-elimination}
 \end{figure*}
 
+Section~\ref{sec:refinement} showed how we can replace a call to a procedure with 
+a call to an atomic action.
+If each such call to an atomic action had a yield just before and a yield just after it,
+we would have a sound transformation of the original program and all safety properties proved
+on the abstract program would carry over to the refined program.
+However, we can do better by arguing that some of yields surrounding the calls to atomic actions 
+are unnecessary by exploiting commutativity properties of the atomic actions.
+In this section, we lay out this argument formally.
+
+Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program.
+The map $\actions$ maps each atomic action to a triple $(\rho, \alpha, m)$, the last component of which 
+denotes type of atomic action---$B$ for {\em both mover}, $R$ for {\em right mover}, $L$ for {\em left mover},
+and $N$ for {\em non mover}.
+Informally, an action labeled $N$ does not commute with other concurrent actions,
+an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
+an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
+and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
+The ability to commute past actions in the environment provides the capability to eliminate yields.
+For example, a yield after a right mover or a yield before a left mover is unncessary.
+
+We now formally define the meaning of the commutativity annotations on $\Prog$ described in the previous paragraph.
+Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
+Let $\Subst_1$ and $\Subst_2$ be one-one 
+substitution functions from $\ThreadLocal \cup \Local$ to $\FV_1$ and $\FV_2$ respectively.
+Th program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
+if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
+all of the following conditions are satisfied:
+\begin{enumerate}
+\item
+If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+\[
+\begin{array}{l}
+(\Subst_1(\rho_1) \wedge \Subst_2(\rho_2) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2)))\ \circ \\
+(\Subst_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
+\Rightarrow \\
+(\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Subst_1(\alpha_1) \wedge \Same(\FV_2))
+\end{array}
+\]
+is valid.
+\item
+If $m_1 \in \{B,R\}$, then 
+\[
+\begin{array}{l}
+\Subst_1(\rho_1) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2))\ \circ \\
+\Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
+\neg \Subst_1(\rho_1)
+\end{array}
+\]
+is unsatisfiable.
+\item
+If $m_1 \in \{B,L\}$, then 
+\[
+\begin{array}{l}
+\neg \Subst_1(\rho_1)\ \circ \\
+\Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ \\
+\Subst_1(\rho_1) \wedge \disjoint(\Subst_1(\lins'_1 \setminus \Global) \cup \Subst_2(\lins'_2))
+\end{array}
+\]
+is unsatisfiable.
+\item
+If $m_1 \in \{B, L\}$, then
+\[
+\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1
+\]
+is valid.
+\end{enumerate}
+
+In transforming a refined program $\Prog$ to an abstract program $\Prog'$, a number of atomic actions 
+are introduced simultaneously.
+Consequently, we may need to eliminate a collection of yields at the same time.
+To achieve this goal, we introduce the automaton in Figure~\ref{fig:YieldTypeCheckingAutomaton} that encodes 
+all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
+The automaton has three states---$\RM$, $\CM$, and $\LM$.
+The edge labels belong to the set $\{B,R,L,N,A,Y\}$, where $B$, $R$, $L$, and $N$ represent the various kinds 
+of atomic actions described earlier, $A$ represents an atomic block, and $Y$ represents a yield.
+The judgment $\Refines;\actions \jy \Prog$ checks that the code in $\Prog$ can be simulated by traces of this automaton.
+This automaton allows traces in which {\em transactions\/} are separated by yields;
+Each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
+In the middle, it can have either at most one non mover or a sequence of atomic blocks.
+
+The rules for the judgment $\Refines;\actions \jy \Prog$ are presented in Figure~\ref{fig:yield-elimination}.
+The essence of these rules is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\CM,\LM\}$;
+the meaning is that to simulate the computation the automaton moves from state $x$ to state $y$.
+Rule \textsc{Program} performs checking for all threads and for all procedures not in $\dom(\Refines)$ since these are the 
+only procedures that remain in the abstract program.
+Rules \textsc{Thread}, \textsc{Stack}, and \textsc{Procedure} are straightforward.
+Rule \textsc{While} checks that the body of the loop leaves the state of the automaton unchanged.
+Rule \textsc{Ite} checks that the effect both branches is the same.
+Rule \textsc{Seq} composes the effect of $\stmt_1$ with the effect of $\stmt_2$.
+Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, \textsc{Non}, and \textsc{Ablock} essentially 
+examine the available edges in the automaton to validate the statement and calculate its effect.
+Rule \textsc{Async} is interesting because it treats an asynchronous call as a left mover.
+Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
+
+
 \[
 \inferrule
 {
-\procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ s \preceq (old(e \wedge \locExpr) \Rightarrow \old(f) > f)
+\procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ 
+\alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\ s \preceq \ga{(e \wedge \locExpr)}{\alpha}
 }
 {\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
