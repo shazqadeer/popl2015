@@ -1,3 +1,200 @@
+\begin{figure*}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\RemovedActions \vdash \skipstmt \leadsto \skipstmt}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\RemovedActions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
+\;(\textsc{Assert})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\RemovedActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+A \not \in \RemovedActions
+}
+{\Refines;\RemovedActions \vdash \call{A} \leadsto \call{A}}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash s \leadsto s'
+}
+{
+\Refines;\RemovedActions \vdash \ablock{e,\lins}{s} \leadsto s'
+}
+\;(\textsc{Ablock-Elim})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash s \leadsto s'
+}
+{
+\Refines;\RemovedActions \vdash s \leadsto \ablock{e,\lins}{s'}
+}
+\;(\textsc{Ablock-Intro})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines)
+}
+{
+\Refines;\RemovedActions \vdash \call{P} \leadsto \call{\Refines(P)}
+}
+\;(\textsc{Proc1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\Refines)
+}
+{
+\Refines;\RemovedActions \vdash \call{P} \leadsto \call{P}
+}
+\;(\textsc{Proc2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\Refines)
+}
+{
+\Refines;\RemovedActions \vdash \async{P} \leadsto \async{P}
+}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\RemovedActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
+}
+{
+\Refines;\RemovedActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash s_1 \leadsto s_1' \\
+\Refines;\RemovedActions \vdash s_2 \leadsto s_2'
+}
+{
+\Refines;\RemovedActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash s \leadsto s'
+}
+{
+\Refines;\RemovedActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
+}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
+}
+{
+\Refines;\RemovedActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\RemovedActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
+}
+\;(\textsc{Thread})
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\range(\Refines) \cap \RemovedActions = \{\} \\
+\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
+\Injective(\Refines) \\
+\forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
+\forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
+\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P)
+}
+{
+\Refines;\RemovedActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Program transformation}
+\label{fig:program-transformation}
+\end{figure*}
+
 Suppose a program $\Prog'$ has been proved to be safe.
 However, it is implemented using atomic actions that are too coarse to be directly implementable.  
 To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
@@ -20,7 +217,9 @@ by exploiting the set of actions in $\RemovedActions$ and replacing
 occurrences of $\call{\Refines(P)}$ by $\call{P}$ for all $P \in \dom(\Refines)$.
 Consequently, actions in $\RemovedActions$ and procedures in $\dom(\Refines)$ are used only in $\Prog$.
 
-To motivate our verification method, we begin by discussing the various judgments used in our soundness theorem.
+The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
+To justify the transformation, a collection of auxiliary judgments need to be proved.
+We now present an overview of these judgments.
 The judgment $\vdash \Prog$, described in Section~\ref{sec:linearity}, 
 checks that $\Prog$ uses linear variables appropriately and that the statement
 inside any atomic block does not contain any yield.
@@ -29,20 +228,20 @@ assumptions that are important for precise non-interference and commutativity re
 The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
 in one thread is preserved by each atomic block in a different thread.
 
-The judgments $\Refines \jr \Prog$, $\Refines \js \Prog$, and $\InterferenceFree(\Prog, \Refines)$,
+Next, we have three judgments, $\Refines \jr \Prog$, $\Refines \js \Prog$, and $\InterferenceFree(\Prog, \Refines)$,
 described in Section~\ref{sec:refinement},
-together establish that all program annotations are consistent and that 
+that together establish that all program annotations are consistent and that 
 each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
 for all $P \in \dom(\Refines)$.
-The implement of these judgments generalizes the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
+The rules for these judgments generalize the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
 The judgment $\Refines \js \Prog$ checks sequential correctness of each computation;
 the judgment $\InterferenceFree(\Prog, \Refines)$ checks that each thread preserves the
 yield predicate of every other thread;
 the judgment $\Refines \jr \Prog$ uses the assertions established by the previous two judgments to check that 
 the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
 
-Finally, the judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, described in Section~\ref{sec:yield-elimination},
- allow us to further simplify reasoning 
+Finally, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, 
+described in Section~\ref{sec:yield-elimination}, that allow us to further simplify reasoning 
 about the abstract program $\Prog'$ by soundly eliminating yields between the invocations of atomic actions in $\range(\Refines)$.
 Yield elimination is extremely important to reduce the complexity of annotations and invariants 
 required for proving the correctness of concurrent programs;
@@ -50,9 +249,8 @@ in our framework, it would be useful for simplifying the proof of the abstract p
 We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
 to perform yield elimination soundly.
 
-After discussing the judgments mentioned above, we will formalize the program transformation judgment 
-$\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$ in Section~\ref{sec:transformation}
-and present our soundness theorem and its correctness argument in Section~\ref{sec:correctness}.
+In the remainder of this section, we will formalize the judgments discussed above
+and present our soundness theorem in Section~\ref{sec:correctness}.
 
 \subsection{Using linear variables}
 \label{sec:linearity}
@@ -1227,206 +1425,6 @@ $\procs;\actions;\RefinementAny;\mods \js \Prog$.
 {\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 \]
-
-\subsection{Program transformation}
-\label{sec:transformation}
-
-\begin{figure*}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\RemovedActions \vdash \skipstmt \leadsto \skipstmt}
-\;(\textsc{Skip})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\RemovedActions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
-\;(\textsc{Assert})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\RemovedActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
-\;(\textsc{Yield})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-A \not \in \RemovedActions
-}
-{\Refines;\RemovedActions \vdash \call{A} \leadsto \call{A}}
-\;(\textsc{Atomic})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash s \leadsto s'
-}
-{
-\Refines;\RemovedActions \vdash \ablock{e,\lins}{s} \leadsto s'
-}
-\;(\textsc{Ablock-Elim})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash s \leadsto s'
-}
-{
-\Refines;\RemovedActions \vdash s \leadsto \ablock{e,\lins}{s'}
-}
-\;(\textsc{Ablock-Intro})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines)
-}
-{
-\Refines;\RemovedActions \vdash \call{P} \leadsto \call{\Refines(P)}
-}
-\;(\textsc{Proc1})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \not\in \dom(\Refines)
-}
-{
-\Refines;\RemovedActions \vdash \call{P} \leadsto \call{P}
-}
-\;(\textsc{Proc2})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \not\in \dom(\Refines)
-}
-{
-\Refines;\RemovedActions \vdash \async{P} \leadsto \async{P}
-}
-\;(\textsc{Async})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
-}
-{
-\Refines;\RemovedActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
-}
-\;(\textsc{Stack})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack' \\
-\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
-}
-{
-\Refines;\RemovedActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
-}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash s_1 \leadsto s_1' \\
-\Refines;\RemovedActions \vdash s_2 \leadsto s_2'
-}
-{
-\Refines;\RemovedActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
-}
-\;(\textsc{Ite})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash s \leadsto s'
-}
-{
-\Refines;\RemovedActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
-}
-\;(\textsc{While})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
-}
-{
-\Refines;\RemovedActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
-}
-\;(\textsc{Procedure})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
-}
-{
-\Refines;\RemovedActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
-}
-\;(\textsc{Thread})
-$
-\medskip\\
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\range(\Refines) \cap \RemovedActions = \{\} \\
-\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
-\Injective(\Refines) \\
-\forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
-\forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
-\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P)
-}
-{
-\Refines;\RemovedActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
-}
-\;(\textsc{Program})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Program transformation}
-\label{fig:program-transformation}
-\end{figure*}
 
 \subsection{Correctness}
 \label{sec:correctness}
