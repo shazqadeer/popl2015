@@ -1173,8 +1173,10 @@ Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, \textsc{Non}, and \textsc{Ab
 examine the available edges in the automaton to validate the statement and calculate its effect.
 Rule \textsc{Async} is interesting because it treats an asynchronous call as a left mover.
 Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
+Rules \textsc{Skip} and \textsc{Assert} leave the state of the automaton unchanged.
 
-
+The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
+Consider, for example, the following 
 \[
 \inferrule
 {
