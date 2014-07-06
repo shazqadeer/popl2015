@@ -6,7 +6,7 @@ $
 \inferrule
 {
 }
-{\Refines;\RemovedActions \vdash \skipstmt \leadsto \skipstmt}
+{\Refines;\AvailableActions \vdash \skipstmt \leadsto \skipstmt}
 \;(\textsc{Skip})
 $
 \medskip
@@ -15,7 +15,7 @@ $
 \inferrule
 {
 }
-{\Refines;\RemovedActions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
+{\Refines;\AvailableActions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
 \;(\textsc{Assert})
 $
 \medskip
@@ -24,7 +24,7 @@ $
 \inferrule
 {
 }
-{\Refines;\RemovedActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
+{\Refines;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
 \;(\textsc{Yield})
 $
 \medskip
@@ -32,9 +32,9 @@ $
 $
 \inferrule
 {
-A \not \in \RemovedActions
+A \in \AvailableActions
 }
-{\Refines;\RemovedActions \vdash \call{A} \leadsto \call{A}}
+{\Refines;\AvailableActions \vdash \call{A} \leadsto \call{A}}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -42,10 +42,10 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash s \leadsto s'
+\Refines;\AvailableActions \vdash s \leadsto s'
 }
 {
-\Refines;\RemovedActions \vdash \ablock{e,\lins}{s} \leadsto s'
+\Refines;\AvailableActions \vdash \ablock{e,\lins}{s} \leadsto s'
 }
 \;(\textsc{Ablock-Elim})
 $
@@ -54,10 +54,10 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash s \leadsto s'
+\Refines;\AvailableActions \vdash s \leadsto s'
 }
 {
-\Refines;\RemovedActions \vdash s \leadsto \ablock{e,\lins}{s'}
+\Refines;\AvailableActions \vdash s \leadsto \ablock{e,\lins}{s'}
 }
 \;(\textsc{Ablock-Intro})
 $
@@ -69,7 +69,7 @@ $
 P \in \dom(\Refines)
 }
 {
-\Refines;\RemovedActions \vdash \call{P} \leadsto \call{\Refines(P)}
+\Refines;\AvailableActions \vdash \call{P} \leadsto \call{\Refines(P)}
 }
 \;(\textsc{Proc1})
 $
@@ -81,7 +81,7 @@ $
 P \not\in \dom(\Refines)
 }
 {
-\Refines;\RemovedActions \vdash \call{P} \leadsto \call{P}
+\Refines;\AvailableActions \vdash \call{P} \leadsto \call{P}
 }
 \;(\textsc{Proc2})
 $
@@ -93,7 +93,7 @@ $
 P \not\in \dom(\Refines)
 }
 {
-\Refines;\RemovedActions \vdash \async{P} \leadsto \async{P}
+\Refines;\AvailableActions \vdash \async{P} \leadsto \async{P}
 }
 \;(\textsc{Async})
 $
@@ -102,10 +102,10 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
 }
 {
-\Refines;\RemovedActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+\Refines;\AvailableActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
 }
 \;(\textsc{Stack})
 $
@@ -114,11 +114,11 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack' \\
-\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
 }
 {
-\Refines;\RemovedActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+\Refines;\AvailableActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
 }
 \;(\textsc{Seq})
 $
@@ -127,11 +127,11 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash s_1 \leadsto s_1' \\
-\Refines;\RemovedActions \vdash s_2 \leadsto s_2'
+\Refines;\AvailableActions \vdash s_1 \leadsto s_1' \\
+\Refines;\AvailableActions \vdash s_2 \leadsto s_2'
 }
 {
-\Refines;\RemovedActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+\Refines;\AvailableActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
 }
 \;(\textsc{Ite})
 $
@@ -140,10 +140,10 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash s \leadsto s'
+\Refines;\AvailableActions \vdash s \leadsto s'
 }
 {
-\Refines;\RemovedActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
+\Refines;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
 }
 \;(\textsc{While})
 $
@@ -152,10 +152,10 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash \stmt \leadsto \stmt'
+\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
 }
 {
-\Refines;\RemovedActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
+\Refines;\AvailableActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
 }
 \;(\textsc{Procedure})
 $
@@ -164,10 +164,10 @@ $
 $
 \inferrule
 {
-\Refines;\RemovedActions \vdash \StmtStack \leadsto \StmtStack'
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
 }
 {
-\Refines;\RemovedActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
+\Refines;\AvailableActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
 }
 \;(\textsc{Thread})
 $
@@ -176,15 +176,14 @@ $
 $
 \inferrule
 {
-\range(\Refines) \cap \RemovedActions = \{\} \\
+\range(\Refines) \subseteq \AvailableActions \\
 \forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
-\Injective(\Refines) \\
-\forall 1 \le i \le n.\ \Refines;\RemovedActions \vdash T_i \leadsto T_i' \\
-\forall A \not\in \RemovedActions.\ \actions(A) = \actions'(A) \\
-\forall P \not\in \dom(\Refines).\ \Refines;\RemovedActions \vdash \procs(P) \leadsto \procs'(P)
+\forall A \in \AvailableActions.\ \actions(A) = \actions'(A) \\
+\forall 1 \le i \le n.\ \Refines;\AvailableActions \vdash T_i \leadsto T_i' \\
+\forall P \not\in \dom(\Refines).\ \Refines;\AvailableActions \vdash \procs(P) \leadsto \procs'(P)
 }
 {
-\Refines;\RemovedActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
+\Refines;\AvailableActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
 }
 \;(\textsc{Program})
 $
@@ -206,16 +205,32 @@ program $\Prog'$ to another program $\Prog$ so that
 safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
 
 We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
-\[
-\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'.
-\]
+$\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$;
+the rules for this judgment are presented in Figure~\ref{fig:program-transformation}.
 In this judgment,
-$\Refines \in \ProcName \pf \ActionName$ is an injective partial function from procedure names to action names
-and $\RemovedActions \in 2^{\ActionName}$ is a set of action names that is disjoint from $\range(\Refines)$.
-This judgment expresses the intention that $\Prog$ refines $\Prog'$
-by exploiting the set of actions in $\RemovedActions$ and replacing 
-occurrences of $\call{\Refines(P)}$ by $\call{P}$ for all $P \in \dom(\Refines)$.
-Consequently, actions in $\RemovedActions$ and procedures in $\dom(\Refines)$ are used only in $\Prog$.
+$\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
+and $\AvailableActions \in 2^{\ActionName}$ is a set of action names $\range(\Refines)$.
+This judgment expresses the intention that $\Prog$ is abstracted by replacing
+occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines)$ such that 
+the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
+Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
+
+Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
+which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
+It also checks that every action in $\range(\Refines)$ has a precondition 
+that is independent of procedure-local variables and a transition relation that leaves 
+procedure-local variables unchanged.  
+This check is meaningful because the action $\Refines(P)$ is written from the 
+perspective of the caller of $P$.
+Since the procedure-local variables of the caller of $P$ are distinct from those of $P$,
+these variables are quantified out from the transition relation of $\Refines(P)$ when 
+the body of $P$ is being checked (see Section~\ref{sec:refinement}).
+The judgment uses the notation $\elim{\Local}.\ \alpha$, defined to be the following transition relation:
+\[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
+Finally, this rule constrains actions in $\AvailableActions$ to be identical and then rewrites all threads
+and all procedures that continue to be used in $\Prog'$.
+
+Rule \textsc{Thread}
 
 The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
 To justify the transformation, a collection of auxiliary judgments need to be proved.
@@ -812,8 +827,6 @@ The crux of these rules is the judgment $\Refines;\actions;P \jr \stmt : b$,
 where $P$ is a procedure in $\dom(\Refines)$, $\stmt$ is a statement inside the body of $P$, and $b$ is a 
 $\mathit{Boolean}$ value.
 Suppose $\Refines(P) = A$ and $\actions(A) = (\rho, \alpha, m)$.
-Let us denote by $\elim{\Local}.\ \alpha$ the transition relation 
-$\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}$.
 If $b$ is $\true$, this judgment indicates that during any execution of $\stmt$, 
 an atomic block that could be simulated by $\elim{\Local}.\ \alpha$ happened exactly once;
 this unique atomic modifies global and thread-local variables as constrained by $\alpha$.
@@ -1431,10 +1444,10 @@ $\procs;\actions;\RefinementAny;\mods \js \Prog$.
 
 \begin{theorem}
 Let $\Prog$ and $\Prog'$ be two programs, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
-and $\RemovedActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
+and $\AvailableActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
 \begin{enumerate}
 \item
-$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\RemovedActions \vdash \Prog \leadsto \Prog'$.
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$.
 \item
 $\Refines \jr \Prog$ and $\Refines \js \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
 \item
