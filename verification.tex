@@ -816,9 +816,15 @@ The rules for the former are presented in Figure~\ref{fig:sequential-correctness
 subsection.
 
 We first examine the rules for the judgment $\actions \vdash \stmt \preceq \alpha$ in Figure~\ref{fig:statement-summarization}.
-We ignore the rules \textsc{Assert}, \textsc{Yield}, \textsc{Call}, \textsc{Async}, and \textsc{Ablock} for now since the 
-statements corresponding to these do not occur inside atomic blocks; we will use these rules later in Section~\ref{sec:yield-elimination}.
-The rule \textsc{Skip} states that $\skipstmt$ is simulated by the transition relation $\Havoc(\{\})$ which leaves all variables unchanged.
+The intention of this judgment is to summarize all yield-free and failure-free executions of any statement $\stmt$ by the transition relation $\alpha$.
+Since there are no yield and assert statements inside atomic blocks, this judgment is clearly enough for summarizing them;
+the extra generality turns out to be useful later in Section~\ref{sec:yield-elimination}.
+The rules \textsc{Skip}, \textsc{Assert}, and \textsc{Async} are similar;
+each statement is simulated by the transition relation $\Havoc(\{\})$ which leaves all variables unchanged.
+The rules \textsc{Yield} and \textsc{Call} are similar;
+each statement is simulated by $\false$ because our goal is to summarize only yield-free executions.
+Rule \textsc{Atomic} summarizes the call to an atomic action by the transition relation of the action.
+Rule \textsc{Ablock} simply summarizes the code block contained inside the atomic block.
 The rule \textsc{Seq} states that if $\stmt_1$ and $\stmt_2$ are simulated by $\alpha_1$ and $\alpha_2$ respectively, 
 then $\stmt_1;\stmt_2$ is simulated by the relational composition $\alpha_1 \circ \alpha_2$.
 The rule \textsc{Ite} uses the notation $\ga{\locExpr}{\alpha}$ which represents the set of all transitions $(\sigma, \sigma')$ 
@@ -1465,17 +1471,24 @@ that the abstract program is responsive (formally defined at the end of Section~
 that is, it yields infinitely often in any infinite execution.
 The abstract program in the example above is not responsive.
 
-{\bf TBD.} We revise the \textsc{While} rule in the judgment 
-$\procs;\actions;\RefinementAny;\mods \js \Prog$.
+{\bf Proving responsiveness.}
+A program is responsive if any infinite execution in it yields infinitely often.
+Although it is a liveness property, proving it is about as easy as proving termination of sequential program.
+The basic idea is to provide a loop with a measure function that decreases for each yield-free and failure-free 
+execution of the body of the loop.
+Thus, we can prove responsivenes by modifying only the while rule in Figure~\ref{fig:sequential-correctness}
+for the judgment $\procs;\actions;\RefinementAny;\mods \js \Prog$ as follows:
 \[
 \inferrule
 {
 \procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e} \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ 
-\alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\ s \preceq \ga{(e \wedge \locExpr)}{\alpha}
+\alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\ \actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
 }
-{\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha,f}{\locExpr}{s}}{e \wedge \neg \locExpr}}
+{\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr}}
 \;(\textsc{While})
 \]
+The modified rule above exploits the judgment $\actions \vdash s \preceq \alpha$ for statement summarization in 
+Figure~\ref{fig:statement-summarization}.
 
 \subsection{Correctness}
 \label{sec:correctness}
