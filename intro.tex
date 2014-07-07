@@ -1,41 +1,39 @@
-Practical verifiers for concurrent programs remain a challenge.  
+Building a practical verifier for concurrent programs remains a challenge. 
 Concurrent systems software, in particular, is complex and difficult to verify. 
-The verification of existing existing software starting from source code and partial specifications requires inferring design intent from the code and is even more difficult. 
-Instead, researchers have advocated a refinement approach in which a simple high-level description is refined, through several phases, down to an optimized, highly-concurrent implementation.  However, currently there is as yet no tool-supported top-down method that can support the refinement of realistic systems software down to an executable implementation.  In this paper, we present such a proof approach and an intermediate language (\civl) and a verification tool that support it.  We demonstrate our approach on a realistic concurrent garbage collector (GC). The high level specification for the GC consists of atomic action specifications for memory allocation and field accesses, and the garbage collector has a specification of``skip.'' This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
+The verification of existing existing software starting from source code requires inferring the design intent and is even more difficult. 
+Researchers have instead advocated a refinement approach in which a simple high-level description is refined, through several phases, down to an optimized, highly-concurrent implementation.  However, there is as yet no tool-supported method for refinement of realistic systems software down to an executable implementation.  In this paper, we present such a refinement method, and an intermediate language  and a verification tool (\civl) that support it.  We demonstrate our approach on a realistic concurrent garbage collector (GC). The high level specification for the GC consists of atomic action specifications for memory allocation and field accesses, and the garbage collector has a specification of ``skip.'' This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
 
 In our proof method, a program is described at several different levels of abstraction. 
 All of these descriptions as well as the refinement relationships connecting them reside in the same \civl file, the input to our tool. 
 Atomic actions in a high-level description are refined to more fine-grain, optimized lower-level implementations. An implementation of an atomic action may make use of additional variables which are hidden in the action's specification. 
-Modular specifications and proof annotations such as program and location invariants and procedure pre- and post-conditions, are specified separately at each level in terms of the variables and procedures visible at that level. For instance, in the GC, the top-level specifications and annotations reflect the client's view in terms of an idealized infinite heap and field relationships between objects, 
+Modular specifications and proof annotations such as program and location invariants and procedure pre- and post-conditions, are specified separately, independently at each level in terms of the variables visible at that level. For instance, in the GC, the top-level specifications and annotations reflect the client's view in terms of an idealized infinite heap and field relationships between objects, 
  whereas lower levels represent different views of the implementation, referring to, e.g., atomic updates of objects' colors or lock operations.
-In addition to making it possible to verify a specifications at the most abstract level possible, we find that such an approach is a natural way to design a program to be verified.  
+In addition to making it possible to verify specifications at the most abstract level possible, we find that such an approach is a natural way to design a program to be verified.  
 
 
-The verification method, language, and tool design have all been carried out with an eye toward supporting a modular hierarchical refinement proof in a way that feels natural to a user and is computationally efficient. 
-Our tool integrates as a sound proof system three concurrent program verification techniques to support the refinement verification goal. 
-The first \civl is a generalization of the Owicki-Gries method~\cite{OwickiG76} for non-preemptive concurrency, 
+The verification method, language, and tool design have all been carried out with the goal of supporting  modular refinement verification in a natural and computationally efficient manner. 
+\civl integrates in a sound proof system three concurrent program verification techniques that collectively enable refinement verification. 
+The first of these is a generalization of the Owicki-Gries method~\cite{OwickiG76} for non-preemptive concurrency, 
 allowing arbitrary code to appear inside an atomic action. 
-This simple but surprisingly powerful generalization allows us, among other things, to compactly encode rely-guarantee reasoning~\cite{Jones83}
+This simple but surprisingly powerful generalization allows us to compactly encode rely-guarantee reasoning~\cite{Jones83}
 and to reuse non-interference specifications from one program location to another.
 The second verification technique in \civl is an implementation of linear type checking.
 Linear types~\cite{Wadler90lineartypes} and separation logic~\cite{Reynolds02} enable substructural reasoning about data types
 (e.g. using separating conjunction or linear maps~\cite{LahiriQW11}).
 Linear types can also be used to encode the notion of unique thread identifiers useful for reasoning about non-interference. 
-The third group of techniques in \civl is atomicity refinement through reduction~\cite{Lipton}, mover actions, abstraction, and variable hiding.
-Reasoning using coarser-grain actions in this manner both reduces the annotation burden and the computational cost of verification. 
-These techniques have been investigated by themselve previously and are each best suited for proof tasks of a particular nature. 
-The sound combination of the techniques in a proof system results in a symbiosis resulting in a powerful refinement tool. 
+The third technique in \civl is atomicity refinement through mover actions, reduction, abstraction, and variable hiding. 
+Atomicity refinement allows reasoning coarser-grain atomic actions at higher levels of abstraction, and reduces the annotation burden and the computational cost of verification. 
+The three techniques listed above have been investigated individually previously and are each best suited for proof tasks of a particular nature. 
+The sound, symbiotic combination of the techniques in a proof system results in a powerful refinement tool. 
 
 As a design driver for our proof system and tool, we developed a new concurrent GC. 
 Design choices in our GC, an extension of the collector by Dijkstra et. al. \cite{dijk78}  with handshakes \cite{doli93,doli94} and repeated scans, were made with verified refinement and high performance in mind. 
-It supports a garbage collection thread running concurrently with multiple program threads (mutators) and its performance is competitive with well-known modern collectors. 
+Our GC supports a garbage collection thread running concurrently with multiple program threads (mutators) and its performance is competitive with well-known modern collectors. 
 Popular collectors use a snapshot-based approach \cite{doli93,doli94,doma00,azat03} or contain phases and cards \cite{boeh91,prin00a,bara05}. These make the verification invariants more complex. In contrast, 
 our collector satisfies the simple ``no-black-to-white'' invariant continuously throughout the execution. We intend to use our GC as part of a verified operating system. 
 
-
-The verification of the collector spanned a large abstraction gap. For verifying refinement, symbiotic use of the verification techniques in \civl was crucial. Stable location invariants verified using rely-guarantee-style reasoning facilitated the verification of atomicity refinement which, combined with variable hiding, allowed the use of simpler location invariants and rely-guarantee annotations for a higher-level version of the program.
-Using our refinement approach, lower-level implementation issues in the GC were cleanly separated from higher-level invariants and annotations involving the garbage collection algorithm. In refinement proofs among lower phases, atomicity of lock implementations, lock-protected field accesses and data structure (mark stack) operations were verified. Higher-level phases built larger atomic procedures from these primitives and verified garbage collector invariants involving garbage collector phases, colors used in the garbage-collection algorithm and field relationships among objects.  This is the first automated verification of a practical, executable garbage collector down to the implementation level.
-
+The verification of the collector spanned a large abstraction gap. For verifying refinement, symbiotic use of the verification techniques in \civl was crucial. Stable location invariants verified using rely-guarantee-style reasoning facilitated the verification of atomicity refinement. Replacing procedure bodies with atomic action specifications, combined with variable hiding, allowed the use of simpler location invariants and rely-guarantee annotations for higher-level versions of the program.
+Using our refinement approach, lower-level implementation issues in the GC were cleanly separated from higher-level invariants and annotations involving the garbage collection algorithm. Lower-level representations were useful for reasoning about the atomicity of lock implementations, lock-protected field accesses and data structure operations. Higher-level versions focused on algorithmic issues such as verifying invariants involving phases, colors and object field relationships. This is the first automated verification of a practical, executable garbage collector from ``skip'' to an algorithmic description, and from there down to the implementation level.
 
 Key contributions of this paper are 
 \begin{itemize}
