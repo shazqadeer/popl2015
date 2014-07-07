@@ -219,7 +219,7 @@ procedure ReleaseLock({:cnst "tid"} tid: X);
   ensures {:left} [...]
 procedure SetColorLocked(
                 {:cnst "tid"} tid:X, nC:int); 
-  ensures {:both} [...]
+  ensures {:atomic} [...]
 procedure GetColorLocked(
        {:cnst "tid"} tid:X) returns (cl:int);
   ensures {:both} [...];
