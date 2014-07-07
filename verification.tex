@@ -115,7 +115,7 @@ the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
 Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
 
 For space reasons, we have chosen to presente the more interesting rules in Figure~\ref{fig:program-transformation};
-the complete set of rules in presented in Appendix~\ref{fig:program-transformation-full}.
+the complete set of rules in presented in Appendix~\ref{sec:verification-appendix}.
 Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
 which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
 It also checks that every action in $\range(\Refines)$ has a precondition 
@@ -178,7 +178,7 @@ and present our soundness theorem in Section~\ref{sec:correctness}.
 \subsection{Using linear variables}
 \label{sec:linearity}
 
-\begin{figure*}
+\begin{figure}
 \scriptsize{
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -216,54 +216,47 @@ $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 }
-\caption{Linear variables and atomic blocks}
+\caption{Linear variables}
 \label{fig:linearity}
-\end{figure*}
+\end{figure}
 
 In this section, we formalize the judgment $\vdash \Prog$.
 Due to space constraints, we present only a few of the illustrative rules in Figure~\ref{fig:linearity};
-the full set of rules is presented in Appendix~\ref{fig:linearity-full}.
+the full set of rules is presented in Appendix~\ref{sec:verification-appendix}.
 The goal of the judgment $\vdash \Prog$ is to check that
 linear variables and atomic blocks are used appropriately in $\Prog$.
-These rules use the predicate $\disjoint(\Lambda)$ where $\Lambda$ is a subset 
-of $\Global \cup \ThreadLocal$.
-This predicate is used to encode a disjointness invariant enforced by the linear type checker
-with respect to an arbitrary function $\Set$ (provided by the programmer) from $\Value$ to $2^\Value$.
-$\disjoint(\Lambda)$ states that the sets $\Set(\lins)$ for $\lins \in \Lambda$ are pairwise disjoint.
+
 The judgment $\vdash \Prog$ enforces that linear permissions are never duplicated during the 
 execution of $\Prog$.
-
-Rule \textsc{Action} checks each action $A$ locally, using its linear interface $(\lins,\lins')$,
-to ensure that it does violate the disjointness invariant.
-There are three conditions being checked.
+The predicate $\disjoint(\Lambda)$, where $\Lambda$ is a subset of $\Global \cup \ThreadLocal$,
+encodes a disjointness invariant enforced by the linear type checker
+with respect to an arbitrary function $\Set$ (provided by the programmer) from $\Value$ to $2^\Value$.
+$\disjoint(\Lambda)$ states that the sets $\Set(\lins)$ for $\lins \in \Lambda$ are pairwise disjoint.
+Rule \textsc{Program} (Appendix~\ref{sec:verification-appendix}) checks that the disjointness invariant holds in the initial state of $\Prog$.
+Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
+Consequently, the invariant holds throughout the execution of $\Prog$.
+There are three conditions being checked by rule \textsc{Action}.
 First, the set of global linear permissions does not change from the input to the output.
 Second, if the disjointness invariant holds for input permissions it also holds for output permissions.
 Finally, the union of the sets constructed from output permissions is a subset of the union of sets
 constructed from input permissions.  
 This last condition is important because it allows via local checking to conclude that the disjointness invariant holds globally
 for linear permissions held by all threads.
-Rule \textsc{Program} also checks that the disjointness invariant holds in the initial state of $\Prog$.
-Consequently, it holds throughout the execution of $\Prog$.
-
-In addition to appropriate usage of linear variables, it also checks that each atomic block does not contain any 
-occurrences of $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it.
-This latter check is performed by introducing another parameter, one of two values in $\{\ABlockOutside,\ABlockInside\}$, 
-to the judgment.
-$\ABlockOutside$ states that the current statement is outside any atomic block;
-$\ABlockInside$ states that the current statement is inside some atomic block.
-Both these rules use $\ABlockOutside$ to indicate that the current control is outside any atomic block.
-Proper usage of atomic blocks requires that 
-(1)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block, and
-(2)~any $\mathit{yield}$, $\mathit{call}$, $\mathit{async}$, or $\mathit{assert}$ statements must occur outside all atomic blocks.
-These two requirements together provide two simplifications that we exploit in Section~\ref{sec:refinement}.
-First, an atomic block cannot fail and can therefore be summarized by a transition relation.
-Second, checking non-interference of a yield predicate against all atomic blocks concurrently executing 
-in the environment will preserve the yield predicate across the entire computation across a context switch by the environment.
-
 The rule \textsc{Async} splits the thread-local permissions $\lins$ of the caller of $\async{P}$ into $\lins$ 
 and $\lins_P$, passing $\lins_P$ to the new thread and continuing with $\lins$.
 Note that all global permissions in $\lins_G$ are also made available to the new thread;
 there is no duplication because all threads refer to the same set of global variables.
+
+The judgment $\vdash \Prog$ also checks that 
+(1)~each atomic block does not contain any occurrences of $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, $\mathit{async}$, or $\mathit{assert}$ statements inside it, and
+(2)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block.
+To facilitate these checks, the judgments have a parameter containing one of two values,
+$\ABlockOutside$ stating that the current statement is outside any atomic block and
+$\ABlockInside$ stating that the current statement is inside some atomic block.
+These two requirements together provide two simplifications that we exploit in Section~\ref{sec:refinement}.
+First, an atomic block cannot fail and can therefore be summarized by a transition relation.
+Second, checking non-interference of a yield predicate against all atomic blocks concurrently executing 
+in the environment will preserve the yield predicate across the entire computation across a context switch by the environment.
 
 \subsection{Refinement}
 \label{sec:refinement}
@@ -672,6 +665,8 @@ $
 
 We now discuss the judgment $\Refines \js \Prog$;
 the rules for this judgment are presented in Figure~\ref{fig:sequential-correctness}.
+Due to space constraints, we present only the rules that are different from the standard Floyd-Hoare rules for sequential programs;
+the full set of rules in presented in Appendix~\ref{sec:verification-appendix}.
 The judgment at the level of statements
 is as follows: $procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\stmt}{\psi}$.
 Here $\RefinementAny$ is a value in the set $\{\RefinementInside, \RefinementOutside\}$.
@@ -679,8 +674,6 @@ The value $\RefinementInside$ indicates that the rule is being applied inside a 
 to refine an atomic action; otherwise, $\RefinementAny$ is $\RefinementOutside$.
 The set $\mods$ is the set of thread-local variables modified by the statement $\stmt$.
 
-Due to space constraints, we present only the rules that are different from the standard Floyd-Hoare rules for sequential programs;
-the full set of rules in presented in Appendix~\ref{sec:verification-appendix}.
 Rule \textsc{Ablock} checks the entry condition for the atomic block and then verifies 
 the code inside the block.
 Rule \textsc{Async} checks the precondition of the called procedure.
