@@ -1,7 +1,11 @@
 Building a practical verifier for concurrent programs remains a challenge. 
 Concurrent systems software, in particular, is complex and difficult to verify. 
 The verification of existing existing software starting from source code requires inferring the design intent and is even more difficult. 
-Researchers have instead advocated a refinement approach in which a simple high-level description is refined, through several phases, down to an optimized, highly-concurrent implementation.  However, there is as yet no tool-supported method for refinement of realistic systems software down to an executable implementation.  In this paper, we present such a refinement method, and an intermediate language  and a verification tool (\civl) that support it.  We demonstrate our approach on a realistic concurrent garbage collector (GC). The high level specification for the GC consists of atomic action specifications for memory allocation and field accesses, and the garbage collector has a specification of ``skip.'' This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
+Researchers have instead advocated a refinement approach in which a simple high-level description is refined, through several phases, down to an optimized, highly-concurrent implementation.
+However, there is as yet no tool-supported method for refinement of realistic systems software down to an executable implementation.
+In this paper, we present such a refinement method, and an intermediate language  and a verification tool (\civl) that support it.
+We demonstrate our approach on a realistic concurrent garbage collection (GC) algorithm.
+The high level specification for the GC consists of atomic action specifications for memory allocation and field accesses, and the garbage collector has a specification of ``skip.'' This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
 
 In our proof method, a program is described at several different levels of abstraction. 
 All of these descriptions as well as the refinement relationships connecting them reside in the same \civl file, the input to our tool. 
@@ -38,7 +42,7 @@ Using our refinement approach, lower-level implementation issues in the GC were 
 Key contributions of this paper are 
 \begin{itemize}
 \item a modular and automated proof system to support refinement reasoning for concurrent program, and 
-\item the design and verified refinement of a realistic concurrent garbage collector from a very high-level description (``skip'') down to individual memory accesses.
+\item the design and verified refinement of a realistic concurrent GC algorithm, mechanically checked with our proof system, from a very high-level description (``skip'') down to individual memory accesses.
 \end{itemize}
 
 %To force commit
