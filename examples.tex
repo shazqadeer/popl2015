@@ -73,11 +73,10 @@ then the trick in Program~2 can be used to verify the program with a linear numb
 
 \begin{figure}
 \begin{verbatim}
-procedure yield_x(n: int)
-  requires x >= n;
-  ensures  x >= n;
+procedure yield_x()
+  ensures  x >= old(x);
 {
-  yield x >= n;
+  yield x >= old(x);
 }
 \end{verbatim}
 \begin{verbatim}
@@ -85,9 +84,9 @@ procedure p()
   requires x >= 5;
   ensures  x >= 8;
 {
-  call yield_x(x);  x := x + 1;
-  call yield_x(x);  x := x + 1;
-  call yield_x(x);  x := x + 1;
+  call yield_x();  x := x + 1;
+  call yield_x();  x := x + 1;
+  call yield_x();  x := x + 1;
 }
 \end{verbatim}
 \caption{Program~3}
@@ -99,17 +98,9 @@ Figure~\ref{fig:ex3} shows Program~3, yet another variation of Programs~1 and~2 
 proof using \civl's one-state yield statements. 
 The standard rely-guarantee specification to prove the assertions in {\tt p} is that the environment of {\tt p} 
 may only increase {\tt x}.
-We can encode this in \civl by first exploiting the trick in Program~2 to factor out the yield statement in a separate procedure
-and then passing the current value of {\tt x} as a parameter to {\tt yield\_x}.
-In fact, our implementation of \civl requires even less work; the value of {\tt x} upon entering {\tt yield\_x} is available 
-in the postcondition using the syntax {\tt old(x)}, allowing us to write {\tt yield\_x} without any parameter as follows:
-\begin{verbatim}
-procedure yield_x()
-  ensures  x >= old(x);
-{
-  yield x >= old(x);
-}
-\end{verbatim}
+We can encode this in \civl by factoring out the yield statement in a separate procedure
+and then referring {\tt old(x)}, the value of {\tt x} when {\tt yield\_x} is
+entered. 
 
 
 \begin{figure}
@@ -171,11 +162,6 @@ The \civl type system ensures that values contained in linear variables cannot b
 Consequently, the parameter {\tt tid} of distinct concurrent calls to {\tt P} are known to be distinct;
 the \civl verifier exploits this invariant while checking for non-interference.
 
-Program~4 also shows the mechanisms of allocation of thread identifiers,
-based on the use of global variable {\tt alloc}, the constant {\tt nil}, and the procedure 
-{\tt Allocate}.  
-Section~\ref{sec:formal} describes values and linear variables like {\tt nil} and {\tt alloc} in more detail.
-
 \begin{figure}
 \begin{verbatim}
 var Color:[int]int; // 1: WHT(), 2: GRY(), 3: BLK()
@@ -187,9 +173,8 @@ ensures {:atomic} [if (Color[addr] == WHT(){
 {
   call cNoLock:= GetColorNoLock();
   call YieldColorsGetDarker(); 
-  if (cNoLock == WHT()) {
-       call LockedSetColGryIfWht(tid, addr);
-  }
+  if (cNoLock == WHT()) 
+    call LockedSetColGryIfWht(tid, addr);
 }
 
 procedure YieldColorsGetDarker()
@@ -205,23 +190,16 @@ ensures {:atomic} [if (Color[addr] == WHT(){
 {
   call AcquireLock(tid);
   call cLock := GetColorLocked(tid);
-  if (cLock == WHT()) {
+  if (cLock == WHT()) 
     call SetColorLocked(tid, GRY());
-  } 
   call ReleaseLock(tid);
 }
 
-procedure AcquireLock({:cnst "tid"} tid: X);
-  ensures {:right} [ ...];
-procedure ReleaseLock({:cnst "tid"} tid: X);
-  ensures {:left} [...];
-procedure SetColorLocked(
-                {:cnst "tid"} tid:X, nC:int); 
-  ensures {:atomic} [...];
-procedure GetColorLocked(
-       {:cnst "tid"} tid:X) returns (cl:int);
+procedure AcquireLock() ensures {:right} [...];
+procedure ReleaseLock() ensures {:left} [...];
+procedure SetColorLocked() ensures {:atomic} [...];
+procedure GetColorLocked() returns (cl:int);
   ensures {:both} [...];
-
 \end{verbatim}
 \caption{Program 5}
 \label{fig:reft}
@@ -250,9 +228,7 @@ and objects reachable from it should not be garbage collected. The
 top-level refinement task in this example is to show that \exC{TopWB}
 refines its atomic action specification 
 \begin{verbatim}
-[if (Color[addr] == WHT(){
-        Color[addr] := GRY();
-}]
+  [if (Color[addr] == WHT()) Color[addr] := GRY();]
 \end{verbatim}
 assuming that the procedure it calls, \exC{MidWB}, satisfies its
 atomic action specification. \exC{TopWB} and \exC{MidWB} have the same atomic
@@ -278,7 +254,9 @@ The yield
 predicate in {\tt YieldColorsOnlyGetDarker()} expresses the fact that
 other threads in the environment of the thread running \exC{TopWB} can
 only modify {\tt Color[addr]} to a higher (darker)
-value. \civl verifies that this is the case. Given the correct
+value. \civl verifies that this is the case. 
+
+Given the correct
 modeling of the environment interference by a yield predicate,
 \civl then verifies that, for every control path through \exC{TopWB}
 procedure, exactly one {\tt yield}-to-{\tt yield} execution
