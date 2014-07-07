@@ -108,7 +108,7 @@ entered.
 type Tid;
 var linear alloc:[Tid]bool;
 const nil: Tid;
-procedure Allocate() returns (linear tid: Tid);
+procedure Allocate() returns (linear tid:Tid);
   modifies alloc;
   ensures tid != nil;
 \end{verbatim}
@@ -118,9 +118,8 @@ var a:[Tid]int;
 \begin{verbatim}
 procedure main()
 {
-  var linear tid: Tid;
   while (true) {
-    call tid := Allocate();
+    var linear tid:Tid := Allocate();
     async call P(tid);
     yield true;
   }
@@ -131,8 +130,7 @@ procedure P(linear tid: Tid)
   requires tid != nil;
   ensures a[tid] == old(a)[tid] + 1;
 {
-  var t: int;
-  t := a[tid];
+  var t:int := a[tid];
   yield t == a[tid];
   a[tid] := t + 1;
 }
@@ -164,42 +162,39 @@ the \civl verifier exploits this invariant while checking for non-interference.
 
 \begin{figure}
 \begin{verbatim}
-var Color:[int]int; 
-         // 1: WHITE(), 2: GRAY(), 3: BLACK()
-
-procedure TopWB(linear tid: Tid, addr:int)
-ensures {:atomic} [if (Color[addr] == WHITE(){
-                     Color[addr] := GRAY();
-                   }];
+var Color:[int]int; // WHITE=1, GRAY=2, BLACK=3
+\end{verbatim}
+\begin{verbatim}
+procedure TopWB(linear tid:Tid, addr:int)
+ensures {:atomic} [if (Color[addr] == WHITE) {
+                       Color[addr] := GRAY;  }];
 {
-  var cNoLock: int;
-
-  call cNoLock:= GetColorNoLock();
+  var cNoLock:int := GetColorNoLock();
   call YieldColorsGetDarker(); 
-  if (cNoLock == WHITE()) 
+  if (cNoLock == WHITE) 
     call MidWB(tid, addr);
 }
-
+\end{verbatim}
+\begin{verbatim}
 procedure YieldColorsGetDarker()
   ensures forall a:: Color[a] >= old(Color[a]);
 {
   yield forall a:: Color[a] >= old(Color[a]);
 }
-
-procedure MidWB(linear tid: Tid, addr:int)
-ensures {:atomic} [if (Color[addr] == WHITE(){
-                     Color[addr] := GRAY();
-                   }];
+\end{verbatim}
+\begin{verbatim}
+procedure MidWB(linear tid:Tid, addr:int)
+ensures {:atomic} [if (Color[addr] == WHITE) {
+                       Color[addr] := GRAY;  }];
 {
-  var cLock: int;
-
   call AcquireLock(tid);
-  call cLock := GetColorLocked(tid);
-  if (cLock == WHITE()) 
-    call SetColorLocked(tid, GRAY());
+  var cLock:int := GetColorLocked(tid);
+  if (cLock == WHITE) 
+    call SetColorLocked(tid, GRAY);
   call ReleaseLock(tid);
 }
-
+\end{verbatim}
+\begin{verbatim}
 procedure AcquireLock() ensures {:right} [...];
 procedure ReleaseLock() ensures {:left} [...];
 procedure SetColorLocked() ensures {:atomic} [...];
@@ -227,13 +222,13 @@ be hidden, and a higher-level program is obtained.
 Program 5 is a simplified version of a pattern in our GC.
 Mutator threads entering a write barrier for an
 address \exC{addr} check
-if the global variable \exC{Color[addr]} is \exC{WHITE()}
-and set it to \exC{GRAY()}, indicating that the object at this address
+if the global variable \exC{Color[addr]} is \exC{WHITE}
+and set it to \exC{GRAY}, indicating that the object at this address
 and objects reachable from it should not be garbage collected. The
 top-level refinement task in this example is to show that \exC{TopWB}
 refines its atomic action specification 
 \begin{verbatim}
-[if (Color[addr] == WHITE()) Color[addr] := GRAY();]
+[if (Color[addr] == WHITE) Color[addr] := GRAY;]
 \end{verbatim}
 assuming that the procedure it calls, \exC{MidWB}, satisfies its
 atomic action specification. \exC{TopWB} and \exC{MidWB} have the same atomic
@@ -243,15 +238,15 @@ To avoid the cost of locking for each
 address encountered, 
 \exC{TopWB} only calls the expensive 
 \exC{MidWB} after reading \exC{Color[addr]} without holding a lock
-and confirming that it is {\tt WHITE()}.
+and confirming that it is {\tt WHITE}.
 
 The correctness of this
 optimization is not obvious. Consider the following potential
 scenario. \exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
-sets \exC{cNoLock} to \exC{GRAY()} and then yields at
+sets \exC{cNoLock} to \exC{GRAY} and then yields at
 \exC{YieldColorsGetDarker}. Another thread sets {\tt Color[addr]} to
-{\tt WHITE()}. \exC{TopWB} resumes, but does nothing and exits,
-because the procedure-local variable \exC{cNoLock} is \exC{GRAY()}. In this scenario, the atomic action
+{\tt WHITE}. \exC{TopWB} resumes, but does nothing and exits,
+because the procedure-local variable \exC{cNoLock} is \exC{GRAY}. In this scenario, the atomic action
 specification of \exC{TopWB} would not be satisfied. However, in the GC this
 scenario is not possible. 
 The yield
