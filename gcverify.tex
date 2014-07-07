@@ -1,5 +1,19 @@
-\begin{figure*}
-\includegraphics[scale=1.0]{VerifiedGC.pdf}
-\caption{Verified garbage collector phases 5, 6 (pseudocode excerpts)}
-\label{fig:VerifiedGC}
-\end{figure*}
+\subsection{Collector Verification in Boogie}
+
+We have implemented and verified our algorithm in Boogie,
+including initialization (Initialize), the GC (GarbageCollect), the allocator (Alloc),
+and the mutator operations (ReadField, WriteField, and Eq, which tests for pointer equality),
+and all the lower-level operations required to implement them (some of which appear
+in Figure~\ref{fig:VerifiedGC}, but most of which are omitted from the figure to save space).
+To make the verification as realistic as possible,
+our Boogie code implements everything in terms of individual CPU operations,
+such as load, store, atomic increment/decrement, and CAS (compare-and-swap);
+in contrast to some previous work~\cite{gont96},
+we do not assume any built-in higher level operations.
+To ease verification, we make some simplifications:
+we use a naive allocator (sequential search for free space),
+we assume a sequentially consistent memory model,
+and we assume that all objects have the same number of fields.
+(Except for the assumption of sequential consistency, none of these substantially alters the nature of the proof.)
+
+

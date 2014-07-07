@@ -1,136 +1,79 @@
-\subsection{Collector Design}
-We have chosen to demonstrate the proposed verification methodology and tool on a realistic modern concurrent garbage collector.
-To this end, we designed a garbage collector that extends the concurrent collector of Dijkstra et. al.~\cite{dijk78}.
-The goal in this design is to build a collector that is on one hand easy to verify
-and on the other hand highly performant in practice.
-Most modern concurrent collectors are snapshot-oriented~\cite{doli93,doli94,doma00,azat03},
-and as such may require complex claims on snapshot times and reachability.
-Other popular concurrent collectors and in particular the {\em mostly concurrent} garbage collector~\cite{boeh91,prin00a,bara05}
-consist of different complex phases and complex interaction between objects that reside on specific {\em cards}.
-We preferred a collector whose invariants are simple and hold continuously as much as possible throughout the execution.
-This means that a program execution can move from one thread to another
-and then to the garbage collector while all relevant invariants continue to hold at all times. 
+\begin{figure*}
+\includegraphics[scale=1.0]{VerifiedGC.pdf}
+\caption{Verified garbage collector phases 5, 6 (pseudocode excerpts in solid boxes; atomic action specs in dashed boxes)}
+\label{fig:VerifiedGC}
+\end{figure*}
 
-Dijkstra's collector seems to be a good candidate,
-but it cannot be considered a modern or performant collector.
-On the positive side, its write-barrier maintains simple invariants continuously.
-However, this collector becomes incorrect in the presence of more than one program thread (mutator),
-which is unacceptable for use with modern multicore platforms.
-Furthermore, it requires that the write-barrier be run not only on updates of heap pointers,
-but also on modifications of root pointers, i.e., on modifications of the runtime stacks and the registers.
-This requirement implies bad performance, which modern concurrent garbage collectors avoid. 
+We demonstrate the verification methodology and tool on a realistic modern concurrent garbage collector algorithm.
+Our algorithm builds on the concurrent collector of Dijkstra et. al.~\cite{dijk78}.
+Dijkstra's collector is attractive for verification because it maintains a simple three-color invariant
+on the heap objects (contrasting with snapshot-oriented collectors~\cite{doli93,doli94,doma00,azat03},
+whose three-color invariants are more subtle).
+By itself, though, Dijkstra's collector is not a modern or performant collector.
+First, it becomes incorrect in the presence of more than one program thread (mutator).
+Second, it requires that the write-barrier be run not only on updates of heap pointers,
+but also on modifications of root pointers, i.e., on modifications of the runtime stacks and the registers;
+modern high-performance collectors avoid this overhead.
 
-We therefore extended and modified Dijkstra's collector to make it work with parallel programs
-and also to not require a write-barrier on root modifications.
-As far as we know, the obtained garbage collector algorithm has not been previously proposes or implemented.
-Let us shortly recall Dijkstra's collector, and then explain how we modified it to eliminate its shortcomings.  
-
-The analysis of Dijkstra's collector employs a tri-color abstraction to describe the trace of the objects reachable from the roots.
+Therefore, our algorithm (shown inside the solid boxes in Figure~\ref{fig:VerifiedGC}) extends and modifies Dijkstra's collector
+to make it work with parallel programs and to not require a write-barrier on root modifications.
+Like Dijkstra's collector, our algorithm first {\em marks} all objects reachable from roots (registers and stacks),
+shown in Figure~\ref{fig:VerifiedGC}'s Mark procedure, and then sweeps away all unreached objects,
+shown in Figure~\ref{fig:VerifiedGC}'s Sweep procedure.
+As in Dijkstra's collector, our algorithm employs a tri-color abstraction to describe the trace of the reachable objects.
 Objects are said to be {\em white} if the collector has not seen them yet during the trace.
-This means that unreachable objects (that are never encountered during the trace) remain white throughout the trace.
 Objects that the collector encounters become gray and remain gray until the collector scans their children.
 Once all the children of an object are noted (meaning that none of them are white), the object becomes black.
-The collector works by choosing a gray node, {\em shading} all its children, and then making the object black.
+The collector works by choosing a node from the set of gray objects (GraySetChoose in Figure~\ref{fig:VerifiedGC}, called from MarkAllGrays),
+{\em shading} all its white children to gray (GraySetInsert), and then removing the object from the gray set by making the object black (GraySetRemove).
 The shading operation grays a node if it is white, and does noting otherwise.
-The trace initiates by making all objects white and then shading all objects reachable from the roots.
-The trace terminates when there are no more gray objects in the heap.
+The trace terminates when all roots point to black objects (according to ScanRoots)
+and there are no more gray objects in the heap (according to IsGraySetEmpty, called by ScanRoots).
 Termination is guaranteed because objects can only get darker.
-Correctness is guaranteed using the invariant that there cannot be a black to white pointer during the trace.
-At the end of the trace, objects pointed by the roots must be black and since black objects can only point to black objects
-(there are no gray objects at the end and no black to white pointers),
-then the entire set of objects reachable from the roots must be black.
+Correctness is guaranteed using an invariant that black objects never point to white pointer during the trace
+(black objects can only point to gray objects or black objects).
+At the end of the trace, objects pointed by the roots must be black, and since no gray objects remain,
+black objects only point to black objects,
+so the entire set of objects reachable from the roots must be black.
 
-In the presence of concurrent program operations,
-the no-black-to-white invariant does not hold,
-because the program may simply redirect a pointer of a black object to point to a white object.
-Therefore, a coordination between the program and the concurrent collector is required
-and this coordination takes place in the form of a {\em write-barrier}.
-A write-barrier is a piece of code that executes with each pointer update,
-and Dijkstra's write-barrier lets the program shade the new target of a pointer modification.
-When a pointer field $p$ is set to reference an object $B$,
-the write barrier starts by assigning the address of $B$ to $p$ and then it shades $B$.
-A major complication comes from the fact that the pointer change and the shading operations do not occur as a single atomic unit,
-but there is a point in between the two in which the no black-to-white pointers invariant is not preserved.
-Dijkstra et. al. show that the algorithm is still correct,
-but only a single program thread.
-If there are two concurrent program threads, the proof not only fails, but the algorithm actually becomes incorrect. 
+Concurrent mutator operations on objects (ReadField and WriteField in Figure~\ref{fig:VerifiedGC})
+could potentially break the no-black-to-white invariant,
+because a mutator's WriteField operation could potentially redirect a pointer of a black object to point to a white object.
+Therefore, coordination between the program and the concurrent collector is required:
+Before each raw pointer update (WriteFieldRaw), the WriteField procedure executes a {\em write-barrier} (WriteBarrier).
+Before pointer field $x.f$ is set to reference an object $y$,
+WriteBarrier shades $y$, ensuring that even if $x$ is black, a pointer from $x$ to $y$
+will not violate the no-white-to-black invariant.
 
-We start with achieving multithreading and later we also explain how to get rid of the need to use a write-barrier with root pointers.
-We modify Dijkstra's write-barrier by reversing the order of the two actions.
-First, shade the target object $B$ and only then execute the assignment of $B$'s address to the pointer $p$.
-As noted by Doligez et. al.~\cite{doli93,doli94} this requires a {\em handshake}
-between all program threads and the collector before a new collection initiates.
-A handshake is initiated by the collector by raising a collector flag that the program threads check occasionally.
-When a program thread discovers that a handshake is required to start a collection,
-it raises its own thread flag to indicate that it has noted the handshake flag and that it is not in the middle of a write operation.
-When the collector finds that all program threads have responded the handshake is done and a collection may start.
-We use the same handshaking mechanism, but unlike~\cite{doli93,doli94},
-we shade the target of the pointer $B$.
-(Most previous concurrent collectors shaded the object that lost a pointer in the operation in order to obtain a snapshot-like tracing behavior).
-The shading of the target pointer does not make a difference for
-correctness if we use the write-barrier on root pointers, but now we proceed with avoiding a write-barrier on root pointer modifications. 
+The write barrier should shade objects only while the collector is in its mark phase,
+not when the collector is sweeping or is idle, and the collector may only switch between phases (mark, sweep, or idle)
+when no mutator is in the middle of a WriteField or Alloc operation.
+To achieve this (and thereby support correct and efficient support for multiple mutator threads),
+we extend Dijkstra's collector with explicit tracking of phases, via a handshaking mechanism~\cite{doli93,doli94}.
+A shared variable, collectorPhase, contains the current collector phase.
+The collector initiates a handshake by incrementing collectorPhase (in Handshake, called by GarbageCollect).
+Each mutator thread keeps cached copy of collectorPhase, and periodically checks to see if
+the cached copy mismatches the current collectorPhase, and if so, updates the cached copy
+with the most recent value
+(in our algorithm, a mutator's call to the allocator, Alloc, checks this in UpdateMutatorPhase,
+but the exact location of the check is not critical to correctness).
+The GarbageCollector waits until all cached copies equal collectorPhase (WaitForMutators in GarbageCollect),
+and then executes a phase (Mark, Sweep, or, for the idle phase, nothing).
+Note that each mutator thread can read its own cached phase without acquiring a lock (ReadMutatorPhase in WriteBarrier),
+leading to efficient WriteBarrier performance.
 
-If we do not use a write-barrier on the roots,
-it is possible that the roots point to objects that have not been traced,
-i.e., white objects at the end of the trace.
-This foils the correctness,
-because it no longer holds that all objects referenced by the roots are black (and all their descendants are black as well).
-However, we still know that there are no gray objects at the end of the trace
-and that there are never black-to-white pointers in the heap throughout the trace.
-So if we could get all roots to reference black objects we would obtain a correct tracing of the heap.
-To this end, we modify the algorithm to test the roots at the end of the concurrent trace.
-If all roots point to black objects, then we are done.
-Otherwise, we continue the collection by shading all objects reachable by the roots and tracing from them again. 
+Dijkstra's collector requires a write barrier on modifications to roots as well as modifications to objects.
+To eliminate this overhead, our algorithm pauses all threads while scanning the roots.
+Similar to the implementation of handshaking, ScanRoots signals to the mutator threads that a root scan
+is about to begin (CollectorRootScanBarrierStart), waits (CollectorRootScanBarrierWait) for the
+mutators to respond and pause (TestRootScanBarrier), scans the roots while the mutators are paused,
+and then wakes up the mutators (CollectorRootScanBarrierEnd).
+At the end of the scan (before the mutators reawaken), all roots point to gray or black objects.
+If no gray objects remain (IsGraySetEmpty), then all roots point to black objects, and the marking is complete.
+Otherwise, we continue the collection by shading all objects reachable by the roots and tracing from them again.
 In a worst-case theoretical scenario we may need to run many root scans and discover more and more white root descendants to trace each time. 
-But in practice we usually finish after the first or second traversal, and we seldom need more than that.
-So we obtain correctness and termination in all scenarios and we obtain good performance in real-world scenarios. 
-
-To support concurrent allocation we used local allocation buffers~\cite{borm02a,bara05}.
-A free list contains chunks of free space ready for allocation.
-These chunks are arranged in address-order on a linked-list.
-Each thread allocates a buffer of substantial size, which the thread uses to allocate small objects locally and privately.
-When the local buffer is exhausted, a new buffer is allocated from the free-list using simple synchronization.
-Similarly, allocations of large objects are executed directly from the free-list in a first-fit manner.
-This way, most allocations do not require any synchronization,
-as they are executed from the thread local allocation buffer.
-This makes allocation fast and scalable~\cite{borm02a,bara05}. 
-
-\subsection{A Toy Collector Version for Verification}  
-Proving the above collector in its entirety is a huge task on its own.
-For this paper we wanted to demonstrate that the proposed method and tool are able to derive such proofs.
-To this end, we have reduced the full concurrent collector design into a toy-ish version,
-ignoring stuff that is very important in practice, but less so for demonstrating the ability to prove the collector.
-For example, we assumed that each object contains exactly two fields, both of them are pointers.
-Proving a full object model would require a lot of tedious work to cover all object types, but not much novelty.
-The toy collector actually made us deal with practically all the real problems of proving a concurrent garbage collector,
-while avoiding the tedious details involved with supporting a full-blown memory manager.
-Other simplifications we chose included a reduction of the root set to a single pointer,
-and a naive first fit allocator.
-Namely, no free-list. 
-
-\begin{quote}
-{\bf Chris, can you fill in additional simplifications?}
-\end{quote}
-
-The state of garbage collector is at {\sc idle} before the collection begins.
-When garbage collection is required {\em procedure GarbageCollect} is invoked and the collector runs a handshake,
-asking all program threads to acknowledge a change of state to {\sc mark}
-and the root pointer is grayed and pushed into the mark-stack.
-When acknowledgement is received from all program threads,
-the marking procedure is invoked via {\em procedure MarkOuterLoop}.
-This procedure resets the sweep pointer to prepare for a later sweep
-and then checks if the roots are all pointing to black objects no gray objects exist (an empty mark stack).
-If yes, then we are done with marking. Otherwise, we call {\em MarkInnerLoop} that executes the shading of roots and tracing of their descendants.
-At the end we check again if marking is done.
-When the marking phase is done the collector moves into the {\sc sweep} state using a handshake.
-It then goes over the objects, any black object is made white and any white object is reclaimed. 
-
-\subsection{Collector Proof}
-
-
-
-
-
+But in practice we usually finish after a small number of scans,
+so we obtain correctness and termination in all scenarios and we obtain good performance in real-world scenarios. 
 
 
 
