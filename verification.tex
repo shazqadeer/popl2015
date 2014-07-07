@@ -860,8 +860,6 @@ taking on the role of the atomic block;
 the gate and transition relation of $\Refines(P')$ are used analogously to the predicate and the code of the atomic block.
 The rule for asynchronous call $\async{P'}$ checks that $\Refines(P')$ stutters.
 
-{\bf TBD.} discuss $\Refines \js \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
-
 \begin{figure}
 \scriptsize{
 \medskip
@@ -879,7 +877,7 @@ $
 \inferrule
 {
 }
-{\procs;\actions;\RefinementOutside;\{\} \js \FH{\phi}{\assert{\locExpr}}{\phi}}
+{\procs;\actions;\RefinementInside;\{\} \js \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert1})
 $
 \medskip
@@ -888,7 +886,7 @@ $
 \inferrule
 {
 }
-{\procs;\actions;\RefinementInside;\{\} \js \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
+{\procs;\actions;\RefinementOutside;\{\} \js \FH{\phi}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert2})
 $
 \medskip
@@ -1069,9 +1067,40 @@ $
 \label{fig:sequential-correctness}
 \end{figure}
 
-{\bf Non-interference.}
-Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program
-and $\Refines$ be a refinement map.
+We now discuss the judgment $\Refines \js \Prog$;
+the rules for this judgment are presented in Figure~\ref{fig:sequential-correctness}.
+The judgment at the level of statements
+is as follows: $procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\stmt}{\psi}$.
+Here $\RefinementAny$ is a value in the set $\{\RefinementInside, \RefinementOutside\}$.
+The value $\RefinementInside$ indicates that the rule is being applied inside a procedure that is expected 
+to refine an atomic action; otherwise, $\RefinementAny$ is $\RefinementOutside$.
+The set $\mods$ is the set of thread-local variables modified by the statement $\stmt$;
+it is used both for the frame rule \textsc{Frame} and for checking the modifies annotation for a procedure.
+
+Rules \textsc{Program}, \textsc{Thread}, \textsc{Stack}, \textsc{Procedure}, \textsc{Frame},
+\textsc{Weaken}, \textsc{While}, \textsc{Ite}, and \textsc{Seq} are straightforward
+and based on the standard Floyd-Hoare rules for sequential programs.
+Rule \textsc{Ablock} checks the entry condition for the atomic block and then verifies 
+the code inside the block.
+Rule \textsc{Async} checks the precondition of the called procedure.
+Rule \textsc{Proc1} and \textsc{Proc2} handle $\call{P}$.  
+Rule \textsc{Proc1} is similar to the standard call rule and applies if $P$ is not a refinement for an atomic action.
+Rule \textsc{Proc2} handles the case where the called procedure $P$ is a refinement for some action $A$.
+In that case, the rule checks that the precondition of $P$, the statement $\call{A}$, and the postcondition of $P$
+form a valid Floyd-Hoare triple.
+This check ensures that the sequential correctness proof is valid even after $\call{P}$ has been replaced with $\call{A}$.
+Rule \textsc{Atomic} checks that the precondition of the action holds, the action modifies only what it is allowed to,
+and that the transition relation establishes the postcondition.
+Rule \textsc{Yield} checks the yield predicate.
+Rules \textsc{Assert1} and \textsc{Assert2} are the most interesting.
+Rule \textsc{Assert1} is applicable inside a procedure that refines an atomic action 
+and is identical to the traditional Floyd-Hoare rule for assert statements.
+However \textsc{Assert2}, applicable outside a refinement context, ignores the assertion.
+Even though assertions in the abstract program are ignored in the sequential correctness proof of the refined program,
+the soundness of our refinement reasoning carries over their correctness from a proof of the abstract program.
+
+We now discuss the judgment $\InterferenceFree(\Prog,\Refines)$,
+where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
 Let $\Yields(\Prog)$ be the union of the following sets:
 \begin{itemize}
 \item
@@ -1466,8 +1495,10 @@ If $\Safe(\Prog')$ and $\Responsive(\Prog')$, then $\Safe(\Prog)$.
 \end{theorem}
 
 Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety and responsiveness of $\Prog'$.
-
-{\bf TBD.} Explain how multiple invocations of the theorem can be chained together.
+In general, the correctness proof of a large program is obtained by chaining together
+multiple instances of this theorem connecting a sequence of programs.  
+The code of adjacent programs in this chain are constrained by the $\leadsto$ relation but the annotations are left 
+unconstrained to allow as much flexibility in verification as possible.
 
 \subsection{Implementation}
 \label{sec:implementation}
