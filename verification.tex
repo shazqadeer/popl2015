@@ -730,12 +730,6 @@ is unsatisfiable.
 \subsection{Yield elimination}
 \label{sec:yield-elimination}
 
-\begin{figure}
-\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
-\caption{Automaton for yield sufficiency}
-\label{fig:YieldTypeCheckingAutomaton}
-\end{figure}
-
 Section~\ref{sec:refinement} showed how we can replace a call to a procedure with 
 a call to an atomic action.
 If each such call to an atomic action had a yield just before and a yield just after it,
@@ -804,10 +798,16 @@ If $m_1 \in \{B, L\}$, then
 is valid.
 \end{enumerate}
 
+\newcommand{\YSA}{\mathit{YSA}}
+
+\begin{center}
+\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
+\end{center}
+
 In transforming a refined program $\Prog$ to an abstract program $\Prog'$, a number of atomic actions 
 are introduced simultaneously.
 Consequently, we may need to eliminate a collection of yields at the same time.
-To achieve this goal, we introduce the automaton in Figure~\ref{fig:YieldTypeCheckingAutomaton} that encodes 
+To achieve this goal, we introduce the {\em Yield Sufficiency Automaton\/} ($\YSA$) that encodes 
 all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
 The automaton has three states---$\RM$, $\CM$, and $\LM$.
 The edge labels belong to the set $\{B,R,L,N,A,Y\}$, where $B$, $R$, $L$, and $N$ represent the various kinds 
@@ -818,7 +818,7 @@ Each transaction starts with a sequence of right movers (or both movers) and end
 In the middle, it can have either at most one non mover or a sequence of atomic blocks.
 
 The rules for the judgment $\Refines;\actions \jy \Prog$ essentially check 
-that the code of each thread in $\Prog$ is simulated by the automaton in Figure~\ref{fig:YieldTypeCheckingAutomaton}.
+that the code of each thread in $\Prog$ is simulated by the automaton $\YSA$.
 Further, the same simulation check is also performed for each procedure $P \not \in \dom(\Refines)$, that is, every 
 procedure that remains in the abstract program.
 Due to space constraints, we have moved the formal rules to Appendix~\ref{sec:verification-appendix}.
@@ -933,7 +933,7 @@ invoked at appropriate places within the code of a procedure for increased preci
 The judgment $\Refines \jy \Prog$ from Figure~\ref{fig:refinement} is fully automated;
 we adapted an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
 labeled graphs to check that the control flow graph of a procedure is simulated by
-the automaton in Figure~\ref{fig:YieldTypeCheckingAutomaton}.
+the $\YSA$ automaton.
 The complexity of the algorithm is $O(n*m)$, where $n$ and $m$ are the number of control-flow graph nodes and edges.
 In practice, this part of the verification is fast.
 
