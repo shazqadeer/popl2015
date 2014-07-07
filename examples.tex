@@ -180,28 +180,29 @@ Section~\ref{sec:formal} describes values and linear variables like {\tt nil} an
 \begin{verbatim}
 var Color:[int]int; // 1: WHT(), 2: GRY(), 3: BLK()
 
-procedure SetColGryIfWht({:cnst "tid"} tid:int,
+procedure Top_WB(linear tid: Tid,
                                        addr:int)
 ensures {:atomic} [if (Color[addr] == WHT(){)
                      Color[addr] := GRY();
-                     Set[addr] := true;
                    }]
 {
   call cNoLock:= GetColorNoLock();
-  call YieldColorsGetDarker();
+  call YieldColorsGetDarker(); 
   if (cNoLock == WHT()) {
-       call LockedSetColGryIfWht(tid,addr);
+       call LockedSetColGryIfWht(tid, addr);
   }
 }
 
 procedure YieldColorsGetDarker()
   ensures forall a:: Color[a] >= old(Color[a]);
+{
+  yield forall a:: Color[a] >= old(Color[a]);
+}
 
-procedure LockedSetColGryIfWht({:cnst "tid"} tid:int,
+procedure Mid_WB(linear tid: Tid,
                                          addr:int)
 ensures {:atomic} [if (Color[addr] == WHT(){)
                      Color[addr] := GRY();
-                     Set[addr] := true;
                    }]
 {
   call AcquireLock(tid);
@@ -228,78 +229,99 @@ procedure GetColorLocked(
 \label{fig:reft}
 \end{figure}
 
+%Names are confusing 
+%Explain example first
+%{:cnst tid} explain, linear tid
+%Refines atomic spec: Do not use atomicity
+%
+
 {\bf Refinement.} 
-\civl supports the verification of atomic action specifications for
-procedures. In one refinement verification step, calls to procedures with such
-specifications are replaced by the atomic actions, some variables may
-be hidden, and a higher-level program is obtained. The higher-level
-program preserves assertion violations in the lower-level one. 
-Program 5 in Figure~\ref{fig:reft} introduces refinement in \civl. 
+\civl supports the verification of refinement of atomic action specifications for
+procedures. Program 5 in Figure~\ref{fig:reft} introduces refinement in \civl. 
 Atomic action specifications are shown in square brackets. 
+In a refinement (or abstraction) step, implementations of procedures with atomic action
+specifications are replaced by the atomic actions, some variables may
+be hidden, and a higher-level program is obtained. 
 
-In earlier phases of verification for this example (not shown) \civl has verified that
-the implementations of the procedures called in {\tt
-  LockedSetColGryIfWht} satisfy their atomic action specifications shown
-at the bottom of the figure. Program 5 illustrates two \civl
-refinement passes. In the first pass, \civl verifies that {\tt
-  LockedSetColGryIfWht} is atomic and satisfies its specification. In
-the second pass, using the atomic action specification for {\tt
-  LockedSetColGryIfWht}, Owicki-Gries-style reasoning using the yield
-predicate in {\tt YieldColorsGetDarker()} and refinement reasoning,
-\civl verifies that {\tt SetColGrayIfWht()} satisfies its atomic
-action specification.
+Program 5 is a simplified version of a pattern in our GC.
+Mutator threads entering a write barrier for an
+address \exC{addr} check
+if the global variable \exC{Color[addr]} is \exC{WHITE()}
+and set it to \exC{GRAY()}, indicating that the object at this address
+and objects reachable from it should not be garbage collected. The
+top-level refinement task in this example is to show that \exC{TopWB}
+refines its atomic action specification 
+\begin{verbatim}
+[if (Color[addr] == WHT(){
+        Color[addr] := GRY();
+}]
+\end{verbatim}
+assuming that the procedure it calls, \exC{MidWB}, satisfies its
+atomic action specification. \exC{TopWB} and \exC{MidWB} have the same atomic
+specification.  \exC{MidWB} is lock protected but \exC{TopWB} contains a
+performance optimization. 
+To avoid the cost of locking for each
+address encountered, 
+\exC{TopWB} only calls the expensive 
+\exC{MidWB} after reading \exC{Color[addr]} without holding a lock
+and confirming that it is {\tt WHITE()}.
 
-This example is a simplified version of a pattern in the garbage
-collector we verified. Threads concurrenty check 
-if the global variable {\tt Color[addr]} is {\tt WHITE()}
-and set it to {\tt GRAY()}. The procedure  \exC{LockedSetColGryIfWht} holds a global lock while
-manipulating {\tt Color[addr]}. 
-As a performance optimization \exC{SetColGryIfWhite} only calls 
-\exC{LockedSetColGrayIfWhite} after reading \exC{Color[addr]} without holding a lock
-and confirming that it is {\tt WHITE()}. The correctness of this
-optimization is not obvious -- if {\tt Color[addr]} is {\tt GRAY()} when
-read without holding a lock, but can be set to {\tt WHITE()} by other 
-threads when \exC{LockedSetColGryIfWhite} yields immediately after the
-lock-free read, then the atomic action
-specification of the procedure may not be satisfied. The yield
+
+The correctness of this
+optimization is not obvious. Consider the following potential
+scenario. \exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
+sets \exC{cNoLock} to \exC{GRAY()} and then yields at
+\exC{YieldColorsGetDarker}. Another thread sets {\tt Color[addr]} to
+{\tt WHITE()}. \exC{TopWB} resumes, but does nothing and exits,
+because \exC{cNoLock} is \exC{GRAY()}. In this scenario, the atomic action
+specification of \exC{TopWB} would not be satisfied. However, in the GC this
+scenario is not possible. 
+The yield
 predicate in {\tt YieldColorsOnlyGetDarker()} expresses the fact that
-other threads in the environment of the thread running {\tt
-  SetColGrayIfWht} can only modify {\tt Color[addr]} to a higher
+other threads in the environment of the thread running \exC{TopWB} can
+only modify {\tt Color[addr]} to a higher (darker)
 value. \civl verifies that this is the case. Given the correct
-modeling of the environment interference by {\tt yield} statements,
-\civl then verifies that, for every control path through the
+modeling of the environment interference by a yield predicate,
+\civl then verifies that, for every control path through \exC{TopWB}
 procedure, exactly one {\tt yield}-to-{\tt yield} execution
-fragment implements the atomic action spec while others do not modify
-global state. The verification of atomicity for \exC{SetColGrayIfWht} highlights a
+fragment implements the atomic action spec and that other fragments do not modify
+global state. The verification of atomicity for \exC{TopWB} and
+\exC{MidWB}, explained next, highlight a
 novel verification feature in \civl -- that of combining
-Owicki-Gries-style reasoning and reduction to verify refinement.
+rely-guarantee reasoning and reduction to verify refinement.
+
+The verification of \exC{MidWB} refining its atomic specification
+builds on other refinement proofs (not shown) in which \civl has
+verified that the implementations of the procedures called in
+\exC{MidWB} refine their atomic action specifications (shown at the
+bottom of the figure.) Verification of atomicity refinement for
+\exC{MidWB} illustrates two key features of \civl discussed next. 
 
 {\bf Yield Elimination} Observe that in 
-\exC{LockedSetColGryIfWht} there are no {\tt yield}s between
+\exC{MidWB} there are no {\tt yield}s between
 statements. Since threds explicitly yield control, this means that the
-entire body of \exC{LockedSetColGrayIfWht} is executed atomically. In
+entire body of \exC{MidWB} is executed atomically. In
 a real execution, control can switch between threads at any point in
-the code. The absence of {\tt yield}s, and treating the entire body of
-\exC{LockedSetColGrayIfWht} as atomic is justified by reasoning about
+the code. The absence of {\tt yield}s is justified by reasoning about
 mover types and reduction. The procedures called in
-\exC{LockedSetColGrayIfWht} have the mover types claimed in their
+\exC{MidWB} have the mover types claimed in their
 declarations and verified by \civl. Given the mover types of all
-statements, including accesses to local variables, calls to procedures
-with and without atomic action specifications, a ``yield sufficiency
-checker'' in the \civl verifier (explained in Section~\ref{}) checks
-whether the absence of yields is justified using reduction.  \civl
-then verifies that the body of \exC{LockedSetColGrayIfWht} satisfies
-its atomic specification.
+statements, a ``yield sufficiency
+checker'' in the \civl verifier ensures
+that the absence of yields is justified using reduction.  \civl
+then verifies that the body of \exC{MidWB} satisfies
+its atomic specification. Yield elimination is useful both for the
+user, since no yield predicates need to be provided, and for \civl,
+as no predicates need to be checked for sequential correctness and
+non-interference.
 
-{\bf Variable Hiding} Observe that the atomic action specification of
-\exC{LockedSetColGryIfWht} makes no reference to the lock variable,
-although its implementation involves a lock. In the refinement step in
-which \exC{LockedSetColGryIfWht} becomes atomic, the lock variable has
-been hidden. Hiding variables at refinement steps and providing
-different {\tt yield} predicates at different phases of a proof are
-important novel capabilities in \civl that facilitate proofs that span
-large abstraction gaps, such as the proof of the garbage collector in
-Section~\ref{}. 
+{\bf Variable Hiding} The atomic action specification of \exC{MidWB}
+makes no reference to the lock variable, although its implementation
+involves a lock. When verifying refinement for \exC{MidWB}, the lock
+variable has been hidden. Hiding variables at refinement steps and
+providing different {\tt yield} predicates at different phases of a
+proof are important novel proof organization capabilities in \civl
+that facilitate proofs that span large abstraction gaps.
 
 %%% Local Variables: 
 %%% mode: latex
