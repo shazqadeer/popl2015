@@ -1494,8 +1494,14 @@ the automaton in Figure~\ref{fig:YieldTypeCheckingAutomaton}.
 The complexity of the algorithm is $O(n*m)$, where $n$ and $m$ are the number of control-flow graph nodes and edges.
 In practice, this part of the verification is fast.
 
+As mentioned in Section~\ref{sec:correctness}, a large proof usually comprises multiple layers of refinement chained together.
+Our implementation allows the specification of multiple views of a program in a single file by using the mechanism of {\em phases}.
+The programmer may attach a positive phase number to each annotation and procedure; 
+version $i$ of the program is constructed from annotations labeled $i$ and procedures labeled at least $i$.
+We have implemented a type checker to make sure that phase numbers are used appropriately, e.g., 
+it is illegal for a procedure with phase $i$ to call a procedure with phase $j$ greater than $i$.
+
 Our verifier also support introduction and hiding of global variables.
-These operations were used in several places in the proof of a concurrent garbage collector (described in Section~\ref{sec:gc}.
+These operations were used in several places in the proof of a concurrent garbage collector (described in Section~\ref{sec:gc}).
 Hiding global variables is particularly useful because it simple summaries can be written for complicated procedures
 once enough variables relevant to their implementation have been hidden.
-
