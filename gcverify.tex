@@ -14,7 +14,7 @@ To ease verification, we make some simplifications:
 we use a naive allocator (sequential search for free space),
 we assume a sequentially consistent memory model,
 and we assume that all objects have the same number of fields.
-(Except for the assumption of sequential consistency, none of these substantially alters the nature of the proof.)
+(Except for the assumption of sequential consistency, none of these substantially alter the nature of the proof.)
 Overall, our implementation consists of about 2100 lines of Boogie code,
 and it takes Boogie/Z3 about 80 minutes to verify.
 
