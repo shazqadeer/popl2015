@@ -1433,6 +1433,7 @@ Rules \textsc{Skip} and \textsc{Assert} leave the state of the automaton unchang
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
 Consider the following program with a global variable {\tt x}, a thread-local variable {\tt t},
 a procedure {\tt Nop}, and two threads (shown on the left).
+
 \begin{tabular}{lll}
 \begin{tabular}[t]{l}
 {\tt [ x := 0 ];} \\
@@ -1456,6 +1457,7 @@ a procedure {\tt Nop}, and two threads (shown on the left).
 {\tt ~~\{~\}}
 \end{tabular}
 \end{tabular}
+
 The first thread sets {\tt x} to $0$ in an atomic action (indicated {\tt [x := 0]}),
 yields, reads {\tt x} into {\tt t}, and asserts that {\tt t == 0}.
 At the yield, the second thread may be scheduled; it changes {\tt x} to $1$ and then calls

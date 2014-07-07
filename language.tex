@@ -52,210 +52,10 @@ $\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Glo
 \label{fig:syntax}
 \end{figure}
 
-\begin{figure}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\
-\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \trans (\MakeStore{\varsG'}{\varsTL'}{\varsL'}, s')
-}
-{\ProgCtxt[\varsG][\varsTL][\varsL][s] \trans \ProgCtxt[\varsG'][\varsTL'][\varsL'][s']}
-\;(\textsc{Step})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\
-\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \fails
-}
-{\ProgCtxt[\varsG][\varsTL][\varsL][s]) \fails}
-\;(\textsc{Fail})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs(P) = (\phi, \mods, \psi,\stmt) \\
-\ProcLins(P) = (\lins, \lins') \\
-T' = (\varsTL, (\varsL, \yield{\phi,\lins};\stmt)) \\
-\TS = \ThreadCtxt[\varsTL][\varsL][\async{P}] \\
-\TS' = \ThreadCtxt[\varsTL][\varsL][\skipstmt]
-}
-{
-(\procs, \actions, \ProcLins, \varsG, \TS)
-\trans
-(\procs, \actions, \ProcLins, \varsG, \TS' \cdot T')
-}
-\;(\textsc{Async})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-T = (\varsTL, (\varsL,\skipstmt)) 
-}
-{(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads') \trans (\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot \YieldingThreads')}
-\;(\textsc{End})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs(P) = (\phi, \mods, \psi,\stmt) \\
-\ProcLins(P) = (\lins, \lins') \\
-\StmtStack = \yield{\phi,\lins};\stmt;\yield{\psi,\lins'}
-}
-{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\Frame{L}{\StmtStack}]}
-\;{(\textsc{Call})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\\
-}
-{\ProgCtxt[\varsG][\varsTL][\varsL][\Frame{\varsL'}{\skipstmt}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\skipstmt]}
-\;{(\textsc{Return})}
-$
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Operational semantics for program}
-\label{fig:operational-semantics1}
-\end{figure}
-
-
-\begin{figure}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \in \locExpr
-}
-{\actions \vdash (\vars, \assert{\locExpr}) \trans (\vars, \skipstmt)}
-\;{(\textsc{Assert-True})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \not \in \locExpr
-}
-{\actions \vdash (\vars, \assert{\locExpr}) \fails}
-\;{(\textsc{Assert-False})}
-$
-\medskip\\
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\actions(A) = (\rho, \alpha, m) \\
-(\vars, \vars') \in \alpha \\
-}
-{
-\actions \vdash (\vars, \call{A}) \trans (\vars',\skipstmt)
-}
-\;{(\textsc{Atomic})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\\
-}
-{\actions \vdash (\vars, \yield{e,\lins}) \trans (\vars, \skipstmt)}
-\;{(\textsc{Yield})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\actions \vdash (\vars, \ablock{e,\lins}{\stmt}) \trans (\vars, \stmt)}
-\;{(\textsc{AtomicBlock})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\\
-}
-{\actions \vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
-\;{\;\;\;\;\;\;\;\;\;\;\;\;(\textsc{Seq})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \not\in \locExpr
-}
-{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
-\;{(\textsc{If-False})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \in \locExpr
-}
-{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
-\;{(\textsc{If-True})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \not\in \locExpr \\
-}
-{\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
-\;{(\textsc{While-False})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \in \locExpr \\
-\stmt' = \while{e,\alpha}{\locExpr}{\stmt}
-}
-{\actions \vdash (\vars, \stmt') \trans (\vars, \stmt;\stmt')}
-\;{(\textsc{While-True})}
-$
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Operational semantics for statement}
-\label{fig:operational-semantics2}
-\end{figure}
-
 In this paper, we will formalize our verification method on a core concurrent programming language \civl.
 In this section, we present the syntax and operational semantics of our language.
-Figure~\ref{fig:definitions} contains basic definitions; 
-Figure~\ref{fig:syntax} uses these definitions to define the syntax of a (dynamically executing) \civl program;
-Figures~\ref{fig:operational-semantics1} and~\ref{fig:operational-semantics2} provide the formal rules according 
-to which a \civl program evolves.
+Figure~\ref{fig:definitions} contains basic definitions.
+Figure~\ref{fig:syntax} uses these definitions to define the syntax of a (dynamically executing) \civl program.
 
 Informally, a \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
 thread-local variables that are shared across procedures, and local variables inside a procedure.
@@ -332,8 +132,9 @@ The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr
 The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
 The expression $e$ is a loop invariant and the expression $\alpha$ is a loop summary for yield-free executions.
 
-\subsection{Operational semantics}
-We present the operational semantics of a \civl program by extending the syntax of statements with an embedded context~\cite{WrightF94}.
+The operational semantics of a \civl program is formalized as a relation $\trans$ between a pair of programs.
+The rules for the relation (presented in Appendix~\ref{sec:operational-semantics})
+extend the syntax of statements with an embedded context~\cite{WrightF94}.
 A statement context $\StmtCtxt$ is either a context $[]_{\Stmt}$ or the sequential composition of a 
 statement context and a statement.
 Thus, each statement context has a unique context $[]_{\Stmt}$ inside it;
@@ -353,31 +154,6 @@ It is important to note that all except at most one thread in a program are yiel
 such a thread is captured by the symbol $\YieldingThread$ in Figure~\ref{fig:syntax}.
 The one (possibly) non-yielding thread is the only one allowed to execute until it reaches a yield statement and becomes a yielding thread.
 At that point, all threads are yielding and any one can be picked for execution.
-
-Figures~\ref{fig:operational-semantics1} and~\ref{fig:operational-semantics2} together present the operational semantics as a relation $\trans$ between a pair of programs.
-These figures use the notation $\MakeStore{\varsG}{\varsTL}{\varsL}$ to denote the concatenation of the stores $\varsG$, $\varsTL$, and $\varsL$.
-Rule \textsc{Step} in Figure~\ref{fig:operational-semantics2} allows the program $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ to move 
-to $\ProgCtxt[\varsG'][\varsTL'][\varsL'][\stmt']$
-if $(\MakeStore{\varsG}{\varsTL}{\varsL}, \stmt)$ can move to $(\MakeStore{\varsG'}{\varsTL'}{\varsL'}, \stmt)$ 
-according to any rule in Figure~\ref{fig:operational-semantics2} except for rule \textsc{Assert-False}.
-Similarly, rule~\textsc{Fail} allows $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ to fail if $(\MakeStore{\varsG}{\varsTL}{\varsL}, \stmt)$
-fails according to rule \textsc{Assert-False}. 
-The rules in  in Figure~\ref{fig:operational-semantics2} are straightforward.
-The execution of primitive statements results in the store begin updated and the statement being rewritten to $\skipstmt$;
-the rule \textsc{Seq} erases the $\skipstmt$ to move control to the next statement.
-
-Rule \textsc{Async} describes the creation of a thread via $\async{P}$.  
-There is an implicit yield at the beginning of the freshly-created thread.
-The stable predicate and the linear permission associated with this yield are 
-the precondition and the input linear permission of $P$.
-The new thread is added to the sequence of threads in the program.
-Since it is a yielding thread, the invariant that at most one thread is non-yielding is preserved.
-Rule \textsc{End} describes the termination of a thread; the terminating thread is removed
-from the sequence of threads in the program.
-Rules \textsc{Call} and \textsc{Return} describe the call and return of a procedure via $\call{P}$.
-There are implicit yields associated with the call and the return.
-The stable predicates for the yields at call and return are the precondition and postcondition of $P$ respectively.
-The linear permissions for the yields at call and return are the input and output linear permissions of $P$ respectively.
 
 $\Prog$ is {\em unsafe\/} if there exists $\Prog'$ such that $\Prog \trans^* \Prog'$ and $\Prog'$ fails.
 $\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
