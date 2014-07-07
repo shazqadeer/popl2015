@@ -228,6 +228,411 @@ The linear permissions for the yields at call and return are the input and outpu
 \section{Verification}
 \label{sec:verification-appendix}
 
+\begin{figure*}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\AvailableActions \vdash \skipstmt \leadsto \skipstmt}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\AvailableActions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
+\;(\textsc{Assert})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+A \in \AvailableActions
+}
+{\Refines;\AvailableActions \vdash \call{A} \leadsto \call{A}}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s \leadsto s'
+}
+{
+\Refines;\AvailableActions \vdash \ablock{e,\lins}{s} \leadsto s'
+}
+\;(\textsc{Ablock1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s \leadsto s'
+}
+{
+\Refines;\AvailableActions \vdash s \leadsto \ablock{e,\lins}{s'}
+}
+\;(\textsc{Ablock2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines)
+}
+{
+\Refines;\AvailableActions \vdash \call{P} \leadsto \call{\Refines(P)}
+}
+\;(\textsc{Proc1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\Refines)
+}
+{
+\Refines;\AvailableActions \vdash \call{P} \leadsto \call{P}
+}
+\;(\textsc{Proc2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\Refines)
+}
+{
+\Refines;\AvailableActions \vdash \async{P} \leadsto \async{P}
+}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\AvailableActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
+}
+{
+\Refines;\AvailableActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s_1 \leadsto s_1' \\
+\Refines;\AvailableActions \vdash s_2 \leadsto s_2'
+}
+{
+\Refines;\AvailableActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s \leadsto s'
+}
+{
+\Refines;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
+}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
+}
+{
+\Refines;\AvailableActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\AvailableActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
+}
+\;(\textsc{Thread})
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\range(\Refines) \subseteq \AvailableActions \\
+\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
+\forall A \in \AvailableActions.\ \actions(A) = \actions'(A) \\
+\forall 1 \le i \le n.\ \Refines;\AvailableActions \vdash T_i \leadsto T_i' \\
+\forall P \not\in \dom(\Refines).\ \Refines;\AvailableActions \vdash \procs(P) \leadsto \procs'(P)
+}
+{
+\Refines;\AvailableActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Program transformation}
+\label{fig:program-transformation-full}
+\end{figure*}
+
+\begin{figure*}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\lins;\ABlockAny \vdash \skipstmt : \lins
+}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\lins;\ABlockOutside \vdash \assert{\locExpr} : \lins
+}
+\;(\textsc{Assert})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins_y \subseteq \lins
+}
+{
+\lins;\ABlockOutside \vdash \yield{e,\lins_y} : \lins
+}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(A) = (\lins,\lins')
+}
+{
+\lins;\ABlockInside \vdash \call{A} : \lins'
+}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(P) = (\lins,\lins') \\
+}
+{
+\lins;\ABlockOutside \vdash \call{P} : \lins'
+}
+\;(\textsc{Proc})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins_G \subseteq \Global \\
+\lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocal \\
+\ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
+}
+{
+\lins_G,\lins,\lins_P;\ABlockOutside \vdash \async{P} : \lins_G,\lins
+}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockInside \vdash \stmt : \lins' \\
+\lins_a \subseteq \lins
+}
+{
+\lins;\ABlockOutside \vdash \ablock{e,\lins_a}{\stmt} : \lins'
+}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \StmtStack : \lins'
+}
+{
+\lins;\ABlockAny \vdash (\varsL,\StmtStack) : \lins'
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \StmtStack : \lins' \\
+\lins';\ABlockAny \vdash \stmt : \lins''
+}
+{
+\lins;\ABlockAny \vdash \StmtStack;\stmt : \lins''
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \stmt_1 : \lins' \\
+\lins;\ABlockAny \vdash \stmt_2 : \lins'
+}
+{
+\lins;\ABlockAny \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} : \lins'
+}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \stmt : \lins
+}
+{
+\lins;\ABlockAny \vdash \while{e,\alpha}{\locExpr}{\stmt} : \lins
+}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(P) = (\lins,\lins') \\
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\lins;\ABlockOutside \vdash \stmt : \lins'
+}
+{
+\vdash P
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T = (\varsTL, (\varsL, \StmtStack)) \\
+\lins;\ABlockOutside \vdash \StmtStack : \lins'
+}
+{
+\lins \vdash T
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(A) = (\lins,\lins') \\
+\lins \cap \Global = \lins' \cap \Global \\
+\actions(A) = (\rho, \alpha, m) \\\\
+\forall (\sigma,\sigma') \in \alpha.\ 
+  \disjoint(\{\sigma(x) \mid x \in \lins\}) \Rightarrow
+  \disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
+\forall (\sigma,\sigma') \in \alpha.\ 
+  \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
+}
+{
+\vdash A
+}
+\;(\textsc{Action})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall P \in \ProcName. \vdash P \\
+\forall A \in \ActionName. \vdash A \\
+\lins_G \subseteq \Global \\
+\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocal) \\
+\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
+\forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
+\disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
+  \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
+}
+{
+\vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Linear variables and atomic blocks}
+\label{fig:linearity-full}
+\end{figure*}
+
 \begin{figure}
 \scriptsize{
 \medskip

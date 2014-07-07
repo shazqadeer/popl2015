@@ -5,33 +5,6 @@
 $
 \inferrule
 {
-}
-{\Refines;\AvailableActions \vdash \skipstmt \leadsto \skipstmt}
-\;(\textsc{Skip})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\AvailableActions \vdash \assert{\locExpr} \leadsto \assert{\locExpr}}
-\;(\textsc{Assert})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
-\;(\textsc{Yield})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
 A \in \AvailableActions
 }
 {\Refines;\AvailableActions \vdash \call{A} \leadsto \call{A}}
@@ -102,80 +75,6 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
-}
-{
-\Refines;\AvailableActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
-}
-\;(\textsc{Stack})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack' \\
-\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
-}
-{
-\Refines;\AvailableActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
-}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\AvailableActions \vdash s_1 \leadsto s_1' \\
-\Refines;\AvailableActions \vdash s_2 \leadsto s_2'
-}
-{
-\Refines;\AvailableActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
-}
-\;(\textsc{Ite})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\AvailableActions \vdash s \leadsto s'
-}
-{
-\Refines;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
-}
-\;(\textsc{While})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
-}
-{
-\Refines;\AvailableActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
-}
-\;(\textsc{Procedure})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
-}
-{
-\Refines;\AvailableActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
-}
-\;(\textsc{Thread})
-$
-\medskip\\
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
 \range(\Refines) \subseteq \AvailableActions \\
 \forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
 \forall A \in \AvailableActions.\ \actions(A) = \actions'(A) \\
@@ -215,6 +114,8 @@ occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines
 the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
 Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
 
+For space reasons, we have chosen to presente the more interesting rules in Figure~\ref{fig:program-transformation};
+the complete set of rules in presented in Appendix~\ref{fig:program-transformation-full}.
 Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
 which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
 It also checks that every action in $\range(\Refines)$ has a precondition 
@@ -230,7 +131,6 @@ The judgment uses the notation $\elim{\Local}.\ \alpha$, defined to be the follo
 Finally, this rule constrains actions in $\AvailableActions$ to be identical and then rewrites all threads
 and all procedures that continue to be used in $\Prog'$.
 
-Rule \textsc{Thread}, \textsc{Procedure}, \textsc{While}, \textsc{Ite}, \textsc{Seq}, and \textsc{Stack} are straightforward.
 If $P \in \dom(\Refines)$, rule \textsc{Proc1} rewrites $\call{P}$ to $\call{\Refines(P)}$;
 otherwise, rule \textsc{Proc2} leaves $\call{P}$ unchanged.
 Rule \textsc{Async} leaves the call unchanged but checks that $P \not \in \dom(\Refines)$.
@@ -239,7 +139,6 @@ to atomic actions that are being refined to procedures.
 Rule \textsc{Ablock1} allows smaller atomic blocks to be created in the refined program.
 Rule \textsc{Atomic} checks that $A \in \AvailableActions$ before leaving $\call{A}$ unchanged;
 this rule ensures that the abstract program only uses actions in $\AvailableActions$.
-Rules \textsc{Skip}, \textsc{Assert}, and \textsc{Yield} leave their respective statements unchanged.
 
 The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
 To justify the transformation, a collection of auxiliary judgments need to be proved.
@@ -286,64 +185,6 @@ and present our soundness theorem in Section~\ref{sec:correctness}.
 $
 \inferrule
 {
-}
-{
-\lins;\ABlockAny \vdash \skipstmt : \lins
-}
-\;(\textsc{Skip})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{
-\lins;\ABlockOutside \vdash \assert{\locExpr} : \lins
-}
-\;(\textsc{Assert})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\lins_y \subseteq \lins
-}
-{
-\lins;\ABlockOutside \vdash \yield{e,\lins_y} : \lins
-}
-\;(\textsc{Yield})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProcLins(A) = (\lins,\lins')
-}
-{
-\lins;\ABlockInside \vdash \call{A} : \lins'
-}
-\;(\textsc{Atomic})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProcLins(P) = (\lins,\lins') \\
-}
-{
-\lins;\ABlockOutside \vdash \call{P} : \lins'
-}
-\;(\textsc{Proc})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
 \lins_G \subseteq \Global \\
 \lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocal \\
 \ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
@@ -353,97 +194,7 @@ $
 }
 \;(\textsc{Async})
 $
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\lins;\ABlockInside \vdash \stmt : \lins' \\
-\lins_a \subseteq \lins
-}
-{
-\lins;\ABlockOutside \vdash \ablock{e,\lins_a}{\stmt} : \lins'
-}
-\;(\textsc{Ablock})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\lins;\ABlockAny \vdash \StmtStack : \lins'
-}
-{
-\lins;\ABlockAny \vdash (\varsL,\StmtStack) : \lins'
-}
-\;(\textsc{Stack})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\lins;\ABlockAny \vdash \StmtStack : \lins' \\
-\lins';\ABlockAny \vdash \stmt : \lins''
-}
-{
-\lins;\ABlockAny \vdash \StmtStack;\stmt : \lins''
-}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\lins;\ABlockAny \vdash \stmt_1 : \lins' \\
-\lins;\ABlockAny \vdash \stmt_2 : \lins'
-}
-{
-\lins;\ABlockAny \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} : \lins'
-}
-\;(\textsc{Ite})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\lins;\ABlockAny \vdash \stmt : \lins
-}
-{
-\lins;\ABlockAny \vdash \while{e,\alpha}{\locExpr}{\stmt} : \lins
-}
-\;(\textsc{While})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProcLins(P) = (\lins,\lins') \\
-\procs(P) = (\phi, \mods, \psi, \stmt) \\
-\lins;\ABlockOutside \vdash \stmt : \lins'
-}
-{
-\vdash P
-}
-\;(\textsc{Procedure})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-T = (\varsTL, (\varsL, \StmtStack)) \\
-\lins;\ABlockOutside \vdash \StmtStack : \lins'
-}
-{
-\lins \vdash T
-}
-\;(\textsc{Thread})
-$
-\medskip
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
@@ -464,54 +215,26 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\forall P \in \ProcName. \vdash P \\
-\forall A \in \ActionName. \vdash A \\
-\lins_G \subseteq \Global \\
-\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocal) \\
-\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
-\forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
-\disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
-  \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
-}
-{
-\vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
-}
-\;(\textsc{Program})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
 }
 \caption{Linear variables and atomic blocks}
 \label{fig:linearity}
 \end{figure*}
 
 In this section, we formalize the judgment $\vdash \Prog$.
-The rules for this judgment, presented in Figure~\ref{fig:linearity}, check that
+Due to space constraints, we present only a few of the illustrative rules in Figure~\ref{fig:linearity};
+the full set of rules is presented in Appendix~\ref{fig:linearity-full}.
+The goal of the judgment $\vdash \Prog$ is to check that
 linear variables and atomic blocks are used appropriately in $\Prog$.
-Starting from the bottom of Figure~\ref{fig:linearity}, rule \textsc{Program} checks 
-all procedures, actions, and threads in $\Prog$.
-To check a thread $T_i$, the initial set of linear permissions, global and thread-local,
-are required. 
-The rule guesses a set of global linear variables $\lins_G$
-and a set of thread-local linear variables $\lins_i$ and checks $T_i$ in an environment
-containing their union $\lins_G,\lins_i$.
-Rule \textsc{Program} uses the predicate $\disjoint(\Lambda)$ where $\Lambda$ is a subset 
+These rules use the predicate $\disjoint(\Lambda)$ where $\Lambda$ is a subset 
 of $\Global \cup \ThreadLocal$.
 This predicate is used to encode a disjointness invariant enforced by the linear type checker
 with respect to an arbitrary function $\Set$ (provided by the programmer) from $\Value$ to $2^\Value$.
 $\disjoint(\Lambda)$ states that the sets $\Set(\lins)$ for $\lins \in \Lambda$ are pairwise disjoint.
 The judgment $\vdash \Prog$ enforces that linear permissions are never duplicated during the 
 execution of $\Prog$.
-Rule \textsc{Program} also checks that the disjointness invariant holds in the initial state of $\Prog$.
-Consequently, it holds throughout the execution of $\Prog$.
 
 Rule \textsc{Action} checks each action $A$ locally, using its linear interface $(\lins,\lins')$,
 to ensure that it does violate the disjointness invariant.
-%Since only actions can update the program store, this check suffices to ensure the preservation of the
-%invariant throughout the program's execution.
 There are three conditions being checked.
 First, the set of global linear permissions does not change from the input to the output.
 Second, if the disjointness invariant holds for input permissions it also holds for output permissions.
@@ -519,18 +242,15 @@ Finally, the union of the sets constructed from output permissions is a subset o
 constructed from input permissions.  
 This last condition is important because it allows via local checking to conclude that the disjointness invariant holds globally
 for linear permissions held by all threads.
+Rule \textsc{Program} also checks that the disjointness invariant holds in the initial state of $\Prog$.
+Consequently, it holds throughout the execution of $\Prog$.
 
-Rule \textsc{Thread} checks the statement stack $\StmtStack$ inside a thread
-with the initial set of linear permissions $\lins$ handed down by rule \textsc{Program} 
-and an arbitrary set of final permissions $\lins'$.
 In addition to appropriate usage of linear variables, it also checks that each atomic block does not contain any 
 occurrences of $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it.
 This latter check is performed by introducing another parameter, one of two values in $\{\ABlockOutside,\ABlockInside\}$, 
 to the judgment.
 $\ABlockOutside$ states that the current statement is outside any atomic block;
 $\ABlockInside$ states that the current statement is inside some atomic block.
-Rule \textsc{Procedure} is similar to the rule \textsc{Thread};
-it checks the procedure body against its linear interface.
 Both these rules use $\ABlockOutside$ to indicate that the current control is outside any atomic block.
 Proper usage of atomic blocks requires that 
 (1)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block, and
@@ -540,16 +260,10 @@ First, an atomic block cannot fail and can therefore be summarized by a transiti
 Second, checking non-interference of a yield predicate against all atomic blocks concurrently executing 
 in the environment will preserve the yield predicate across the entire computation across a context switch by the environment.
 
-Rules \textsc{Stack}, \textsc{Seq}, \textsc{Ite}, and \textsc{While} are straightforward.
-Rule \textsc{Ablock} checks that the linear permissions associated with the atomic block are available
-and then checks the body of the atomic block in the context $\ABlockInside$.
-Note that we do not allow nested atomic blocks as indicated by the presence of $\ABlockOutside$ below the line.
 The rule \textsc{Async} splits the thread-local permissions $\lins$ of the caller of $\async{P}$ into $\lins$ 
 and $\lins_P$, passing $\lins_P$ to the new thread and continuing with $\lins$.
 Note that all global permissions in $\lins_G$ are also made available to the new thread;
 there is no duplication because all threads refer to the same set of global variables.
-The checking of permissions in all the other rules \textsc{Skip}, \textsc{Assert}, \textsc{Yield}, \textsc{Atomic}, and \textsc{Proc}
-is straightforward.
 
 \subsection{Refinement}
 \label{sec:refinement}
