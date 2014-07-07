@@ -1471,3 +1471,31 @@ Our soundness theorem, stated above, concludes the safety of $\Prog$ from the sa
 
 \subsection{Implementation}
 \label{sec:implementation}
+
+We have implemented the method described in this section as a conservation extension 
+of the Boogie~\cite{BarnettCDJL05} language and verifier.
+Our implementation provides new language primitives for linear variables, asynchronous and parallel procedure calls, 
+yields, and atomic actions as procedure specifications.
+At its core, Boogie is an unstructured language comprising code blocks and goto statements.
+Our implementation handles the complexity of unstructured control flow.
+To simplify the exposition, our formalization uses Floyd-Hoare triples to present sequential correctness and 
+annotated atomic code blocks to present refinement and non-interference checks.
+However, our implementation is considerably more automated.  
+All the annotations, except those at yields, loops, and procedure boundaries, are automatically generated 
+using the technique of verification conditions~\cite{BL05}.
+Annotated atomic code blocks are also inferred automatically.
+Non-interference checks are collected as inlined procedures
+invoked at appropriate places within the code of a procedure for increased precision.
+
+The judgment $\Refines \jy \Prog$ from Figure~\ref{fig:refinement} is fully automated;
+we adapted an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
+labeled graphs to check that the control flow graph of a procedure is simulated by
+the automaton in Figure~\ref{fig:YieldTypeCheckingAutomaton}.
+The complexity of the algorithm is $O(n*m)$, where $n$ and $m$ are the number of control-flow graph nodes and edges.
+In practice, this part of the verification is fast.
+
+Our verifier also support introduction and hiding of global variables.
+These operations were used in several places in the proof of a concurrent garbage collector (described in Section~\ref{sec:gc}.
+Hiding global variables is particularly useful because it simple summaries can be written for complicated procedures
+once enough variables relevant to their implementation have been hidden.
+
