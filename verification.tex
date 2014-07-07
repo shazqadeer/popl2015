@@ -1029,192 +1029,6 @@ is unsatisfiable.
 \label{fig:YieldTypeCheckingAutomaton}
 \end{figure}
 
-\begin{figure*}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\actions \jy \skipstmt : (x, x)}
-\;(\textsc{Skip})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\actions \jy \assert{\locExpr} : (x, x)}
-\;(\textsc{Assert})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\actions \jy \yield{e,\lins} : (x, \RM)}
-\;(\textsc{Yield})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \not \in \dom(\Refines)
-}
-{\Refines;\actions \jy \call{P} : (x, \RM)}
-\;(\textsc{Call})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, B)
-}
-{\Refines;\actions \jy \call{P} : (x, x)}
-\;(\textsc{Both})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, R)
-}
-{\Refines;\actions \jy \call{P} : (\RM, \RM)}
-\;(\textsc{Right})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, L)
-}
-{\Refines;\actions \jy \call{P} : (x, \LM)}
-\;(\textsc{Left})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, N)
-}
-{\Refines;\actions \jy \call{P} : (\RM, \LM)}
-\;(\textsc{Non})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\actions \jy \async{P} : (x, \LM)}
-\;(\textsc{Async})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-x \in \{\RM,\CM\}
-}
-{\Refines;\actions \jy \ablock{e,\lins}{s} : (x, \CM)}
-\;(\textsc{Ablock})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\actions \jy \StmtStack : (x, y) \\ \Refines;\actions \jy s : (y, z)
-}
-{\Refines;\actions \jy \StmtStack;s : (x, z)}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\actions \jy s_1 : (x, y) \\ \Refines;\actions \jy s_2 : (x, y)
-}
-{\Refines;\actions \jy \ite{\locExpr}{s_1}{s_2} : (x, y)}
-\;(\textsc{Ite})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\actions \jy s : (x, x)
-}
-{\Refines;\actions \jy \while{e,\alpha}{\locExpr}{s} : (x, x)}
-\;(\textsc{While})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs(P) = (\phi, \mods, \psi, \stmt) \\
-\Refines;\actions \jy \stmt : (x, y)
-}
-{
-\Refines;\actions \jy P
-}
-\;(\textsc{Procedure})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\actions \jy \StmtStack : (x,y)
-}
-{
-\Refines;\actions \jy (\varsL,\StmtStack) : (x,y)
-}
-\;(\textsc{Stack})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-T = (\varsTL, (\varsL, \StmtStack)) \\
-\Refines;\actions \jy (\varsL, \StmtStack) : (x, y)
-}
-{
-\Refines;\actions \jy T
-}
-\;(\textsc{Thread})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\forall P \in \ProcName \setminus \dom(\Refines).\ \Refines;\actions \jy P \\\\
-\forall 1 \le i \le n.\ \Refines;\actions \jy T_i
-}
-{
-\Refines \jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
-}
-\;(\textsc{Program})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Yield elimination}
-\label{fig:yield-elimination}
-\end{figure*}
-
 Section~\ref{sec:refinement} showed how we can replace a call to a procedure with 
 a call to an atomic action.
 If each such call to an atomic action had a yield just before and a yield just after it,
@@ -1296,25 +1110,18 @@ This automaton allows traces in which {\em transactions\/} are separated by yiel
 Each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
 In the middle, it can have either at most one non mover or a sequence of atomic blocks.
 
-The rules for the judgment $\Refines;\actions \jy \Prog$ are presented in Figure~\ref{fig:yield-elimination}.
-The essence of these rules is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\CM,\LM\}$;
-the meaning is that to simulate the computation the automaton moves from state $x$ to state $y$.
-Rule \textsc{Program} performs checking for all threads and for all procedures not in $\dom(\Refines)$ since these are the 
-only procedures that remain in the abstract program.
-Rules \textsc{Thread}, \textsc{Stack}, and \textsc{Procedure} are straightforward.
-Rule \textsc{While} checks that the body of the loop leaves the state of the automaton unchanged.
-Rule \textsc{Ite} checks that the effect both branches is the same.
-Rule \textsc{Seq} composes the effect of $\stmt_1$ with the effect of $\stmt_2$.
-Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, \textsc{Non}, and \textsc{Ablock} essentially 
-examine the available edges in the automaton to validate the statement and calculate its effect.
-Rule \textsc{Async} is interesting because it treats an asynchronous call as a left mover.
-Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
-Rules \textsc{Skip} and \textsc{Assert} leave the state of the automaton unchanged.
+The rules for the judgment $\Refines;\actions \jy \Prog$ essentially check 
+that the code of each thread in $\Prog$ is simulated by the automaton in Figure~\ref{fig:YieldTypeCheckingAutomaton}.
+Further, the same simulation check is also performed for each procedure $P \not \in \dom(\Refines)$, that is, every 
+procedure that remains in the abstract program.
+Due to space constraints, we have moved the formal rules to Appendix~\ref{sec:verification-appendix}.
 
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
 Consider the following program with a global variable {\tt x}, a thread-local variable {\tt t},
 a procedure {\tt Nop}, and two threads (shown on the left).
 
+\begin{center}
+{\small
 \begin{tabular}{lll}
 \begin{tabular}[t]{l}
 {\tt [ x := 0 ];} \\
@@ -1338,6 +1145,8 @@ a procedure {\tt Nop}, and two threads (shown on the left).
 {\tt ~~\{~\}}
 \end{tabular}
 \end{tabular}
+}
+\end{center}
 
 The first thread sets {\tt x} to $0$ in an atomic action (indicated {\tt [x := 0]}),
 yields, reads {\tt x} into {\tt t}, and asserts that {\tt t == 0}.
