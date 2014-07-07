@@ -30,15 +30,6 @@ Atomicity refinement allows reasoning coarser-grain atomic actions at higher lev
 The three techniques listed above have been investigated individually previously and are each best suited for proof tasks of a particular nature. 
 The sound, symbiotic combination of the techniques in a proof system results in a powerful refinement tool. 
 
-As a design driver for our proof system and tool, we developed a new concurrent GC. 
-Design choices in our GC, an extension of the collector by Dijkstra et. al. \cite{dijk78}  with handshakes \cite{doli93,doli94} and repeated scans, were made with verified refinement and high performance in mind. 
-Our GC supports a garbage collection thread running concurrently with multiple program threads (mutators) and its performance is competitive with well-known modern collectors. 
-Popular collectors use a snapshot-based approach \cite{doli93,doli94,doma00,azat03} or contain phases and cards \cite{boeh91,prin00a,bara05}. These make the verification invariants more complex. In contrast, 
-our collector satisfies the simple ``no-black-to-white'' invariant continuously throughout the execution. We intend to use our GC as part of a verified operating system. 
-
-The verification of the collector spanned a large abstraction gap. For verifying refinement, symbiotic use of the verification techniques in \civl was crucial. Stable location invariants verified using rely-guarantee-style reasoning facilitated the verification of atomicity refinement. Replacing procedure bodies with atomic action specifications, combined with variable hiding, allowed the use of simpler location invariants and rely-guarantee annotations for higher-level versions of the program.
-Using our refinement approach, lower-level implementation issues in the GC were cleanly separated from higher-level invariants and annotations involving the garbage collection algorithm. Lower-level representations were useful for reasoning about the atomicity of lock implementations, lock-protected field accesses and data structure operations. Higher-level versions focused on algorithmic issues such as verifying invariants involving phases, colors and object field relationships. This is the first automated verification of a practical, executable garbage collector from ``skip'' to an algorithmic description, and from there down to the implementation level.
-
 Key contributions of this paper are 
 \begin{itemize}
 \item a modular and automated proof system to support refinement reasoning for concurrent program, and 
