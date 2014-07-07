@@ -874,15 +874,6 @@ $
 \inferrule
 {
 }
-{\procs;\actions;\RefinementAny;\{\} \js \FH{\phi}{\skipstmt}{\phi}}
-\;(\textsc{Skip})
-$
-\medskip\\
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
 {\procs;\actions;\RefinementInside;\{\} \js \FH{\phi \wedge \locExpr}{\assert{\locExpr}}{\phi}}
 \;(\textsc{Assert1})
 $
@@ -960,114 +951,6 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs;\actions;\RefinementAny;\mods_1 \js \FH{\phi_1}{\StmtStack}{\phi_2} \\ 
-\procs;\actions;\RefinementAny;\mods_2 \js \FH{\phi_2}{s}{\phi_3}
-}
-{\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2 \js \FH{\phi_1}{\StmtStack;s}{\phi_3}}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs;\actions;\RefinementAny;\mods_1 \js \FH{e \wedge \phi_1}{s_1}{\phi_2} \\ 
-\procs;\actions;\RefinementAny;\mods_2 \js \FH{\neg e \wedge \phi_1}{s_2}{\phi_2}
-}
-{\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2 \js \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2}}
-\;(\textsc{Ite})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs;\actions;\RefinementAny;\mods \js \FH{e \wedge \locExpr}{s}{e}
-}
-{\procs;\actions;\RefinementAny;\mods \js \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr}}
-\;(\textsc{While})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\phi \Rightarrow \phi' \\ \procs;\actions;\RefinementAny;\mods \js \FH{\phi'}{\StmtStack}{\psi'} \\ \psi' \Rightarrow \psi
-}
-{\procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\StmtStack}{\psi}}
-\;(\textsc{Weaken})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\StmtStack}{\psi} \\ \accessVars(\rho) \cap \mods = \{\}
-}
-{\procs;\actions;\RefinementAny;\mods \js \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi}}
-\;(\textsc{Frame})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs(P) = (\phi, \mods, \psi, \stmt) \\
-\RefinementAny = \RefinementInside \Longleftrightarrow P \in \dom(\Refines) \\\\
-\procs;\actions;\RefinementAny;\mods' \js \FH{\phi}{\stmt}{\psi} \\
-\mods' \subseteq \mods
-}
-{
-\procs;\actions;\Refines \js P
-}
-\;(\textsc{Procedure})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs;\actions;\RefinementAny;\mods \js \FH{\phi'}{\StmtStack}{\psi} \\\\
-(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
-\forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
-}
-{
-\procs;\actions;\RefinementAny;\mods \js \FH{\phi}{(\varsL',\StmtStack)}{\psi}
-}
-\;(\textsc{Stack})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-T = (\varsTL, (\varsL, \StmtStack)) \\
-\MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \\
-\procs;\actions;\RefinementOutside;\mods \js \FH{\phi}{\StmtStack}{\true}
-}
-{
-\procs;\actions;\varsG \js T
-}
-\;(\textsc{Thread})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\forall P \in \ProcName.\ \procs;\actions;\Refines \js P \\\\
-\forall 1 \le i \le n.\ \procs;\actions;\varsG \js T_i
-}
-{
-\Refines \js (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
-}
-\;(\textsc{Program})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
 }
 \caption{Sequential correctness}
 \label{fig:sequential-correctness}
@@ -1080,12 +963,10 @@ is as follows: $procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\stmt}{\psi}$.
 Here $\RefinementAny$ is a value in the set $\{\RefinementInside, \RefinementOutside\}$.
 The value $\RefinementInside$ indicates that the rule is being applied inside a procedure that is expected 
 to refine an atomic action; otherwise, $\RefinementAny$ is $\RefinementOutside$.
-The set $\mods$ is the set of thread-local variables modified by the statement $\stmt$;
-it is used both for the frame rule \textsc{Frame} and for checking the modifies annotation for a procedure.
+The set $\mods$ is the set of thread-local variables modified by the statement $\stmt$.
 
-Rules \textsc{Program}, \textsc{Thread}, \textsc{Stack}, \textsc{Procedure}, \textsc{Frame},
-\textsc{Weaken}, \textsc{While}, \textsc{Ite}, and \textsc{Seq} are straightforward
-and based on the standard Floyd-Hoare rules for sequential programs.
+Due to space constraints, we present only the rules that are different from the standard Floyd-Hoare rules for sequential programs;
+the full set of rules in presented in Appendix~\ref{sec:verification-appendix}.
 Rule \textsc{Ablock} checks the entry condition for the atomic block and then verifies 
 the code inside the block.
 Rule \textsc{Async} checks the precondition of the called procedure.
