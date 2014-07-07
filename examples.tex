@@ -164,17 +164,20 @@ the \civl verifier exploits this invariant while checking for non-interference.
 
 \begin{figure}
 \begin{verbatim}
-var Color:[int]int; // 1: WHT(), 2: GRY(), 3: BLK()
+var Color:[int]int; 
+         // 1: WHITE(), 2: GRAY(), 3: BLACK()
 
 procedure TopWB(linear tid: Tid, addr:int)
-ensures {:atomic} [if (Color[addr] == WHT(){
-                     Color[addr] := GRY();
+ensures {:atomic} [if (Color[addr] == WHITE(){
+                     Color[addr] := GRAY();
                    }];
 {
+  var cNoLock: int;
+
   call cNoLock:= GetColorNoLock();
   call YieldColorsGetDarker(); 
-  if (cNoLock == WHT()) 
-    call LockedSetColGryIfWht(tid, addr);
+  if (cNoLock == WHITE()) 
+    call MidWB(tid, addr);
 }
 
 procedure YieldColorsGetDarker()
@@ -184,14 +187,16 @@ procedure YieldColorsGetDarker()
 }
 
 procedure MidWB(linear tid: Tid, addr:int)
-ensures {:atomic} [if (Color[addr] == WHT(){
-                     Color[addr] := GRY();
+ensures {:atomic} [if (Color[addr] == WHITE(){
+                     Color[addr] := GRAY();
                    }];
 {
+  var cLock: int;
+
   call AcquireLock(tid);
   call cLock := GetColorLocked(tid);
-  if (cLock == WHT()) 
-    call SetColorLocked(tid, GRY());
+  if (cLock == WHITE()) 
+    call SetColorLocked(tid, GRAY());
   call ReleaseLock(tid);
 }
 
@@ -228,7 +233,7 @@ and objects reachable from it should not be garbage collected. The
 top-level refinement task in this example is to show that \exC{TopWB}
 refines its atomic action specification 
 \begin{verbatim}
-  [if (Color[addr] == WHT()) Color[addr] := GRY();]
+[if (Color[addr] == WHITE()) Color[addr] := GRAY();]
 \end{verbatim}
 assuming that the procedure it calls, \exC{MidWB}, satisfies its
 atomic action specification. \exC{TopWB} and \exC{MidWB} have the same atomic
@@ -247,11 +252,11 @@ scenario. \exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
 sets \exC{cNoLock} to \exC{GRAY()} and then yields at
 \exC{YieldColorsGetDarker}. Another thread sets {\tt Color[addr]} to
 {\tt WHITE()}. \exC{TopWB} resumes, but does nothing and exits,
-because \exC{cNoLock} is \exC{GRAY()}. In this scenario, the atomic action
+because the procedure-local variable \exC{cNoLock} is \exC{GRAY()}. In this scenario, the atomic action
 specification of \exC{TopWB} would not be satisfied. However, in the GC this
 scenario is not possible. 
 The yield
-predicate in {\tt YieldColorsOnlyGetDarker()} expresses the fact that
+predicate in {\tt YieldColorsGetDarker()} expresses the fact that
 other threads in the environment of the thread running \exC{TopWB} can
 only modify {\tt Color[addr]} to a higher (darker)
 value. \civl verifies that this is the case. 
