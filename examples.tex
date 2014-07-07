@@ -245,7 +245,6 @@ address encountered,
 \exC{MidWB} after reading \exC{Color[addr]} without holding a lock
 and confirming that it is {\tt WHITE()}.
 
-
 The correctness of this
 optimization is not obvious. Consider the following potential
 scenario. \exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
@@ -260,37 +259,31 @@ predicate in {\tt YieldColorsGetDarker()} expresses the fact that
 other threads in the environment of the thread running \exC{TopWB} can
 only modify {\tt Color[addr]} to a higher (darker)
 value. \civl verifies that this is the case. 
-
 Given the correct
 modeling of the environment interference by a yield predicate,
 \civl then verifies that, for every control path through \exC{TopWB}
 procedure, exactly one {\tt yield}-to-{\tt yield} execution
-fragment implements the atomic action spec and that other fragments do not modify
-global state. The verification of atomicity for \exC{TopWB} and
-\exC{MidWB}, explained next, highlight a
-novel verification feature in \civl -- that of combining
-rely-guarantee reasoning and reduction to verify refinement.
+fragment implements the atomic action specification and that other fragments do not modify
+global state. 
 
-The verification of \exC{MidWB} refining its atomic specification
-builds on other refinement proofs (not shown) in which \civl has
-verified that the implementations of the procedures called in
-\exC{MidWB} refine their atomic action specifications (shown at the
-bottom of the figure.) Verification of atomicity refinement for
-\exC{MidWB} illustrates two key features of \civl discussed next. 
-
-{\bf Yield Elimination.} Observe that in 
-\exC{MidWB} there are no {\tt yield}s between
-statements. Since threds explicitly yield control, this means that the
+{\bf Yield Elimination.} 
+We now turn our attention to the verification of \exC{MidWB} against
+its atomic action specification.
+Just as the verification of \exC{TopWB} builds on the specification of \exC{MidWB},
+the verification of \exC{MidWB} builds on other refinement proofs (not shown) 
+of the procedures called in \exC{MidWB};
+these called procedures are shown at the bottom of the figure. 
+Observe that in \exC{MidWB} there is no {\tt yield} between
+statements. Since threads explicitly yield control, the
 entire body of \exC{MidWB} is executed atomically. In
 a real execution, control can switch between threads at any point in
 the code. The absence of {\tt yield}s is justified by reasoning about
 mover types and reduction. The procedures called in
 \exC{MidWB} have the mover types claimed in their
-declarations and verified by \civl. Given the mover types of all
-statements, a ``yield sufficiency
-checker'' in the \civl verifier ensures
+declarations and verified by \civl. Given the mover types of 
+atomic action specifications, the \civl verifier ensures
 that the absence of yields is justified using reduction.  \civl
-then verifies that the body of \exC{MidWB} satisfies
+then verifies that the body of \exC{MidWB}, without any yield statements, satisfies
 its atomic specification. Yield elimination is useful both for the
 user, since no yield predicates need to be provided, and for \civl,
 as no predicates need to be checked for sequential correctness and
@@ -302,7 +295,7 @@ involves a lock. When verifying refinement for \exC{MidWB}, the lock
 variable has been hidden. Hiding variables at refinement steps and
 providing different {\tt yield} predicates at different phases of a
 proof are important novel proof organization capabilities in \civl
-that facilitate proofs that span large abstraction gaps.
+that facilitate proofs spanning large abstraction gaps.
 
 %To force commit.
 
