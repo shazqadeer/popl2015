@@ -155,7 +155,7 @@ such a thread is captured by the symbol $\YieldingThread$ in Figure~\ref{fig:syn
 The one (possibly) non-yielding thread is the only one allowed to execute until it reaches a yield statement and becomes a yielding thread.
 At that point, all threads are yielding and any one can be picked for execution.
 
-$\Prog$ is {\em unsafe\/} if there exists $\Prog'$ such that $\Prog \trans^* \Prog'$ and $\Prog'$ fails.
+$\Prog$ is {\em unsafe\/} if there exists $\Prog'$ such that $\Prog \trans^* \Prog'$ and $\Prog'$ fails an assertion.
 $\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
 Define the predicate $\Yielding$ as follows:
 \[
