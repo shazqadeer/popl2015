@@ -180,11 +180,10 @@ Section~\ref{sec:formal} describes values and linear variables like {\tt nil} an
 \begin{verbatim}
 var Color:[int]int; // 1: WHT(), 2: GRY(), 3: BLK()
 
-procedure Top_WB(linear tid: Tid,
-                                       addr:int)
-ensures {:atomic} [if (Color[addr] == WHT(){)
+procedure TopWB(linear tid: Tid, addr:int)
+ensures {:atomic} [if (Color[addr] == WHT(){
                      Color[addr] := GRY();
-                   }]
+                   }];
 {
   call cNoLock:= GetColorNoLock();
   call YieldColorsGetDarker(); 
@@ -199,11 +198,10 @@ procedure YieldColorsGetDarker()
   yield forall a:: Color[a] >= old(Color[a]);
 }
 
-procedure Mid_WB(linear tid: Tid,
-                                         addr:int)
-ensures {:atomic} [if (Color[addr] == WHT(){)
+procedure MidWB(linear tid: Tid, addr:int)
+ensures {:atomic} [if (Color[addr] == WHT(){
                      Color[addr] := GRY();
-                   }]
+                   }];
 {
   call AcquireLock(tid);
   call cLock := GetColorLocked(tid);
@@ -214,12 +212,12 @@ ensures {:atomic} [if (Color[addr] == WHT(){)
 }
 
 procedure AcquireLock({:cnst "tid"} tid: X);
-  ensures {:right} [ ...]
+  ensures {:right} [ ...];
 procedure ReleaseLock({:cnst "tid"} tid: X);
-  ensures {:left} [...]
+  ensures {:left} [...];
 procedure SetColorLocked(
                 {:cnst "tid"} tid:X, nC:int); 
-  ensures {:atomic} [...]
+  ensures {:atomic} [...];
 procedure GetColorLocked(
        {:cnst "tid"} tid:X) returns (cl:int);
   ensures {:both} [...];
@@ -297,7 +295,7 @@ verified that the implementations of the procedures called in
 bottom of the figure.) Verification of atomicity refinement for
 \exC{MidWB} illustrates two key features of \civl discussed next. 
 
-{\bf Yield Elimination} Observe that in 
+{\bf Yield Elimination.} Observe that in 
 \exC{MidWB} there are no {\tt yield}s between
 statements. Since threds explicitly yield control, this means that the
 entire body of \exC{MidWB} is executed atomically. In
@@ -315,7 +313,7 @@ user, since no yield predicates need to be provided, and for \civl,
 as no predicates need to be checked for sequential correctness and
 non-interference.
 
-{\bf Variable Hiding} The atomic action specification of \exC{MidWB}
+{\bf Variable Hiding.} The atomic action specification of \exC{MidWB}
 makes no reference to the lock variable, although its implementation
 involves a lock. When verifying refinement for \exC{MidWB}, the lock
 variable has been hidden. Hiding variables at refinement steps and
