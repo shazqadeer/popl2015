@@ -817,7 +817,7 @@ The judgment $\Refines;\actions \jy \Prog$ checks that all the code in $\Prog$, 
 can be simulated by traces of this automaton.
 This automaton allows traces in which {\em transactions\/} are separated by yields;
 each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
-In the middle, it can have either at most one non mover or a sequence of atomic blocks.
+In the middle, it can have either at most one non mover or a yield-free sequence of atomic blocks.
 Due to space constraints, we have moved the formal rules to supplemental material.
 
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
