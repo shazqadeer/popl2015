@@ -1,12 +1,13 @@
-Verifying concurrent software systems is difficult.
+Verifying software systems is difficult.
+Verifying concurrent software systems is even more difficult.
 The verification of existing software starting from source code requires inferring the design intent and is even more difficult. 
 Researchers have instead advocated a refinement approach in which a simple high-level description is refined, 
 through several phases, down to an optimized, highly-concurrent implementation.
 However, there is as yet no tool-supported method for refinement of realistic systems software down to an executable implementation.
 In this paper, we present such a refinement method, and an intermediate language  and a verification tool (\civl) that support it.
 We demonstrate our approach on a realistic concurrent garbage collection (GC) algorithm.
-The high level specification for the GC consists of atomic action specifications for memory allocation and field accesses, 
-and the garbage collector has a specification of ``skip.'' 
+The high level specification for the mutators consists of atomic action specifications for memory allocation and field accesses;
+the garbage collector itself is specified as an atomic action with no side effects.
 This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
 
 In our proof method, a program is described at several different levels of abstraction. 
