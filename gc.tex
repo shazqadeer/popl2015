@@ -6,7 +6,7 @@
 
 We demonstrate the verification methodology and tool on a realistic modern concurrent garbage collector algorithm.
 Our algorithm builds on the concurrent collector of Dijkstra et al.~\cite{dijk78}.
-Dijkstra's collector is attractive for verification because it maintains a simple three-color invariant
+Dijkstra's collector is attractive for verification because it maintains a simple tri-color invariant
 on the heap objects (in contrast to snapshot-oriented collectors~\cite{doli93,doli94,doma00,azat03}
 whose three-color invariants are more subtle).
 By itself, though, Dijkstra's collector is not a modern or performant collector.
@@ -62,15 +62,15 @@ and then executes a phase (Mark, Sweep, or, for the idle phase, nothing).
 Note that each mutator thread can read its own cached phase without acquiring a lock (ReadMutatorPhase in WriteBarrier),
 leading to efficient WriteBarrier performance.
 
-Dijkstra's collector requires a write barrier on modifications to roots as well as modifications to objects.
-To eliminate this overhead, our algorithm pauses all threads while scanning the roots.
-Similar to the implementation of handshaking, ScanRoots signals to the mutator threads that a root scan
-is about to begin (CollectorRootScanBarrierStart), waits (CollectorRootScanBarrierWait) for the
-mutators to respond and pause (TestRootScanBarrier), scans the roots while the mutators are paused,
-and then wakes up the mutators (CollectorRootScanBarrierEnd).
-At the end of the scan (before the mutators reawaken), all roots point to gray or black objects.
-If no gray objects remain (IsGraySetEmpty), then all roots point to black objects, and the marking is complete.
-Otherwise, we continue the collection by shading all objects reachable by the roots and tracing from them again.
+Dijkstra's collector requires a write barrier on modifications to roots as well as modifications to objects. 
+We eliminate this overhead by employing repeated tracing 
+phases until all objects referenced by roots are black. 
+A tracing phase starts by stopping all mutators and marking their roots. 
+The process of stopping the mutators is similar to a handshake and is done using the CollectorRootScanBarrierStart, CollectorRootScanBarrierWait, and CollectorRootScanBarrierEnd procedures on the collector side and TestRootScanBarrier procedure on the mutator side. 
+At the end of the root scan (before the mutators reawaken), all roots point to gray or black objects.
+If no gray objects remain (IsGraySetEmpty), then all roots point to black objects, and marking is complete. 
+Otherwise, we trace from gray objects until completion and start a new
+tracing phase (by stopping the mutators and checking the roots again). 
 In a worst-case theoretical scenario we may need to run many root scans and discover more and more white root descendants to trace each time. 
 But in practice we usually finish after a small number of scans,
 so we obtain correctness and termination in all scenarios and we obtain good performance in real-world scenarios. 
