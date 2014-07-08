@@ -32,15 +32,14 @@ $\AvailableActions$ & $\in$ & $2^\ActionName$
 \begin{figure}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{rclcl}
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e,\lins} \mid$ \\
-                  & & $\call{A} \mid \call{P} \mid \async{P} \mid $\\
-                  & & $\ablock{e,\lins}{\stmt} \mid \stmt;\;\stmt \mid$\\
-                  & & $\ite{\locExpr}{\stmt}{\stmt} \mid$ \\
-                  & & $\while{e,\alpha}{\locExpr}{\stmt}$ \\ 
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \assert{\locExpr} \mid \yield{e,\lins} \mid \call{A} \mid \call{P} \mid$ \\
+                  & & $\ablock{e,\lins}{\stmt} \mid \stmt;\;\stmt \mid \async{P} \mid$\\
+                  & & $\ite{\locExpr}{\stmt}{\stmt} \mid \while{e,\alpha}{\locExpr}{\stmt}$ \vspace{6pt} \\
+\end{tabular}
+\begin{tabular}{rclcl}
 $\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
-$\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \\
-~\\
+$\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \vspace{6pt} \\
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
 $\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Local}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, ([]_{\Local}, \StmtCtxt)) \mid$ \\
