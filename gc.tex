@@ -25,10 +25,10 @@ Objects are said to be {\em white} if the collector has not seen them yet during
 Objects that the collector encounters become gray and remain gray until the collector scans their children.
 Once all the children of an object are noted (meaning that none of them are white), the object becomes black.
 The collector works by choosing a node from the set of gray objects (GraySetChoose, called from MarkAllGrays in Figure~\ref{fig:VerifiedGC}),
-{\em shading} all its white children to gray (GraySetInsert), and then removing the object from the gray set by making the object black (GraySetRemove).
+{\em shading} all its white children to gray (GraySetInsertChildIfWhite), and then removing the object from the gray set by making the object black (GraySetRemove).
 The shading operation grays a node if it is white, and does nothing otherwise.
 The trace terminates when all roots point to black objects (according to ScanRoots)
-and there are no more gray objects in the heap (according to IsGraySetEmpty, called by ScanRoots).
+and there are no more gray objects (according to IsGraySetEmpty, called by ScanRoots).
 Termination is guaranteed because objects can only get darker.
 Correctness is guaranteed using an invariant that a black object never points to a white object during the trace
 (black objects can only point to gray objects or black objects).
