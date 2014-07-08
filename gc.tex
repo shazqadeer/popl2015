@@ -8,7 +8,7 @@ We demonstrate the verification methodology and tool on a realistic modern concu
 Our algorithm builds on the concurrent collector of Dijkstra et al.~\cite{dijk78}.
 Dijkstra's collector is attractive for verification because it maintains a simple tri-color invariant
 on the heap objects (in contrast to snapshot-oriented collectors~\cite{doli93,doli94,doma00,azat03}
-whose three-color invariants are more subtle).
+whose tri-color invariants are more subtle).
 By itself, though, Dijkstra's collector is not a modern or performant collector.
 First, it becomes incorrect in the presence of more than one program thread (mutator).
 Second, it requires that the write-barrier be run not only on updates of heap pointers,
@@ -24,7 +24,7 @@ As in Dijkstra's collector, our algorithm employs a tri-color abstraction to des
 Objects are said to be {\em white} if the collector has not seen them yet during the trace.
 Objects that the collector encounters become gray and remain gray until the collector scans their children.
 Once all the children of an object are noted (meaning that none of them are white), the object becomes black.
-The collector works by choosing a node from the set of gray objects (GraySetChoose in Figure~\ref{fig:VerifiedGC}, called from MarkAllGrays),
+The collector works by choosing a node from the set of gray objects (GraySetChoose, called from MarkAllGrays in Figure~\ref{fig:VerifiedGC}),
 {\em shading} all its white children to gray (GraySetInsert), and then removing the object from the gray set by making the object black (GraySetRemove).
 The shading operation grays a node if it is white, and does nothing otherwise.
 The trace terminates when all roots point to black objects (according to ScanRoots)
