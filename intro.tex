@@ -1,14 +1,15 @@
-Verifying software systems is difficult.
-Verifying concurrent software systems is even more difficult.
-The verification of existing software starting from source code requires inferring the design intent and is even more difficult. 
-Researchers have instead advocated a refinement approach in which a simple high-level description is refined, 
-through several phases, down to an optimized, highly-concurrent implementation.
-However, there is as yet no tool-supported method for refinement of realistic systems software down to an executable implementation.
-In this paper, we present such a refinement method, and an intermediate language  and a verification tool (\civl) that support it.
+Verifying software systems is challenging.
+Due to the difficulty of verifying software directly at the implementation level,
+researchers have long advocated a refinement approach in which a simple high-level description is refined, 
+through several phases, down to an implementation.
+However, there is little tool support for refinement of concurrent systems software down to an executable implementation.
+In this paper, we present such a refinement method, and an intermediate language  and a verification tool (\civl) to support it.
 We demonstrate our approach on a realistic concurrent garbage collection (GC) algorithm.
 The high level specification for the mutators consists of atomic action specifications for memory allocation and field accesses;
 the garbage collector itself is specified as an atomic action with no side effects.
 This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
+To the best of our knowledge, the abstraction gap bridged by our automated refinement has not been verified
+for concurrent garbage collectors by prior work.
 
 In our proof method, a program is described at several different levels of abstraction. 
 All of these descriptions as well as the refinement relationships connecting them reside in the same \civl file, the input to our tool. 
@@ -22,7 +23,6 @@ whereas lower levels represent different views of the implementation, referring 
 e.g., atomic updates of objects' colors or lock operations.
 In addition to making it possible to verify specifications at the most abstract level possible, 
 we find that such an approach is a natural way to design a program to be verified.  
-
 
 The verification method, language, and tool design have all been carried out with the goal of supporting  modular refinement 
 verification in a natural and computationally efficient manner. 
