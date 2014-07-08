@@ -115,7 +115,7 @@ the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
 Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
 
 For space reasons, we have chosen to presente the more interesting rules in Figure~\ref{fig:program-transformation};
-the complete set of rules in presented in Appendix~\ref{sec:verification-appendix}.
+the complete set of rules in presented in supplemental material.
 Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
 which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
 It also checks that every action in $\range(\Refines)$ has a precondition 
@@ -222,7 +222,7 @@ $
 
 In this section, we formalize the judgment $\vdash \Prog$.
 Due to space constraints, we present only a few of the illustrative rules in Figure~\ref{fig:linearity};
-the full set of rules is presented in Appendix~\ref{sec:verification-appendix}.
+the full set of rules is presented in supplemental material.
 The goal of the judgment $\vdash \Prog$ is to check that
 linear variables and atomic blocks are used appropriately in $\Prog$.
 
@@ -232,7 +232,7 @@ The predicate $\disjoint(\Lambda)$, where $\Lambda$ is a subset of $\Global \cup
 encodes a disjointness invariant enforced by the linear type checker
 with respect to an arbitrary function $\Set$ (provided by the programmer) from $\Value$ to $2^\Value$.
 $\disjoint(\Lambda)$ states that the sets $\Set(\lins)$ for $\lins \in \Lambda$ are pairwise disjoint.
-Rule \textsc{Program} (Appendix~\ref{sec:verification-appendix}) checks that the disjointness invariant holds in the initial state of $\Prog$.
+Rule \textsc{Program} (supplemental material) checks that the disjointness invariant holds in the initial state of $\Prog$.
 Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
 Consequently, the invariant holds throughout the execution of $\Prog$.
 There are three conditions being checked by rule \textsc{Action}.
@@ -666,7 +666,7 @@ $
 We now discuss the judgment $\Refines \js \Prog$;
 the rules for this judgment are presented in Figure~\ref{fig:sequential-correctness}.
 Due to space constraints, we present only the rules that are different from the standard Floyd-Hoare rules for sequential programs;
-the full set of rules in presented in Appendix~\ref{sec:verification-appendix}.
+the full set of rules in presented in supplemental material.
 The judgment at the level of statements
 is as follows: $procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\stmt}{\psi}$.
 Here $\RefinementAny$ is a value in the set $\{\RefinementInside, \RefinementOutside\}$.
@@ -821,7 +821,7 @@ The rules for the judgment $\Refines;\actions \jy \Prog$ essentially check
 that the code of each thread in $\Prog$ is simulated by the automaton $\YSA$.
 Further, the same simulation check is also performed for each procedure $P \not \in \dom(\Refines)$, that is, every 
 procedure that remains in the abstract program.
-Due to space constraints, we have moved the formal rules to Appendix~\ref{sec:verification-appendix}.
+Due to space constraints, we have moved the formal rules to supplemental material.
 
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
 Consider the following program with a global variable {\tt x}, a thread-local variable {\tt t},
