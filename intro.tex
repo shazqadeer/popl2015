@@ -13,7 +13,7 @@ In our proof method, a program is described at several different levels of abstr
 All of these descriptions as well as the refinement relationships connecting them reside in the same \civl file, the input to our tool. 
 Atomic actions in a high-level description are refined to fine-grain and optimized lower-level implementations. 
 An implementation of an atomic action may make use of additional variables which are hidden in the action's specification. 
-Modular specifications and proof annotations such as location invariants and procedure pre- and post-conditions, 
+Modular specifications and proof annotations, such as location invariants and procedure pre- and post-conditions, 
 are specified separately, independently at each level in terms of the variables visible at that level. 
 For instance, in the GC, the top-level specifications and annotations reflect the client's view 
 in terms of an idealized infinite heap and field relationships between objects, 
@@ -34,12 +34,12 @@ Linear types~\cite{Wadler90lineartypes} and separation logic~\cite{Reynolds02} e
 (e.g. using separating conjunction or linear maps~\cite{LahiriQW11}).
 Linear types can also be used to encode the notion of unique thread identifiers useful for reasoning about non-interference. 
 The third technique in \civl is atomicity refinement through reduction~\cite{Lipton75}, abstraction, and variable hiding. 
-Atomicity refinement allows reasoning coarser-grain atomic actions at higher levels of abstraction, 
+Atomicity refinement allows reasoning with coarser-grain atomic actions at higher levels of abstraction, 
 and reduces the annotation burden and the computational cost of verification. 
 Prior to our work, these verification techniques have never been put together into a single automated verifier.
 
 This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
-In particular, although our algorithm is based on an earlier algorithm by Dijkstra's~\cite{dijk78}, 
+In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
 it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
 These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
 and coordination between the GC and mutator threads during root scanning; our use of linearity aids the proof of root scanning, 
