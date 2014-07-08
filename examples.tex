@@ -166,13 +166,25 @@ var Color:[int]int; // WHITE=1, GRAY=2, BLACK=3
 \end{verbatim}
 \begin{verbatim}
 procedure TopWB(linear tid:Tid, addr:int)
-ensures {:atomic} [if (Color[addr] == WHITE) {
-                       Color[addr] := GRAY;  }];
+  atomic [if (Color[addr] == WHITE) { 
+              Color[addr] := GRAY;  }];
 {
   var cNoLock:int := GetColorNoLock();
   call YieldColorsGetDarker(); 
   if (cNoLock == WHITE) 
     call MidWB(tid, addr);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure MidWB(linear tid:Tid, addr:int)
+atomic [if (Color[addr] == WHITE) {
+            Color[addr] := GRAY;  }];
+{
+  call AcquireLock(tid);
+  var cLock:int := GetColorLocked(tid);
+  if (cLock == WHITE) 
+    call SetColorLocked(tid, GRAY);
+  call ReleaseLock(tid);
 }
 \end{verbatim}
 \begin{verbatim}
@@ -183,63 +195,31 @@ procedure YieldColorsGetDarker()
 }
 \end{verbatim}
 \begin{verbatim}
-procedure MidWB(linear tid:Tid, addr:int)
-ensures {:atomic} [if (Color[addr] == WHITE) {
-                       Color[addr] := GRAY;  }];
-{
-  call AcquireLock(tid);
-  var cLock:int := GetColorLocked(tid);
-  if (cLock == WHITE) 
-    call SetColorLocked(tid, GRAY);
-  call ReleaseLock(tid);
-}
-\end{verbatim}
-\begin{verbatim}
-procedure AcquireLock() ensures {:right} [...];
-procedure ReleaseLock() ensures {:left} [...];
-procedure SetColorLocked() ensures {:atomic} [...];
-procedure GetColorLocked() returns (cl:int);
-  ensures {:both} [...];
+procedure AcquireLock() right [...];
+procedure ReleaseLock() left [...];
+procedure SetColorLocked() atomic [...];
+procedure GetColorLocked() returns (cl:int)
+  both [...];
 \end{verbatim}
 \caption{Program 5}
 \label{fig:reft}
 \end{figure}
 
-%Names are confusing 
-%Explain example first
-%{:cnst tid} explain, linear tid
-%Refines atomic spec: Do not use atomicity
-%
-
 {\bf Refinement.} 
-\civl supports the verification of refinement of atomic action specifications for
-procedures. Program 5 in Figure~\ref{fig:reft} introduces refinement in \civl. 
-Atomic action specifications are shown in square brackets. 
-In a refinement (or abstraction) step, implementations of procedures with atomic action
-specifications are replaced by the atomic actions, some variables may
-be hidden, and a higher-level program is obtained. 
-
-Program 5 is a simplified version of a pattern in our GC.
-Mutator threads entering a write barrier for an
-address \exC{addr} check
+\civl supports the verification of refinement of atomic action specifications for procedures. 
+We illustrate this technique on Program 5 (Figure~\ref{fig:reft}),
+a simplified version of a programming pattern in our concurrent garbage collector (GC).
+Mutator threads entering a write barrier for an address \exC{addr} check
 if the global variable \exC{Color[addr]} is \exC{WHITE}
 and set it to \exC{GRAY}, indicating that the object at this address
-and objects reachable from it should not be garbage collected. The
-top-level refinement task in this example is to show that \exC{TopWB}
-refines its atomic action specification 
-\begin{verbatim}
-[if (Color[addr] == WHITE) Color[addr] := GRAY;]
-\end{verbatim}
-assuming that the procedure it calls, \exC{MidWB}, satisfies its
-atomic action specification. \exC{TopWB} and \exC{MidWB} have the same atomic
-specification.  \exC{MidWB} is lock protected but \exC{TopWB} contains a
-performance optimization. 
-To avoid the cost of locking for each
-address encountered, 
-\exC{TopWB} only calls the expensive 
-\exC{MidWB} after reading \exC{Color[addr]} without holding a lock
-and confirming that it is {\tt WHITE}.
+and objects reachable from it should not be garbage collected. 
 
+Procedure \exC{TopWB} implements the write barrier.
+To avoid the cost of locking for each address encountered, \exC{TopWB} reads \exC{Color[addr]} without holding a lock.
+If the color is {\tt WHITE}, it calls the more expensive procedure \exC{MidWB} 
+that re-examines possibly updates \exC{Color[addr]} while holding the lock.
+Intuitively, \exC{TopWB} and \exC{MidWB} have the same observable behavior but 
+\exC{TopWB} contains a performance optimization. 
 The correctness of this
 optimization is not obvious. Consider the following potential
 scenario. \exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
@@ -249,17 +229,36 @@ sets \exC{cNoLock} to \exC{GRAY} and then yields at
 because the procedure-local variable \exC{cNoLock} is \exC{GRAY}. In this scenario, the atomic action
 specification of \exC{TopWB} would not be satisfied. However, in the GC this
 scenario is not possible. 
-The yield
-predicate in {\tt YieldColorsGetDarker()} expresses the fact that
+The yield predicate in \exC{YieldColorsGetDarker} expresses the fact that
 other threads in the environment of the thread running \exC{TopWB} can
-only modify {\tt Color[addr]} to a higher (darker)
-value. \civl verifies that this is the case. 
-Given the correct
-modeling of the environment interference by a yield predicate,
+only modify {\tt Color[addr]} to a higher (darker) value. 
+
+\civl simplifies the reasoning about \exC{TopWB} and \exC{MidWB} by introducing the notion 
+of atomic action specifications.
+Confirming our intuition about these two procedures, their specification is identical
+to the following atomic action:
+\begin{verbatim}
+[if (Color[addr] == WHITE) Color[addr] := GRAY;]
+\end{verbatim}
 \civl then verifies that, for every control path through \exC{TopWB}
 procedure, exactly one {\tt yield}-to-{\tt yield} execution
 fragment implements the atomic action specification and that other fragments do not modify
 global state. 
+\civl verifies that \exC{TopWB} satisfies this specification
+assuming that the procedure it calls, \exC{MidWB}, satisfies the same specification.
+This proof requires both correct modeling of environment interference in \exC{YieldColorsGetDarker}
+and the atomic action specification for the called procedure \exC{MidWB}.
+
+There are two important benefits of atomic action specifications.
+First, an atomic action is the most compact and precise way to express the specification for many procedures.
+Second, an atomic action specification successfully hides from the caller of a procedure $P$
+the potentially numerous yields inside the body of $P$.
+This capability provides a kind of modularity akin to that provided by the frame rule for sequential programs.
+Without this capability, any postcondition $\phi$ needed by the caller of $P$ must be made explicit in the precondition 
+and yield predicates of $P$ and all procedures called by it.
+With this capability, the caller achieves the same effect by simply writing $\yield{\phi}$ before and after the call, 
+provided that $\phi$ is preserved by the atomic action specification of $P$.
+
 
 {\bf Yield Elimination.} 
 We now turn our attention to the verification of \exC{MidWB} against
@@ -275,10 +274,16 @@ a real execution, control can switch between threads at any point in
 the code. The absence of {\tt yield}s is justified by reasoning about
 mover types and reduction. The procedures called in
 \exC{MidWB} have the mover types claimed in their
-declarations and verified by \civl. Given the mover types of 
+declarations and verified by \civl. 
+For example, the mover type of \exC{Acquirelock} is {\tt right} which indicates 
+that it commutes earlier in time against concurrently executing environment actions.
+\exC{ReleaseLock} has mover type {\tt left} and it commutes later in time;
+\exC{SetColorLocked} has mover type {\tt atomic} and it does not commute;
+\exC{GetColorLocked} has mover type {\tt both} and it commutes both earlier and later in time.
+Given the mover types of 
 atomic action specifications, the \civl verifier ensures
-that the absence of yields is justified using reduction.  \civl
-then verifies that the body of \exC{MidWB}, without any yield statements, satisfies
+that the absence of yields is justified using reduction.  
+\civl then verifies that the body of \exC{MidWB}, without any yield statements, satisfies
 its atomic specification. Yield elimination is useful both for the
 user, since no yield predicates need to be provided, and for \civl,
 as no predicates need to be checked for sequential correctness and
