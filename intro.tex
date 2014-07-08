@@ -37,7 +37,7 @@ Linear types can also be used to encode the notion of unique thread identifiers 
 The third technique in \civl is atomicity refinement through reduction~\cite{Lipton75}, abstraction, and variable hiding. 
 Atomicity refinement allows reasoning coarser-grain atomic actions at higher levels of abstraction, 
 and reduces the annotation burden and the computational cost of verification. 
-The sound, symbiotic combination of the techniques in a proof system results in a powerful refinement tool. 
+Prior to our work, these verification techniques have never been put together into a single automated verifier.
 
 This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
 In particular, although our algorithm is based on an earlier algorithm by Dijkstra's~\cite{dijk78}, 
@@ -47,7 +47,7 @@ and coordination between the GC and mutator threads during root scanning; our us
 while our rely-guarantee encoding aids management of colors inside the write barrier.  
 Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
 from low-level memory operations all the way up to high-level specifications; 
-we used 6 levels of refinement to help hide low-level details from the high-level portions of the verification.
+we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
 
 To summarize, the key contributions of this paper are as follows:
 \begin{itemize}
@@ -56,7 +56,7 @@ A modular and automated proof system to support refinement reasoning for concurr
 \item 
 An implementation of the proof system as a conservative extension to the Boogie programming language and verifier.
 \item 
-The design and verified implementation, comprising 2100 lines of code, of a realistic concurrent GC algorithm.
+The design and verified implementation, comprising 2100 lines of code and specification, of a realistic concurrent GC algorithm.
 \end{itemize}
 
 %To force commit
