@@ -49,9 +49,8 @@ higher-level proof could potentially produce a practical verified collector for 
 
 By combining a generalized implementation of interference checking, a powerful linear type checking system, and a refinement verification system that supports reduction and abstraction, 
 \civl supports many forms of reasoning about concurrency without committing programmers to a particular methodology.
-Two-state invariants in the style of rely-guarantee arise naturally from procedures that encapsulate one-state yield statements;
-modular factoring of invariants arises naturally using parallel calls to procedures with yield statements;
-and disjoint thread identifiers and monitors arise naturally from the linear type system. The combination of these techniques and reduction and abstraction supports refinement verification, allowing users to formally relate representations of their program described at different levels of abstraction and atomicity. 
+Two-state rely-guarantee invariants arise naturally from procedures that encapsulate one-state yield statements,
+and disjoint thread identifiers arise naturally from the linear type system. The combination of these techniques with reduction and abstraction supports refinement verification, allowing users to formally relate representations of program described at different levels of abstraction and atomicity. 
 The resulting system is sound, automated, efficient, and ready to use.
 
 %%% Local Variables: 
