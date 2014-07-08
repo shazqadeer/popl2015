@@ -107,7 +107,7 @@ We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgm
 $\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
 In this judgment,
 $\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
-and $\AvailableActions \in 2^{\ActionName}$ is a set of action names $\range(\Refines)$.
+and $\AvailableActions \in 2^{\ActionName}$ is a set of action names.
 This judgment expresses the intention that $\Prog$ is abstracted by replacing
 occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines)$ such that 
 the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
@@ -235,7 +235,7 @@ Rule \textsc{Program} (supplemental material) checks that the disjointness invar
 Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
 Consequently, the invariant holds throughout the execution of $\Prog$.
 There are three conditions being checked by rule \textsc{Action}.
-First, the set of global linear permissions does not change from the input to the output.
+First, the set of global linear permissions does not change.
 Second, if the disjointness invariant holds for input permissions it also holds for output permissions.
 Finally, the union of the sets constructed from output permissions is a subset of the union of sets
 constructed from input permissions.  
@@ -665,7 +665,7 @@ $
 We now discuss the judgment $\Refines \js \Prog$;
 the rules for this judgment are presented in Figure~\ref{fig:sequential-correctness}.
 Due to space constraints, we present only the rules that are different from the standard Floyd-Hoare rules for sequential programs;
-the full set of rules in presented in supplemental material.
+the full set of rules is presented in supplemental material.
 The judgment at the level of statements
 is as follows: $procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\stmt}{\psi}$.
 Here $\RefinementAny$ is a value in the set $\{\RefinementInside, \RefinementOutside\}$.
@@ -753,7 +753,7 @@ We now formally define the meaning of the commutativity annotations on $\Prog$ d
 Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
 Let $\Subst_1$ and $\Subst_2$ be one-one 
 substitution functions from $\ThreadLocal \cup \Local$ to $\FV_1$ and $\FV_2$ respectively.
-Th program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
+The program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
 if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
 $\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
 all of the following conditions are satisfied:
@@ -811,15 +811,11 @@ all sequences of atomic actions, atomic blocks, and yields with enough yields to
 The automaton has three states---$\RM$, $\CM$, and $\LM$.
 The edge labels belong to the set $\{B,R,L,N,A,Y\}$, where $B$, $R$, $L$, and $N$ represent the various kinds 
 of atomic actions described earlier, $A$ represents an atomic block, and $Y$ represents a yield.
-The judgment $\Refines;\actions \jy \Prog$ checks that the code in $\Prog$ can be simulated by traces of this automaton.
+The judgment $\Refines;\actions \jy \Prog$ checks that all the code in $\Prog$, except procedures in $\dom(\Refines)$,
+can be simulated by traces of this automaton.
 This automaton allows traces in which {\em transactions\/} are separated by yields;
 each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
 In the middle, it can have either at most one non mover or a sequence of atomic blocks.
-
-The rules for the judgment $\Refines;\actions \jy \Prog$ essentially check 
-that the code of each thread in $\Prog$ is simulated by the automaton $\YSA$.
-Further, the same simulation check is also performed for each procedure $P \not \in \dom(\Refines)$, that is, every 
-procedure that remains in the abstract program.
 Due to space constraints, we have moved the formal rules to supplemental material.
 
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
@@ -847,32 +843,27 @@ a procedure {\tt Nop}, and two threads (shown on the left).
 &
 \begin{tabular}[t]{l}
 {\tt procedure Nop()} \\
-{\tt ~~refines [~]} \\
+{\tt ~~both [~]} \\
 {\tt ~~\{~\}}
 \end{tabular}
 \end{tabular}
 }
 \end{center}
 
-The first thread sets {\tt x} to $0$ in an atomic action (indicated {\tt [x := 0]}),
-yields, reads {\tt x} into {\tt t}, and asserts that {\tt t == 0}.
-At the yield, the second thread may be scheduled; it changes {\tt x} to $1$ and then calls
-{\tt Nop} repeatedly in an infinite loop.
-Our method allows {\tt Nop} to be abstracted by the atomic action {\tt [~]} which does nothing
-and is clearly a left mover (in fact, a both mover).
-As a result, the code of the program will satisfy the yield elimination check described earlier.
-However, the program as shown fails because of the implicit yields at the boundaries of {\tt Nop},
-whereas replacing {\tt call Nop} with the action {\tt [~]} does not fail.
-
+This program violates the assertion in it.
+The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0]} and yields;
+the second thread changes {\tt x} to $1$, calls {\tt Nop} and yields (implicit yield at call);
+the first thread reads {\tt x} into {\tt t} and fails the assert {\tt t == 0}. 
+However, after {\tt call Nop} is replaced with the action {\tt [~]}, the program does not fail,
+even though the code of the program satisfies the yield elimination check described earlier.
 To address this soundness problem in the presence of left and both movers, we require additionally 
-that the abstract program is responsive (formally defined at the end of Section~\ref{sec:language}),
-that is, it yields infinitely often in any infinite execution.
+that the abstract program is responsive, that is, it yields infinitely often in any infinite execution.
 The abstract program in the example above is not responsive.
 
 {\bf Proving responsiveness.}
 A program is responsive if any infinite execution in it yields infinitely often.
 Although it is a liveness property, proving it is about as easy as proving termination of sequential program.
-The basic idea is to provide a loop with a measure function that decreases for each yield-free and failure-free 
+The basic idea is to provide a loop with a measure function $f$ that decreases for each yield-free and failure-free 
 execution of the body of the loop.
 Thus, we can prove responsivenes by modifying only the while rule in Figure~\ref{fig:sequential-correctness}
 for the judgment $\procs;\actions;\RefinementAny;\mods \js \Prog$ as follows:

@@ -113,7 +113,7 @@ We now describe the statements in \civl.
 The statement $\skipstmt$ has no side effect and is used as a marker in the formal operational semantics.
 The statement $\assert{\locExpr}$ fails if $\locExpr$ is false and otherwise has no effect.
 The statement $\yield{e,\lins}$ yields control to the scheduler which may pick any existing thread to execute.
-The predicate $e$, called a stable predicate, is expected to be established by the executing thread and preserved across
+The predicate $e$, called a stable or yield predicate, is expected to be established by the executing thread and preserved across
 execution of other threads subsequent to the yield.
 Similarly, the linear permissions $\lins$ are expected to be available as long as the control of the thread
 is at the yield.
@@ -121,8 +121,10 @@ The statement $\call{A}$ invokes the action $A$;
 if $\actions(A) = (\rho, \alpha, m)$, then the predicate $\rho$ is expected to hold at the invocation and 
 the store is updated according to the transition relation $\alpha$.
 The statement $\call{P}$ invokes the procedure $P$;
-if $\procs(P) = (\phi, \mods, \psi, \stmt)$, then the precondition $\phi$ is expected to hold at the invocation
-and the statement $\stmt$ begins execution.
+if $\procs(P) = (\phi, \mods, \psi, \stmt)$, then the precondition $\phi$ is expected to hold at the invocation,
+the statement $\stmt$ begins execution, and the postcondition $\psi$ is expected to hold when $\stmt$ finishes.
+An important aspect of the semantics of a procedure $P$ is that there is an implicit $\yield{phi}$ before $\stmt$
+and an implicit $\yield{\psi}$ after $\stmt$; therefore $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
 The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
 The statement $\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield inside it and consequently executes atomically;
 the predicate $e$ is expected to hold and the permissions $\lins$ expected to be available at the beginning.
