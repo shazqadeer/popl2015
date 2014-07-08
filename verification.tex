@@ -100,7 +100,7 @@ these coarse atomic actions must be refined down to lower-level actions.
 During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
 invocation $\call{P}$ of a procedure that is implemented using low-level actions.
 The main contribution of this paper is a verification method that allows us to safely refine
-program $\Prog'$ to another program $\Prog$ so that 
+program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
 safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
 
 We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
@@ -711,20 +711,22 @@ substitution function from $\ThreadLocal \cup \Local$ to $\FV$.
 Let $\Subst(\phi)$ represent the result of applying $\Subst$ to the expression $\phi$.
 The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$, the following conditions are satisfied:
-\begin{enumerate}
-\item
+\begin{itemize}
+\item {\bf Ablock non-interference.}
 For each atomic block $\ablock{e,\lins_a}{s} \in \Ablocks(\Prog,\Refines)$, the judgment
 \[
 \FH{\Subst(\phi) \wedge e \wedge \disjoint(\Subst(\lins_y \setminus \Global) \cup \lins_a)}{s}{\Subst(\phi)}
 \]
 holds.
-\item
+\item {\bf Action non-interference.}
 For each $A \in \range(\Refines)$ such that $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins_a,\lins'_a)$, 
 \[
 (\Subst(\phi) \wedge \rho \wedge \disjoint(\Subst(\lins_y \setminus \Global) \cup \lins_a)) \circ \alpha \circ \neg\Subst(\phi)
 \]
 is unsatisfiable.
-\end{enumerate}
+\end{itemize}
+Note that we do not have to check non-interference against atomic blocks inside the bodies of procedures in $\dom(\Refines)$
+because we check non-interference against atomic actions in $\range(\Refines)$.
 
 \subsection{Yield elimination}
 \label{sec:yield-elimination}
@@ -757,8 +759,8 @@ The program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)
 if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
 $\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
 all of the following conditions are satisfied:
-\begin{enumerate}
-\item
+\begin{itemize}
+\item {\bf Commutativity.}
 If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
 \[
 \begin{array}{l}
@@ -769,7 +771,7 @@ If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \end{array}
 \]
 is valid.
-\item
+\item {\bf Forward preservation.}
 If $m_1 \in \{B,R\}$, then 
 \[
 \begin{array}{l}
@@ -779,7 +781,7 @@ If $m_1 \in \{B,R\}$, then
 \end{array}
 \]
 is unsatisfiable.
-\item
+\item {\bf Backward preservation.}
 If $m_1 \in \{B,L\}$, then 
 \[
 \begin{array}{l}
@@ -789,13 +791,13 @@ If $m_1 \in \{B,L\}$, then
 \end{array}
 \]
 is unsatisfiable.
-\item
+\item {\bf Nonblocking.}
 If $m_1 \in \{B, L\}$, then
 \[
 \forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1
 \]
 is valid.
-\end{enumerate}
+\end{itemize}
 
 \newcommand{\YSA}{\mathit{YSA}}
 
