@@ -80,7 +80,8 @@ and Mark maintains the no-black-to-white invariant:
 
 Finally, linearity plays a key role in establishing mutual exclusion.
 The GC thread has its own thread id gcTid, and each mutator has its own thread id.
-The Initialize procedure consumes gcTid and borrows all the mutator thread ids,
+The Initialize procedure consumes gcTid (written here as ``consume'')
+and borrows all the mutator thread ids (written as ``linear'', as in Section~\ref{sec:overview}),
 so that it's clear that no other concurrent actions are allowed during initialization.
 This allows all the internal initialization actions to be both movers, without requiring any explicit locking.
 Initialize must consume gcTid because it passes gcTid to the newly spawned GarbageCollector thread;
