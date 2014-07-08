@@ -162,12 +162,12 @@ yield predicate of every other thread;
 the judgment $\Refines \jr \Prog$ uses the assertions established by the previous two judgments to check that 
 the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
 
-Finally, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, 
-described in Section~\ref{sec:yield-elimination}, that allow us to further simplify reasoning 
-about the abstract program $\Prog'$ by soundly eliminating yields between the invocations of atomic actions in $\range(\Refines)$.
-Yield elimination is extremely important to reduce the complexity of annotations and invariants 
-required for proving the correctness of concurrent programs;
-in our framework, it is useful for simplifying the proof of the abstract program $\Prog'$.
+Finally, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, collectively 
+referred to as {\em yield elimination\/} and described in Section~\ref{sec:yield-elimination}.
+These judgments allow us to reduce the complexity of annotations and invariants 
+required for proving the correctness of the abstract program $\Prog'$
+by justifying the absence of (implicit) yields between some of the 
+invocations of atomic actions in $\range(\Refines)$.
 We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
 to perform yield elimination soundly.
 
