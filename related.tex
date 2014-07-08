@@ -1,6 +1,6 @@
 QED~\cite{ElmasQT09} is a refinement-oriented proof system for concurrent programs built on iterative use of abstraction and reduction.
 Although \civl draws inspiration from QED, it has two important advantages that are key to 
-the construction of proofs spanning a large abstraction gap, such as the proof of the concurrent garbage collector.
+the construction of proofs spanning a large abstraction gap.
 First, QED proof steps are smaller than those in \civl. 
 They correspond to a single action being abstracted, or two statements being combined using reduction. 
 \civl is designed to support larger proof steps in which a set of procedures are replaced by their atomic action specifications. 
@@ -19,31 +19,31 @@ Although the approach in VCC and Chalice is more convenient when applicable, \ci
 VCC and Chalice can reason sequentially about objects exclusively owned by a thread;
 \civl accomplishes the same using linear variables.
 
-Concurrent separation logic~\cite{OHearn07} is a way to reason about concurrency without having to 
-explicitly check for non-interference between threads. 
-Tools based on this logic, including ones that blend in explicit non-interference reasoning~\cite{SAGL,RGSep} have been developed. 
-\civl's combination of interference checking and linear variables can be thought of as an extreme example of this trend, 
+Concurrent separation logic~\cite{OHearn07} reasons about concurrency without 
+explicitly checking for non-interference between threads. 
+Recently, tools based on this logic that blend in explicit non-interference reasoning have been developed~\cite{SAGL,RGSep}. 
+\civl's combination of interference checking and linear variables is an extreme example of this trend,
 supplying very primitive abstractions and letting programmers mix and match these abstractions freely.
 
 Most work on mechanical verification of garbage collectors has focused on sequential collectors~\cite{mccr07,hawb09},
 with some support for incremental collection~\cite{mccr07},
 but without the fine-grained interleaving that makes concurrent collection so challenging.
 Gonthier~\cite{gont96} verified the invariants of a concurrent mark-sweep algorithm,
-although not down to the level of individual statements and memory operations
-(``it was necessary to abstract from control flow and list management details to have a manageable proof''~\cite{gont96}),
+although not down to the level of individual memory operations
+%(``it was necessary to abstract from control flow and list management details to have a manageable proof''~\cite{gont96}),
 and without using refinement to prove simple atomic specifications.
 
 More recently,
-Jagannathan et al~\cite{Jagannathan14} used a refinement-style Coq proof to verify the atomicity of various GC-related operations,
-such as free-list allocation,
-part of a write barrier, and parts of a collector.
-Furthermore, they built atomicity from a very low-level weak consistency (TSO) model rather than sequential consistency.
-However, they don't yet fully verify the collector,
-but rather assume invariants needed by the atomicity proofs
-(``the proofs justifying the rely conditions as in the example above,
-have not been fully carried out in Coq''~\cite{Jagannathan14}).
+Jagannathan et al.~\cite{Jagannathan14} used a refinement-style Coq proof to verify the atomicity of various GC-related operations
+using weak consistency (TSO) rather than sequential consistency.
+%such as free-list allocation, part of a write barrier, and parts of a collector.
+%Furthermore, they built atomicity from a very low-level weak consistency (TSO) model rather than sequential consistency.
+However, they do not fully verify the collector,
+but rather assume invariants needed by the atomicity proofs.
+%(``the proofs justifying the rely conditions as in the example above,
+%have not been fully carried out in Coq''~\cite{Jagannathan14}).
 Nevertheless, combining their low-level TSO model with our complete,
-higher-level proof could potentially produce a practical verified collector for modern hardware.
+higher-level proof could produce a practical verified collector for modern hardware.
 
 \section{Conclusions}
 
@@ -51,7 +51,6 @@ By combining a generalized implementation of interference checking, a powerful l
 \civl supports many forms of reasoning about concurrency without committing programmers to a particular methodology.
 Two-state rely-guarantee invariants arise naturally from procedures that encapsulate one-state yield statements,
 and disjoint thread identifiers arise naturally from the linear type system. The combination of these techniques with reduction and abstraction supports refinement verification, allowing users to formally relate representations of program described at different levels of abstraction and atomicity. 
-The resulting system is sound, automated, efficient, and ready to use.
 
 %%% Local Variables: 
 %%% mode: latex
