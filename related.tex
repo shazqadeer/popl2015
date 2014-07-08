@@ -34,10 +34,10 @@ although not down to the level of individual statements and memory operations
 and without using refinement to prove simple atomic specifications.
 
 More recently,
-Jagannathan et al~\cite{Jagannathan14} used a refinement style of proof in Coq to verify the atomicity of various GC-related operations,
+Jagannathan et al~\cite{Jagannathan14} used a refinement-style Coq proof to verify the atomicity of various GC-related operations,
 such as free-list allocation,
 part of a write barrier, and parts of a collector.
-Furthermore, they build atomicity from a very low-level model assuming weak consistency (TSO) rather than sequential consistency.
+Furthermore, they built atomicity from a very low-level weak consistency (TSO) model rather than sequential consistency.
 However, they don't yet fully verify the collector,
 but rather assume invariants needed by the atomicity proofs
 (``the proofs justifying the rely conditions as in the example above,

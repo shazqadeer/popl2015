@@ -104,8 +104,7 @@ program $\Prog'$ to another program $\Prog$ so that
 safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
 
 We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
-$\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$;
-the rules for this judgment are presented in Figure~\ref{fig:program-transformation}.
+$\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
 In this judgment,
 $\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
 and $\AvailableActions \in 2^{\ActionName}$ is a set of action names $\range(\Refines)$.
@@ -114,7 +113,7 @@ occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines
 the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
 Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
 
-For space reasons, we have chosen to presente the more interesting rules in Figure~\ref{fig:program-transformation};
+For space reasons, we have chosen to present the more interesting rules in Figure~\ref{fig:program-transformation};
 the complete set of rules in presented in supplemental material.
 Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
 which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
@@ -129,7 +128,7 @@ the body of $P$ is being checked (see Section~\ref{sec:refinement}).
 The judgment uses the notation $\elim{\Local}.\ \alpha$, defined to be the following transition relation:
 \[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
 Finally, this rule constrains actions in $\AvailableActions$ to be identical and then rewrites all threads
-and all procedures that continue to be used in $\Prog'$.
+and all procedures that are still used in $\Prog'$.
 
 If $P \in \dom(\Refines)$, rule \textsc{Proc1} rewrites $\call{P}$ to $\call{\Refines(P)}$;
 otherwise, rule \textsc{Proc2} leaves $\call{P}$ unchanged.
@@ -168,7 +167,7 @@ described in Section~\ref{sec:yield-elimination}, that allow us to further simpl
 about the abstract program $\Prog'$ by soundly eliminating yields between the invocations of atomic actions in $\range(\Refines)$.
 Yield elimination is extremely important to reduce the complexity of annotations and invariants 
 required for proving the correctness of concurrent programs;
-in our framework, it would be useful for simplifying the proof of the abstract program $\Prog'$.
+in our framework, it is useful for simplifying the proof of the abstract program $\Prog'$.
 We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
 to perform yield elimination soundly.
 
@@ -178,8 +177,12 @@ and present our soundness theorem in Section~\ref{sec:correctness}.
 \subsection{Using linear variables}
 \label{sec:linearity}
 
-\begin{figure}
-\scriptsize{
+In this section, we formalize the judgment $\vdash \Prog$.
+Due to space constraints, we present only two illustrative rules
+(the full set of rules is presented in supplemental material):
+
+%\begin{figure}
+{\scriptsize{
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
@@ -215,17 +218,13 @@ $
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
-}
-\caption{Linear variables}
-\label{fig:linearity}
-\end{figure}
+}}
+%\caption{Linear variables}
+%\label{fig:linearity}
+%\end{figure}
 
-In this section, we formalize the judgment $\vdash \Prog$.
-Due to space constraints, we present only a few of the illustrative rules in Figure~\ref{fig:linearity};
-the full set of rules is presented in supplemental material.
 The goal of the judgment $\vdash \Prog$ is to check that
 linear variables and atomic blocks are used appropriately in $\Prog$.
-
 The judgment $\vdash \Prog$ enforces that linear permissions are never duplicated during the 
 execution of $\Prog$.
 The predicate $\disjoint(\Lambda)$, where $\Lambda$ is a subset of $\Global \cup \ThreadLocal$,
@@ -248,7 +247,7 @@ Note that all global permissions in $\lins_G$ are also made available to the new
 there is no duplication because all threads refer to the same set of global variables.
 
 The judgment $\vdash \Prog$ also checks that 
-(1)~each atomic block does not contain any occurrences of $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, $\mathit{async}$, or $\mathit{assert}$ statements inside it, and
+(1)~each atomic block does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, $\mathit{async}$, or $\mathit{assert}$ statements inside it, and
 (2)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block.
 To facilitate these checks, the judgments have a parameter containing one of two values,
 $\ABlockOutside$ stating that the current statement is outside any atomic block and
@@ -806,15 +805,15 @@ is valid.
 
 In transforming a refined program $\Prog$ to an abstract program $\Prog'$, a number of atomic actions 
 are introduced simultaneously.
-Consequently, we may need to eliminate a collection of yields at the same time.
-To achieve this goal, we introduce the {\em Yield Sufficiency Automaton\/} ($\YSA$) that encodes 
+Thus, we may need to eliminate a collection of yields at the same time.
+To achieve this, we introduce the {\em Yield Sufficiency Automaton\/} ($\YSA$) that encodes 
 all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
 The automaton has three states---$\RM$, $\CM$, and $\LM$.
 The edge labels belong to the set $\{B,R,L,N,A,Y\}$, where $B$, $R$, $L$, and $N$ represent the various kinds 
 of atomic actions described earlier, $A$ represents an atomic block, and $Y$ represents a yield.
 The judgment $\Refines;\actions \jy \Prog$ checks that the code in $\Prog$ can be simulated by traces of this automaton.
 This automaton allows traces in which {\em transactions\/} are separated by yields;
-Each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
+each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
 In the middle, it can have either at most one non mover or a sequence of atomic blocks.
 
 The rules for the judgment $\Refines;\actions \jy \Prog$ essentially check 

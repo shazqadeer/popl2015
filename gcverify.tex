@@ -2,9 +2,9 @@
 
 We have implemented and verified our algorithm in Boogie,
 including initialization (Initialize), the GC (GarbageCollect), the allocator (Alloc),
-and the mutator operations (ReadField, WriteField, and Eq, which tests for pointer equality),
-and all the lower-level operations required to implement them (some of which appear
-in Figure~\ref{fig:VerifiedGC}, but most of which are omitted from the figure to save space).
+and the mutator operations (ReadField, WriteField, and Eq),
+and all the lower-level operations required to implement them (some of these appear
+in Figure~\ref{fig:VerifiedGC}; others are omitted from the figure to save space).
 To make the verification as realistic as possible,
 our Boogie code implements everything in terms of individual CPU operations,
 such as load, store, atomic increment/decrement, and CAS (compare-and-swap);
@@ -91,10 +91,10 @@ since gcTid is consumed, it's impossible to call Initialize twice in an attempt 
 Because \civl's linearity is based on sets of values,
 we can represent thread identifiers as sets that can be subdivided into subsets
 (similar to how fractional permissions may be divided into fractions).
-During root scanning, each mutator thread places a non-empty fraction of its thread id in a global variable,
+During root scanning, each mutator thread places a fraction of its thread id in a global variable,
 and extracts the fraction from the global variable after root scanning completes;
-the collector maintains the invariant that the global variable contains non-empty fractions from all the mutators during root scanning.
-Thus, during root scanning, \civl's rules for linearity prove that no interference is possible
+a collector invariant tracks that the global variable contains non-empty fractions from all mutators during root scanning.
+Thus, during root scanning, \civl's rules for linearity prove that no interference occurs
 between the collector and any mutator operations that require the whole mutator thread id
 (``mutatorTidWhole'', used in Figure~\ref{fig:VerifiedGC}'s ReadField, WriteField, Alloc,
 and most other mutator operations).

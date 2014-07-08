@@ -74,8 +74,8 @@ Formally, a \civl program is a tuple $(\procs, \actions, \ProcLins, G, \TS)$ wit
 $\procs$ maps a procedure name $P \in \ProcName$ to a tuple $(\phi, \mods, \psi, \stmt)$, 
 where $\phi$ is the precondition of $P$, $\mods$ is the set of thread-local variables potentially modified by $P$, 
 $\psi$ is the postcondition of $P$, and $\stmt$ is the body of $P$.
-The predicates $\phi$ and $\psi$ should not refer to procedure-local variables.
-Procedures do not have parameters; however, parameters may be modeled using thread-local variables.
+The predicates $\phi$ and $\psi$ cannot refer to procedure-local variables.
+Procedures do not have parameters, but parameters may be modeled using thread-local variables.
 
 \noindent
 {\bf Actions.}
@@ -83,7 +83,7 @@ $\actions$ maps an action name $A \in \ActionName$ to a tuple $(\rho,\alpha,m)$.
 Actions are used inside procedure bodies to access variables.
 The predicate $\rho$ is the precondition and the predicate $\alpha$ is the transition relation of $A$;
 $\rho$ is a predicate over $\Store$ and $\alpha$ is a predicate over $\Store \times \Store$.
-The final component $m$ is one of four values in $\{B,R,L,N\}$;
+Finally, $m$ is one of four values in $\{B,R,L,N\}$;
 it denotes the commutativity type of the action, $B$ for both mover, $R$ for right mover, $L$ for left mover, 
 and $N$ for non mover~\cite{FlanaganFLQ08}. 
 
