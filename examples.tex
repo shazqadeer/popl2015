@@ -292,17 +292,16 @@ providing different {\tt yield} predicates at different phases of a
 proof are important novel proof organization capabilities in \civl
 that facilitate proofs spanning large abstraction gaps.
 
-{\bf Putting it all together.} Refinement reasoning requires powerful,
-flexible mechanisms for reasoning about invariants.  This was
-illustrated in Program~5, where refinement verification for
-\exC{TopWB} required (i) rely-guarantee reasoning using a stable yield
-predicate, and (ii) the verification of atomicity for \exC{MidWB},
-which, in turn, required reduction. A variety of invariant reasoning
-techniques were also instrumental for verifying refinement for the
-GC. The various features of \civl are designed to
-support the overarching goal of organizing and carrying out a
-refinement proof in an efficient, natural way.
-
+{\bf Putting it all together.} 
+Refinement reasoning requires powerful and
+flexible mechanisms for reasoning with invariants.  
+As illustrated in Program~5, refinement verification for \exC{TopWB} required 
+(1)~rely-guarantee reasoning using a stable yield predicate, and 
+(2)~verification of atomicity for \exC{MidWB}, which, in turn, required reduction. 
+The combination of features in \civl, such as assertion reasoning, linear variables, and yield elimination,
+is designed to support the goal of organizing a
+refinement proof in an efficient and natural way.
+The GC verification effort, described in Section~\ref{sec:gc}, provides a compelling demonstration of \civl in action.
 
 
 %To force commit.

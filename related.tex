@@ -1,11 +1,12 @@
-% In particular, the use of separating conjunction allows programs to partition heap locations and locked resources between threads so that only one thread has access at a time.
-% \civl's linear variables also express this sort of partitioning; for example, \civl can express linear maps for partitioning heaps among threads.
-% Linear type systems do impose a larger burden on programmers, since operations on linear variables make all separation and framing explicit, while separation logics can implicitly move resources between separating conjuncts using separation logic rules.
-% On the other hand, \civl does not require a theorem prover for separation logic, allowing it to work with existing fast classical logic solvers such as Z3.
-
-% In the absence of interference checking, the original work on concurrent separation logic~\cite{OHearn07} had to bake in abstractions for locking and resources.
-% More recent papers reintroduce reasoning about interference into separation logic using rely-guarantee reasoning~\cite{SAGL,RGSep}.
-% This allows programmers to encode their own locks and lock-free structures.
+QED~\cite{ElmasQT09} is a refinement-oriented proof system for concurrent programs built on iterative use of abstraction and reduction.
+Although \civl draws inspiration from QED, it has two important advantages that are key to 
+the construction of proofs spanning a large abstraction gap, such as the proof of the concurrent garbage collector.
+First, QED proof steps are smaller than those in \civl. 
+They correspond to a single action being abstracted, or two statements being combined using reduction. 
+\civl is designed to support larger proof steps in which a set of procedures are replaced by their atomic action specifications. 
+Second, unlike QED which depends on global invariants, 
+\civl supports the specification and verification of invariants for each program location, 
+including non-interference verification through the use of linear variables. 
 
 VCC~\cite{VCC} is a tool for verifying concurrent C programs using the Z3 SMT solver.  
 Chalice~\cite{LM09} is a language and modular verification tool for concurrent programs. 
@@ -17,16 +18,6 @@ Invariant reasoning in \civl is more primitive and based on assertions in yield 
 Although the approach in VCC and Chalice is more convenient when applicable, \civl's approach is more flexible. 
 VCC and Chalice can reason sequentially about objects exclusively owned by a thread;
 \civl accomplishes the same using linear variables.
-
-QED~\cite{ElmasQT09} is a proof system for concurrent programs built on iterative use of abstraction and reduction. 
-\civl has two important advantages over QED that are key to 
-the construction of proofs spanning a large abstraction gap, such as the proof of the concurrent garbage collector.
-First, QED proof steps are smaller than those in \civl. 
-They correspond to a single action being abstracted, or two statements being combined using reduction. 
-\civl is designed to support larger proof steps in which a set of procedures are replaced by their atomic action specifications. 
-Second, unlike QED which depends on global invariants, 
-\civl supports the specification and verification of invariants for each program location, 
-including non-interference verification through the use of linear variables. 
 
 Concurrent separation logic~\cite{OHearn07} is a way to reason about concurrency without having to 
 explicitly check for non-interference between threads. 
