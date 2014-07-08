@@ -62,7 +62,7 @@ The sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread
 respectively.
 These sets are mutually disjoint and $\Var$ denotes their union.
 There is an uninterpreted set $\Value$ of values that may be stored in these variables.
-$\Store$, $\StoreGlobal$, $\StoreThreadLocal$, and $\StoreLocal$ are the set of all maps into $\Value$
+$\Store$, $\StoreGlobal$, $\StoreThreadLocal$, and $\StoreLocal$ are sets of all maps into $\Value$
 from $\Var$, $\Global$, $\ThreadLocal$, and $\Local$ respectively.
 We denote elements of $\Store$, $\StoreGlobal$, $\StoreThreadLocal$, and $\StoreLocal$
 by $\sigma$, $\varsG$, $\varsTL$, and $\varsL$ respectively.
@@ -123,15 +123,17 @@ the store is updated according to the transition relation $\alpha$.
 The statement $\call{P}$ invokes the procedure $P$;
 if $\procs(P) = (\phi, \mods, \psi, \stmt)$, then the precondition $\phi$ is expected to hold at the invocation,
 the statement $\stmt$ begins execution, and the postcondition $\psi$ is expected to hold when $\stmt$ finishes.
-An important aspect of the semantics of a procedure $P$ is that there is an implicit $\yield{phi}$ before $\stmt$
+An important aspect of the semantics of a procedure $P$ is that there is an implicit $\yield{\phi}$ before $\stmt$
 and an implicit $\yield{\psi}$ after $\stmt$; therefore $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
 The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
 The statement $\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield inside it and consequently executes atomically;
 the predicate $e$ is expected to hold and the permissions $\lins$ expected to be available at the beginning.
+This statement is useful for compactly encoding non-interference checks (Section~\ref{sec:refinement}).
 The statement $\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$.
 The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr$ is true and otherwise executes $\stmt_2$.
 The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
-The expression $e$ is a loop invariant and the expression $\alpha$ is a loop summary for yield-free executions.
+The expression $e$ is a loop invariant and the expression $\alpha$ is a summary for failure-free executions of the loop that do not go 
+through a yield (Section~\ref{sec:refinement}).
 
 The operational semantics of a \civl program is formalized as a relation $\trans$ between a pair of programs.
 The rules for the relation (see supplemental material)
