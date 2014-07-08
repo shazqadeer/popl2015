@@ -32,11 +32,11 @@ handshaking (phase 3), locks (phase 2), and wrapping the primitive CPU operation
 Ultimately, the phases are built on trusted CPU-level atomic actions, such as reading and writing roots directly:
 
 \begin{verbatim}
-procedure PrimitiveWriteRoot(i:idx, v:int);
-ensures{:atomic} [assert rootAddr(i); root[i] := v;]
+procedure PrimitiveWriteRoot(i:idx, v:int)
+  atomic [assert rootAddr(i); root[i] := v;];
 
-procedure PrimitiveReadRoot(i:idx) returns (v:int);
-ensures{:atomic} [assert rootAddr(i); v := root[i];]
+procedure PrimitiveReadRoot(i:idx) returns (v:int)
+  atomic [assert rootAddr(i); v := root[i];];
 \end{verbatim}
 
 We write the highest-level action specifications in terms of an abstract view of memory,
@@ -61,7 +61,7 @@ It also establishes o's unique identity by ensuring that it did not previously b
 
 In addition to atomic action specifications, the verification establishes invariants using assertion reasoning
 (omitted from Figure~\ref{fig:VerifiedGC} to save space).
-For example, Initialize establishes a global mapping toAbs:[int]obj from physical memory mem and abstract memory memAbs,
+For example, Initialize establishes a global mapping toAbs:[int]obj from physical memory mem and abstract memory memAbs:
 
 \begin{verbatim}
 (forall x:int, f:fld ::
@@ -83,7 +83,7 @@ The GC thread has its own thread id gcTid, and each mutator has its own thread i
 The Initialize procedure consumes gcTid (written here as ``consume'')
 and borrows all the mutator thread ids (written as ``linear'', as in Section~\ref{sec:overview}),
 so that it's clear that no other concurrent actions are allowed during initialization.
-This allows all the internal initialization actions to be both movers, without requiring any explicit locking.
+This allows all the internal initialization actions to be both-movers, without requiring any explicit locking.
 Initialize must consume gcTid because it passes gcTid to the newly spawned GarbageCollector thread;
 since gcTid is consumed, it's impossible to call Initialize twice in an attempt to spawn two parallel GC threads
 (which naturally expresses how the algorithm is only safe for a single GC thread).
@@ -92,7 +92,7 @@ Because \civl's linearity is based on sets of values,
 we can represent thread identifiers as sets that can be subdivided into subsets
 (similar to how fractional permissions may be divided into fractions).
 During root scanning, each mutator thread places a fraction of its thread id in a global variable,
-and extracts the fraction from the global variable after root scanning completes;
+and reclaims the fraction from the global variable after root scanning completes;
 a collector invariant tracks that the global variable contains non-empty fractions from all mutators during root scanning.
 Thus, during root scanning, \civl's rules for linearity prove that no interference occurs
 between the collector and any mutator operations that require the whole mutator thread id

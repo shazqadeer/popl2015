@@ -18,7 +18,7 @@ modern high-performance collectors avoid this overhead.
 Therefore, our algorithm (shown inside the solid boxes in Figure~\ref{fig:VerifiedGC}) extends and modifies Dijkstra's collector
 to make it work with parallel programs and to not require a write-barrier on root modifications.
 Like Dijkstra's collector, our algorithm first {\em marks} all objects reachable from roots (registers and stacks),
-shown in Figure~\ref{fig:VerifiedGC}'s Mark procedure, and then sweeps away all unreached objects,
+shown in Figure~\ref{fig:VerifiedGC}'s Mark procedure, and then {\em sweeps} away all unreached objects,
 shown in Figure~\ref{fig:VerifiedGC}'s Sweep procedure.
 As in Dijkstra's collector, our algorithm employs a tri-color abstraction to describe the trace of the reachable objects.
 Objects are said to be {\em white} if the collector has not seen them yet during the trace.
@@ -40,7 +40,7 @@ Concurrent mutator operations on objects (ReadField and WriteField in Figure~\re
 could potentially break the no-black-to-white invariant,
 because a mutator's WriteField operation could potentially redirect a pointer of a black object to point to a white object.
 Therefore, coordination between the program and the concurrent collector is required:
-Before each raw pointer update (WriteFieldRaw), the WriteField procedure executes a {\em write-barrier} (WriteBarrier).
+before each raw pointer update (WriteFieldRaw), the WriteField procedure executes a {\em write-barrier} (WriteBarrier).
 Before pointer field $x.f$ is set to reference an object $y$,
 WriteBarrier shades $y$, ensuring that even if $x$ is black, a pointer from $x$ to $y$
 will not violate the no-white-to-black invariant.
