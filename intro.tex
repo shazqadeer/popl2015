@@ -3,19 +3,17 @@ Due to the difficulty of verifying software directly at the implementation level
 researchers have long advocated a refinement approach in which a simple high-level description is refined, 
 through several phases, down to an implementation.
 However, there is little tool support for refinement of concurrent systems software down to an executable implementation.
-In this paper, we present such a refinement method, and an intermediate language  and a verification tool (\civl) to support it.
+In this paper, we present such a refinement method, and an intermediate language and a verification tool (\civl) to support it.
 We demonstrate our approach on a realistic concurrent garbage collection (GC) algorithm.
 The high level specification for the mutators consists of atomic action specifications for memory allocation and field accesses;
 the garbage collector itself is specified as an atomic action with no side effects.
 This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
-To the best of our knowledge, the abstraction gap bridged by our automated refinement has not been verified
-for concurrent garbage collectors by prior work.
 
 In our proof method, a program is described at several different levels of abstraction. 
 All of these descriptions as well as the refinement relationships connecting them reside in the same \civl file, the input to our tool. 
-Atomic actions in a high-level description are refined to more fine-grain, optimized lower-level implementations. 
+Atomic actions in a high-level description are refined to fine-grain and optimized lower-level implementations. 
 An implementation of an atomic action may make use of additional variables which are hidden in the action's specification. 
-Modular specifications and proof annotations such as program and location invariants and procedure pre- and post-conditions, 
+Modular specifications and proof annotations such as location invariants and procedure pre- and post-conditions, 
 are specified separately, independently at each level in terms of the variables visible at that level. 
 For instance, in the GC, the top-level specifications and annotations reflect the client's view 
 in terms of an idealized infinite heap and field relationships between objects, 
@@ -49,6 +47,7 @@ while our rely-guarantee encoding aids management of colors inside the write bar
 Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
 from low-level memory operations all the way up to high-level specifications; 
 we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
+We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
 
 To summarize, the key contributions of this paper are as follows:
 \begin{itemize}

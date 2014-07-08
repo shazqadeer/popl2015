@@ -62,19 +62,14 @@
 \input{macros}
 
 \begin{abstract}
-We present a verifier for concurrent programs based on automated and modular refinement reasoning.  
-%% \civl provides 
-
-%% local assertions for reasoning about interference among concurrently-executing actions,
-%% linear variables for reasoning about disjointness of resources, 
-%% and modules for abstraction and compositional verification.
-%% We present a proof system for \civl programs based on linear typing and compilation to a 
-%% collection of sequential verification conditions.
-%% We have implemented \civl as an extension to the \boogie intermediate verification language,
-%% using \zthree to discharge the verification conditions.
-%% We present our experience using \civl for verification of concurrent benchmark programs.
-%% We also report on the use of \civl as an intermediate verification language 
-%% for programs written in \casm, a verifiable concurrent assembly language.
+We present \civl, a language and verifier for concurrent programs based on automated and modular refinement reasoning.  
+\civl supports reasoning about a concurrent program at many levels of abstraction. 
+Atomic actions in a high-level description are refined to fine-grain and optimized lower-level implementations. 
+Modular specifications and proof annotations such as location invariants and procedure pre- and post-conditions, 
+are specified separately, independently at each level in terms of the variables visible at that level. 
+We have implemented \civl as an extension to the \boogie language and verifier.
+We have used \civl to refine a realistic concurrent garbage collection algorithm
+from a simple high-level specification down to a highly-concurrent implementation described in terms of individual memory accesses.
 \end{abstract}
 
 \section{Introduction}
@@ -99,12 +94,6 @@ We present a verifier for concurrent programs based on automated and modular ref
 
 \bibliographystyle{abbrv}
 \bibliography{paper}
-
-\newpage
-
-% moved to supplement.tex:
-%\appendix
-%\input{appendix}
 
 \end{document}
 
