@@ -1,0 +1,239 @@
+
+\newcommand{\Type}{\mathit{Type}}
+\newcommand{\VarName}{\mathit{AllVar}}
+\newcommand{\Var}{\mathit{Var}}
+\newcommand{\Value}{\mathit{Value}}
+\newcommand{\Expr}{\mathit{Expr}}
+\newcommand{\StateExpr}{\mathit{Expr}}
+\newcommand{\TransExpr}{\mathit{TransExpr}}
+\newcommand{\LocalStateExpr}{\mathit{LocalExpr}}
+\newcommand{\Spec}{\mathit{Spec}}
+\newcommand{\AtomicSpecName}{\mathit{AtomSpecName}}
+\newcommand{\AtomicAction}{\mathit{AtomAction}}
+\newcommand{\Entry}{\mathit{Entry}}
+\newcommand{\Program}{\mathit{Program}}
+\newcommand{\Prog}{\mathit{Prog}}
+\newcommand{\ProgSpec}{\mathit{ProgSpec}}
+\newcommand{\ProcName}{\mathit{Proc}}
+\newcommand{\ActionName}{\mathit{Action}}
+\newcommand{\Proc}{\mathit{Proc}}
+\newcommand{\proc}{\mathit{Pr}}
+\newcommand{\Vinfo}{\mathit{Vinfo}}
+\newcommand{\Realz}{\mathit{Real}}
+\newcommand{\realz}{\mathit{rl}}
+\newcommand{\Vstore}{\mathit{Vstore}}
+\newcommand{\Vinfos}{\overrightarrow{\mathit{Vinfo}}}
+\newcommand{\Blocks}{\mathit{Blocks}}
+\newcommand{\Block}{\mathit{Block}}
+\newcommand{\BlockHeader}{\mathit{BlockHdr}}
+\newcommand{\blockheader}{\mathit{bh}}
+\newcommand{\Thread}{\mathit{Thread}}
+\newcommand{\Label}{\mathit{Label}}
+\newcommand{\Body}{\mathit{Body}}
+\newcommand{\ProcSpec}{\mathit{ProcSp}}
+\newcommand{\ProcRefSpec}{\mathit{RefSp}}
+\newcommand{\Stmt}{\mathit{Stmt}}
+\newcommand{\stm}{\mathit{stm}}
+\newcommand{\coll}{\mathit{coll}}
+\newcommand{\stmt}{\mathit{s}}
+\newcommand{\ProcBody}{\mathit{ProcBody}}
+\newcommand{\locExpr}{\mathit{le}}
+\newcommand{\exC}[1]{{\tt {#1}}}
+
+\newcommand{\yieldorborder}[1]{\mathit{yield\_or\_border}\ #1}
+\newcommand{\ite}[3]{{\mathit{if}\ {#1}\ }{\mathit{then}\ {#2}\ }{\mathit{else}\ {#3}\ }}
+\newcommand{\while}[3]{\mathit{while}\ \{{#1}\}\  {{#2}\ } \mathit{do}\ {{#3}\ } }
+\newcommand{\yield}[1]{\mathit{yield}\ #1}
+\newcommand{\join}[1]{\mathit{join}\ #1}
+\newcommand{\async}[1]{\mathit{async}\ #1}
+\newcommand{\call}[1]{\mathit{call}\ #1}
+\newcommand{\noyield}[1]{\mathit{noyield}\ {#1}\ }
+\newcommand{\ablock}[2]{\mathit{ablock}\ {\{#1\}}\ {#2}\ }
+\newcommand{\parcall}[2]{\mathit{call}\ {#1} || {#2}\ }
+\newcommand{\border}[1]{\mathit{border}\ #1}
+\newcommand{\assert}[1]{\mathit{assert}\ #1}
+\newcommand{\assume}[1]{\mathit{assume}\ #1}
+\newcommand{\distinguish}[1]{\mathit{distinguish}\ #1}
+\newcommand{\distinguishother}[1]{\overline{\mathit{distinguish}}\ #1}
+\newcommand{\havoc}[1]{\mathit{havoc}\ #1}
+\newcommand{\goto}[1]{\mathit{goto}\ #1}
+\newcommand{\fork}[1]{\mathit{par}\ #1}
+\newcommand{\impl}[3]{ \{ {#1} \}  {#2} \preceq {#3} }
+\newcommand{\skipstmt}{\mathit{skip}}
+\newcommand{\transfer}[2]{#2 \leftarrow #1}
+\newcommand{\block}{b}
+\newcommand{\hiddenVars}{\vec{h}}
+\newcommand{\blocks}{\mathit{bls}}
+\newcommand{\procSpecs}{\mathit{prSp}}
+\newcommand{\procRefSpecs}{\mathit{refSp}}
+\newcommand{\ControlFlow}{\mathit{Control}}
+\newcommand{\cf}{\mathit{cf}}
+\newcommand{\state}{\sigma}
+\newcommand{\unchangedExcept}[1]{\mathit{UnchangedExcept}_{ {#1} }}
+\newcommand{\procs}{\mathit{ps}}
+
+\newcommand{\Store}{\mathit{Store}}
+\newcommand{\StoreGlobal}{\mathit{StoreGlobal}}
+\newcommand{\StoreThreadLocal}{\mathit{StoreThreadLocal}}
+\newcommand{\StoreLocal}{\mathit{StoreLocal}}
+\newcommand{\varsG}{G}
+\newcommand{\varsTL}{\mathit{TL}}
+\newcommand{\varsL}{L}
+\newcommand{\true}{\mathit{true}}
+\newcommand{\false}{\mathit{false}}
+\newcommand{\varsGTLL}{\varsG\cup\varsTL\cup\varsL}
+\newcommand{\vars}{\sigma}
+\newcommand{\PS}{\vec{\mathit{P}}}
+\newcommand{\TS}{\overrightarrow{\mathit{T}}}
+\newcommand{\LS}{\vec{\mathit{L}}}
+\newcommand{\yielding}[1]{\mathit{yielding}(#1)}
+\newcommand{\trans}{\longrightarrow}
+\newcommand{\transmany}{\trans^{*}}
+\newcommand{\xs}{\vec{\mathit{x}}}
+\newcommand{\ws}{\vec{\mathit{w}}}
+\newcommand{\ys}{\vec{\mathit{y}}}
+\newcommand{\vs}{\vec{\mathit{v}}}
+\newcommand{\ts}{\vec{\mathit{t}}}
+\newcommand{\stmts}{\vec{\mathit{s}}}
+\newcommand{\Collect}{\mathit{Collect}}
+\newcommand{\Inv}{\mathit{Inv}}
+\newcommand{\anAction}{{\eta}}
+\newcommand{\emptyAction}{\epsilon}
+
+\newcommand{\SeqProcStmt}{\mathit{PS}}
+\newcommand{\SeqVer}{{\mathit{SeqVer}\ }}
+\newcommand{\Visit}{{\mathit{Visit}}}
+\newcommand{\VarTypes}{\mathit{VarTypes}}
+\newcommand{\BlockTypes}{\mathit{BlockTypes}}
+\newcommand{\YieldLabels}{\mathit{YieldLabels}}
+\newcommand{\LinearVar}{\mathit{LinearVar}}
+\newcommand{\JoinLabels}{\mathit{JoinLabels}}
+\newcommand{\vartypes}{\Gamma}
+\newcommand{\blocktypes}{\Delta}
+\newcommand{\yieldlabels}{\Psi}
+\newcommand{\lins}{\lambda}
+\newcommand{\linss}{\vec{\lambda}}
+\newcommand{\dom}{\mathit{dom}}
+\newcommand{\range}{\mathit{range}}
+\newcommand{\Global}{\mathit{Global}}
+\newcommand{\Local}{\mathit{Local}}
+\newcommand{\ThreadLocal}{\mathit{ThreadLocal}}
+
+\newcommand{\ProcessProgram}{\mathit{ProcessProgram}}
+\newcommand{\ProcessModule}{\mathit{ProcessModule}}
+
+\newcommand{\InterfereStatic}{\mathit{InterfereStatic}}
+\newcommand{\InterfereDynamic}{\mathit{InterfereDynamic}}
+\newcommand{\Interfere}{\mathit{Interfere}}
+\newcommand{\Yields}{\mathit{Yields}}
+\newcommand{\Ablocks}{\mathit{Ablocks}}
+\newcommand{\ProcessBlocks}{\mathit{ProcessBlocks}\xspace}
+\newcommand{\ProcessBlock}{\mathit{ProcessBlock}\xspace}
+\newcommand{\ProcessStmt}{\mathit{ProcessStmt}\xspace}
+\newcommand{\ProcessHeaderBlock}{\mathit{ProcessHeaderBlock}\xspace}
+\newcommand{\requires}{\mathit{requires}}
+\newcommand{\availLocals}{\vec{\mathit{a}}}
+\newcommand{\ea}{\mathit{e}_a}
+\newcommand{\ey}{\mathit{e}_y}
+\newcommand{\ew}{\mathit{e}_w}
+\newcommand{\xsw}{\vec{\mathit{x}}_w}
+\newcommand{\xsr}{\vec{\mathit{x}}_r}
+\newcommand{\dummyLocal}{l_d}
+\newcommand{\Add}{\mathit{Add}}
+
+\newcommand{\modulename}{\mathit{M}}
+\newcommand{\modulenames}{\vec{\mathit{M}}}
+\newcommand{\ModuleName}{\mathit{ModuleName}}
+\newcommand{\ModuleHeader}{\mathit{ModuleHdr}}
+\newcommand{\ModuleHeaders}{\mathit{ModuleHdrs}}
+\newcommand{\modulelabels}{\mathit{mls}}
+\newcommand{\modulepreconditions}{\mathit{mps}}
+\newcommand{\moduleheaders}{\mathit{mhs}}
+\newcommand{\moduleheader}{\mathit{mh}}
+
+\newcommand{\Good}{\mathit{Good}}
+\newcommand{\GoodModule}{\mathit{GoodModule}}
+\newcommand{\GoodModules}{\mathit{GoodModules}}
+\newcommand{\NeverFail}{\mathit{NeverFail}}
+
+\newcommand{\YieldingThread}{\mathit{YT}}
+
+\newcommand{\YieldingThreads}{\overrightarrow{\YieldingThread}}
+
+\newcommand{\StmtStack}{\mathit{SS}}
+
+\newcommand{\StmtCtxt}{\mathit{SC}}
+\newcommand{\StmtStackCtxt}{\mathit{SSC}}
+\newcommand{\ThreadCtxt}{\mathit{TC}}
+\newcommand{\ProgCtxt}{\mathit{PC}}
+
+\newcommand{\fails}{\ \mathrm{fails}}
+
+
+\newcommand{\tl}{\mathit{tl}}
+\newcommand{\tls}{\mathit{tls}}
+\newcommand{\Frame}[2]{(#1,#2)}
+
+\newcommand{\pre}{\mathit{pre}}
+\newcommand{\post}{\mathit{post}}
+\newcommand{\modvars}{\mathit{mod}}
+\newcommand{\mov}{\mathit{mov}}
+\newcommand{\act}{\mathit{act}}
+\newcommand{\Continuation}{C}
+\newcommand{\YieldingContinuation}{\mathit{YC}}
+
+\newcommand{\js}{\vdash_s}
+\newcommand{\jr}{\vdash_r}
+\newcommand{\jy}{\vdash_y}
+
+\newcommand{\FH}[3]{\{#1\} #2 \{#3\}}
+\newcommand{\re}{\mathit{re}}
+\newcommand{\RM}{\mathit{RM}}
+\newcommand{\CM}{\mathit{CM}}
+\newcommand{\LM}{\mathit{LM}}
+
+\newcommand{\pf}{\rightharpoonup}
+
+\newcommand{\actions}{\mathit{as}}
+\newcommand{\Refines}{\mathit{RS}}
+
+\newcommand{\Mover}{\mathit{Mover}}
+
+\newcommand{\accessVars}{\mathit{Acc}}
+
+\newcommand{\FV}{\mathit{FV}}
+\newcommand{\Same}{\mathit{Same}}
+\newcommand{\Havoc}{\mathit{Havoc}}
+
+\newcommand{\RefinementAny}{r}
+\newcommand{\RefinementInside}{\mathrm{r^+}}
+\newcommand{\RefinementOutside}{\mathrm{r^-}}
+\newcommand{\NoProc}{\bullet}
+
+\newcommand{\ABlockAny}{a}
+\newcommand{\ABlockInside}{\mathrm{a^+}}
+\newcommand{\ABlockOutside}{\mathrm{a^-}}
+
+\newcommand{\ProcLins}{\mathit{ls}}
+\newcommand{\linsmax}{\mathrm {MaxLinear}}
+
+\newcommand{\mods}{M}
+\newcommand{\Unsat}[1]{\mathit{Unsat}(#1)}
+\newcommand{\AvailableActions}{\mathit{AS}}
+\newcommand{\disjoint}{\mathit{disjoint}}
+
+\newcommand{\MakeStore}[3]{{#1}\!\cdot\!{#2}\!\cdot\!{#3}}
+\newcommand{\CommutativitySafe}{\mathit{CommutativitySafe}}
+\newcommand{\InterferenceFree}{\mathit{InterferenceFree}}
+\newcommand{\Yielding}{\mathit{Yielding}}
+\newcommand{\Safe}{\mathit{Safe}}
+\newcommand{\Responsive}{\mathit{Responsive}}
+\newcommand{\Injective}{\mathit{Injective}}
+
+\newcommand{\Subst}{\Delta}
+\newcommand{\Set}{\mathit{Set}}
+\newcommand{\old}{\mathit{old}}
+\newcommand{\ga}[2]{{#1}\!\downarrow\!{#2}}
+\newcommand{\elim}[1]{\exists\exists {#1}}
+
+\newcommand{\YSA}{\mathit{YSA}}

@@ -1,0 +1,1354 @@
+\begin{figure*}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\AvailableActions \vdash \skipstmt \leadsto \skipstmt}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+A \in \AvailableActions
+}
+{\Refines;\AvailableActions \vdash \call{A} \leadsto \call{A}}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s \leadsto s'
+}
+{
+\Refines;\AvailableActions \vdash \ablock{e,\lins}{s} \leadsto s'
+}
+\;(\textsc{Ablock1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s \leadsto s'
+}
+{
+\Refines;\AvailableActions \vdash s \leadsto \ablock{e,\lins}{s'}
+}
+\;(\textsc{Ablock2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines)
+}
+{
+\Refines;\AvailableActions \vdash \call{P} \leadsto \call{\Refines(P)}
+}
+\;(\textsc{Proc1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\Refines)
+}
+{
+\Refines;\AvailableActions \vdash \call{P} \leadsto \call{P}
+}
+\;(\textsc{Proc2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\Refines)
+}
+{
+\Refines;\AvailableActions \vdash \async{P} \leadsto \async{P}
+}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\AvailableActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
+}
+{
+\Refines;\AvailableActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s_1 \leadsto s_1' \\
+\Refines;\AvailableActions \vdash s_2 \leadsto s_2'
+}
+{
+\Refines;\AvailableActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash s \leadsto s'
+}
+{
+\Refines;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
+}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
+}
+{
+\Refines;\AvailableActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\AvailableActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
+}
+\;(\textsc{Thread})
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\range(\Refines) \subseteq \AvailableActions \\
+\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
+\forall A \in \AvailableActions.\ \actions(A) = \actions'(A) \\
+\forall 1 \le i \le n.\ \Refines;\AvailableActions \vdash T_i \leadsto T_i' \\
+\forall P \not\in \dom(\Refines).\ \Refines;\AvailableActions \vdash \procs(P) \leadsto \procs'(P)
+}
+{
+\Refines;\AvailableActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Program transformation}
+\label{fig:program-transformation}
+\end{figure*}
+
+Suppose a program $\Prog'$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
+invocation $\call{P}$ of a procedure that is implemented using low-level actions.
+The main contribution of this paper is a verification method that allows us to safely refine
+program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
+safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
+
+We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
+$\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
+In this judgment,
+$\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
+and $\AvailableActions \in 2^{\ActionName}$ is a set of action names.
+This judgment expresses the intention that $\Prog$ is abstracted by replacing
+occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines)$ such that 
+the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
+Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
+
+For space reasons, we have chosen to present the more interesting rules in Figure~\ref{fig:program-transformation};
+the complete set of rules in presented in supplemental material.
+Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
+which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
+It also checks that every action in $\range(\Refines)$ has a precondition 
+that is independent of procedure-local variables and a transition relation that leaves 
+procedure-local variables unchanged.  
+This check is meaningful because the action $\Refines(P)$ is written from the 
+perspective of the caller of $P$.
+Since the procedure-local variables of the caller of $P$ are distinct from those of $P$,
+these variables are quantified out from the transition relation of $\Refines(P)$ when 
+the body of $P$ is being checked (see Section~\ref{sec:refinement}).
+The judgment uses the notation $\elim{\Local}.\ \alpha$, defined to be the following transition relation:
+\[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
+Finally, this rule constrains actions in $\AvailableActions$ to be identical in $\Prog$ and $\Prog'$ and then rewrites all threads
+and all procedures that are still used in $\Prog'$.
+
+If $P \in \dom(\Refines)$, rule \textsc{Proc1} rewrites $\call{P}$ to $\call{\Refines(P)}$;
+otherwise, rule \textsc{Proc2} leaves $\call{P}$ unchanged.
+Rule \textsc{Async} leaves the call unchanged but checks that $P \not \in \dom(\Refines)$.
+Rule \textsc{Ablock2} breaks up atomic blocks that contain calls
+to atomic actions that are being refined to procedures.
+Rule \textsc{Ablock1} allows smaller atomic blocks to be created in the refined program.
+Rule \textsc{Atomic} checks that $A \in \AvailableActions$ before leaving $\call{A}$ unchanged;
+this rule ensures that the abstract program only uses actions in $\AvailableActions$.
+
+The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
+To justify the transformation, a collection of auxiliary judgments need to be proved.
+We now present an overview of these judgments.
+The judgment $\vdash \Prog$, described in Section~\ref{sec:linearity}, 
+checks that $\Prog$ uses linear variables appropriately and that the statement
+inside any atomic block does not contain any yield.
+The former is important because appropriate use of linear variables gives our verifier access to free disjointness
+assumptions that are important for precise non-interference and commutativity reasoning (as described later in this section).
+The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
+in one thread is preserved by each atomic block in a different thread.
+
+Next, we have two judgments, $\InterferenceFree(\Prog, \Refines)$ and $\Refines \jr \Prog$,
+described in Section~\ref{sec:refinement},
+that together establish that all program annotations are consistent and that 
+each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
+for all $P \in \dom(\Refines)$.
+The rules for these judgments generalize the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
+The judgment $\InterferenceFree(\Prog, \Refines)$ checks that each thread preserves the
+yield predicate of every other thread.
+The judgment $\Refines \jr \Prog$ checks sequential correctness of each computation
+and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
+
+Finally, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, collectively 
+referred to as {\em yield elimination\/} and described in Section~\ref{sec:yield-elimination}.
+These judgments allow us to reduce the complexity of annotations and invariants 
+required for proving the correctness of the abstract program $\Prog'$
+by justifying the absence of (implicit) yields between some of the 
+invocations of atomic actions in $\range(\Refines)$.
+We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
+to perform yield elimination soundly.
+
+In the remainder of this section, we will formalize the judgments discussed above
+and present our soundness theorem in Section~\ref{sec:correctness}.
+
+\begin{figure*}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\lins;\ABlockAny \vdash \skipstmt : \lins
+}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins_y \subseteq \lins
+}
+{
+\lins;\ABlockOutside \vdash \yield{e,\lins_y} : \lins
+}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(A) = (\lins,\lins')
+}
+{
+\lins;\ABlockInside \vdash \call{A} : \lins'
+}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(P) = (\lins,\lins') \\
+}
+{
+\lins;\ABlockOutside \vdash \call{P} : \lins'
+}
+\;(\textsc{Proc})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins_G \subseteq \Global \\
+\lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocal \\
+\ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
+}
+{
+\lins_G,\lins,\lins_P;\ABlockOutside \vdash \async{P} : \lins_G,\lins
+}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockInside \vdash \stmt : \lins' \\
+\lins_a \subseteq \lins
+}
+{
+\lins;\ABlockOutside \vdash \ablock{e,\lins_a}{\stmt} : \lins'
+}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \StmtStack : \lins'
+}
+{
+\lins;\ABlockAny \vdash (\varsL,\StmtStack) : \lins'
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \StmtStack : \lins' \\
+\lins';\ABlockAny \vdash \stmt : \lins''
+}
+{
+\lins;\ABlockAny \vdash \StmtStack;\stmt : \lins''
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \stmt_1 : \lins' \\
+\lins;\ABlockAny \vdash \stmt_2 : \lins'
+}
+{
+\lins;\ABlockAny \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} : \lins'
+}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\lins;\ABlockAny \vdash \stmt : \lins
+}
+{
+\lins;\ABlockAny \vdash \while{e,\alpha}{\locExpr}{\stmt} : \lins
+}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(P) = (\lins,\lins') \\
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\lins;\ABlockOutside \vdash \stmt : \lins'
+}
+{
+\vdash P
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T = (\varsTL, (\varsL, \StmtStack)) \\
+\lins;\ABlockOutside \vdash \StmtStack : \lins'
+}
+{
+\lins \vdash T
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\ProcLins(A) = (\lins,\lins') \\
+\lins \cap \Global = \lins' \cap \Global \\
+\actions(A) = (\rho, \alpha, m) \\\\
+\forall (\sigma,\sigma') \in \alpha.\ 
+  \disjoint(\{\sigma(x) \mid x \in \lins\}) \Rightarrow
+  \disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
+\forall (\sigma,\sigma') \in \alpha.\ 
+  \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
+}
+{
+\vdash A
+}
+\;(\textsc{Action})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall P \in \ProcName. \vdash P \\
+\forall A \in \ActionName. \vdash A \\
+\lins_G \subseteq \Global \\
+\forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocal) \\
+\forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
+\forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
+\disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
+  \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
+}
+{
+\vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Linear variables and atomic blocks}
+\label{fig:linearity}
+\end{figure*}
+
+\subsection{Using linear variables}
+\label{sec:linearity}
+
+In this section, we formalize the judgment $\vdash \Prog$.
+The goal of this judgment is to check that
+linear variables and atomic blocks are used appropriately in $\Prog$.
+The judgment $\vdash \Prog$ enforces that linear permissions are never duplicated during the 
+execution of $\Prog$.
+The predicate $\disjoint(\Lambda)$, where $\Lambda$ is a subset of $\Global \cup \ThreadLocal$,
+encodes a disjointness invariant enforced by the linear type checker
+with respect to an arbitrary function $\Set$ (provided by the programmer) from $\Value$ to $2^\Value$.
+$\disjoint(\Lambda)$ states that the sets $\Set(\lins)$ for $\lins \in \Lambda$ are pairwise disjoint.
+Rule \textsc{Program} (supplemental material) checks that the disjointness invariant holds in the initial state of $\Prog$.
+Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
+Consequently, the invariant holds throughout the execution of $\Prog$.
+There are three conditions being checked by rule \textsc{Action}.
+First, the set of global linear permissions does not change.
+Second, if the disjointness invariant holds for input permissions it also holds for output permissions.
+Finally, the union of the sets constructed from output permissions is a subset of the union of sets
+constructed from input permissions.  
+This last condition is important because it allows via local checking to conclude that the disjointness invariant holds globally
+for linear permissions held by all threads.
+The rule \textsc{Async} splits the thread-local permissions $\lins$ of the caller of $\async{P}$ into $\lins$ 
+and $\lins_P$, passing $\lins_P$ to the new thread and continuing with $\lins$.
+Note that all global permissions in $\lins_G$ are also made available to the new thread;
+there is no duplication because all threads refer to the same set of global variables.
+
+The judgment $\vdash \Prog$ also checks that 
+(1)~each atomic block does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, $\mathit{async}$, or $\mathit{assert}$ statements inside it, and
+(2)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block.
+To facilitate these checks, the judgments have a parameter containing one of two values,
+$\ABlockOutside$ stating that the current statement is outside any atomic block and
+$\ABlockInside$ stating that the current statement is inside some atomic block.
+These two requirements together provide two simplifications that we exploit in Section~\ref{sec:refinement}.
+First, an atomic block cannot fail and can therefore be summarized by a transition relation.
+Second, checking non-interference of a yield predicate against all atomic blocks concurrently executing 
+in the environment will preserve the yield predicate across the entire computation across a context switch by the environment.
+
+\subsection{Refinement}
+\label{sec:refinement}
+
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\actions \vdash \skipstmt \preceq \Havoc(\{\})}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\actions \vdash \yield{e,\lins} \preceq \false}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions(A) = (\rho, \alpha, m) 
+}
+{\actions \vdash \call{A} \preceq \alpha}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\actions \vdash \call{P} \preceq \false}
+\;(\textsc{Call})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\actions \vdash \async{P} \preceq \Havoc(\{\})}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+s \preceq \alpha
+}
+{\actions \vdash \ablock{e,\lins}{s} \preceq \alpha}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions \vdash \stmt_1 \preceq \alpha_1 \\\\ \actions \vdash \stmt_2 \preceq \alpha_2
+}
+{\actions \vdash \stmt_1;\stmt_2 \preceq \alpha_1 \circ \alpha_2}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\ \actions \vdash \stmt_2 \preceq \ga{\neg \locExpr}{\alpha_2}
+}
+{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \vee \alpha_2}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions \vdash \stmt \preceq \beta \\ \neg \locExpr \circ \Havoc(\{\}) \Rightarrow \alpha \\ \beta \circ \alpha \Rightarrow \alpha 
+}
+{\actions \vdash \while{e,\alpha}{\locExpr}{\stmt} \preceq e \circ \alpha \circ \neg \locExpr}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions \vdash \stmt \preceq \alpha \\ \alpha \Rightarrow \alpha'
+}
+{\actions \vdash \stmt \preceq \alpha'}
+\;(\textsc{Weaken})
+$
+\medskip
+}
+\caption{Statement summarization}
+\label{fig:statement-summarization}
+\end{figure}
+
+In this section, we formalize the judgments $\Refines \jr \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
+The rules for the judgment $\Refines \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
+each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.  
+Suppose $P$ is a procedure in $\dom(\Refines)$, $A = \Refines(P)$, and $\actions(A) = (\rho, \alpha, m)$.
+Our strategy for $P$ is to check that along all paths in its body, there occurs exactly one atomic block 
+$\ablock{e,\lins}{\stmt}$ that is simulated by the transition relation $\alpha$.
+All other atomic blocks before or after this unique block are simulated by the transition relation $\Havoc(\Local)$ 
+which allows procedure-local variables to be modified arbitrarily but requires that global and thread-local variables are not modified.
+The judgment for simulating a code block with a transition relation is $\actions \vdash \stmt \preceq \alpha$; the rules for this judgment 
+are presented in Figure~\ref{fig:statement-summarization}.
+In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
+Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution or the invariants
+of the loop inside the atomic block may also be needed.
+Proving such predicates throughout the program is the job of the judgments $\Refines \jr \Prog$ and $\InterferenceFree(\Prog, \Refines)$.
+The rules for the former are presented in Figure~\ref{fig:refinement} and the latter is formalized in text towards the end of this 
+subsection.
+
+We first examine the rules for the judgment $\actions \vdash \stmt \preceq \alpha$ in Figure~\ref{fig:statement-summarization}.
+The intention of this judgment is to summarize all yield-free and failure-free executions of any statement $\stmt$ by the transition relation $\alpha$.
+Since there are no yield and assert statements inside atomic blocks, this judgment is clearly enough for summarizing them;
+the extra generality turns out to be useful later in Section~\ref{sec:yield-elimination}.
+The rules \textsc{Skip} and \textsc{Async} are similar;
+each statement is simulated by the transition relation $\Havoc(\{\})$ which leaves all variables unchanged.
+The rules \textsc{Yield} and \textsc{Call} are similar;
+each statement is simulated by $\false$ because our goal is to summarize only yield-free executions.
+Rule \textsc{Atomic} summarizes the call to an atomic action by the transition relation of the action.
+Rule \textsc{Ablock} simply summarizes the code block contained inside the atomic block.
+The rule \textsc{Seq} states that if $\stmt_1$ and $\stmt_2$ are simulated by $\alpha_1$ and $\alpha_2$ respectively, 
+then $\stmt_1;\stmt_2$ is simulated by the relational composition $\alpha_1 \circ \alpha_2$.
+The rule \textsc{Ite} uses the notation $\ga{\locExpr}{\alpha}$ which represents the set of all transitions $(\sigma, \sigma')$ 
+such that $\sigma \in \locExpr \Rightarrow (\sigma,\sigma') \in \alpha$.
+It states that if $\stmt_1$ is simulated by $\ga{\locExpr}{\alpha_1}$ and $\stmt_2$ is simulated by $\ga{\neg \locExpr}{\alpha_2}$,
+then $\ite{\locExpr}{\stmt_1}{\stmt_2}$ is simulated by $\alpha_1 \vee \alpha_2$.
+The rule \textsc{While} summarizes the body of the while loop by the transition relation $\beta$ and checks that the 
+loop summary $\alpha$ provided by the programmer is inductive.
+These checks allow the rule to conclude that the loop is summarized by $e \circ \alpha \circ \neg \locExpr$.
+Here (and elsewhere in this section), we overload a predicate $e$ over the store as the transition relation $\{(\sigma,\sigma') \mid \sigma \in e\}$.
+Note that the computed loop summary assumes the loop invariant $e$ since it is checked using the other judgments discussed later in this section.
+
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{\phi}{\skipstmt}{\phi};b}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\RefinementAny \in \dom(\Refines) \\ \actions(\Refines(\RefinementAny)) = (\rho, \alpha, m)
+}
+{\Refines;\procs;\actions;\RefinementAny;\{\};\false \jr \FH{e}{\yield{e,\lins}}{e \wedge \rho};\false}
+\;(\textsc{Yield1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
+\;(\textsc{Yield2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions(A) = (\rho, \alpha, m) \\ 
+\mods \subseteq \ThreadLocal \\
+\alpha \Rightarrow \Havoc(\Global \cup \mods \cup \Local) \\
+\RefinementAny \in \dom(\Refines) \Rightarrow \phi \subseteq \rho \\ 
+\phi \circ \alpha \circ \neg \psi = \{\} \\
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
+\;(\textsc{Atomic})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\procs(P) = (\phi, \mods, \psi, \stmt) \\ \RefinementAny \not \in \dom(\Refines)
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
+\;(\textsc{Call1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\procs(P) = (\phi, \mods, \psi, \stmt) \\ \RefinementAny \in \dom(\Refines) \\\\ 
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\true,\Havoc(\Local),m) 
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
+\;(\textsc{Call2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\RefinementAny \not \in \dom(\Refines)
+}
+{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{\rho \wedge \phi}{\async{P}}{\rho};b}
+\;(\textsc{Async1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\RefinementAny \in \dom(\Refines) \\
+P \in \dom(\Refines) \\
+\actions(\Refines(P)) = (\true,\Havoc(\Local),m)
+}
+{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{\rho \wedge \phi}{\async{P}}{\rho};b}
+\;(\textsc{Async2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\RefinementAny \not \in \dom(\Refines) \\
+\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{s}{\phi_2};b
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};b}
+\;(\textsc{Ablock1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\RefinementAny \in \dom(\Refines) \\ \actions \vdash s \preceq \ga{e}{\Havoc(\Local)} \\\\
+\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{s}{\phi_2};b
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};b}
+\;(\textsc{Ablock2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\RefinementAny \in \dom(\Refines) \\ \actions(\Refines(\RefinementAny)) = (\rho,\alpha,m) \\\\
+\actions \vdash s \preceq \ga{e}{\elim{\Local}.\ \alpha} \\
+\Refines;\procs;\actions;\RefinementAny;\mods;\false \jr \FH{\phi_1 \wedge e}{s}{\phi_2};\false
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;\false \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};\true}
+\;(\textsc{Ablock3})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\procs;\actions;\RefinementAny;\mods_1;b_1 \jr \FH{\phi_1}{\StmtStack}{\phi_2};b_2 \\\\ 
+\Refines;\procs;\actions;\RefinementAny;\mods_2;b_2 \jr \FH{\phi_2}{s}{\phi_3};b_3
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2;b_1 \jr \FH{\phi_1}{\StmtStack;s}{\phi_3};b_3}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\procs;\actions;\RefinementAny;\mods_1;b \jr \FH{e \wedge \phi_1}{s_1}{\phi_2};b' \\\\
+\Refines;\procs;\actions;\RefinementAny;\mods_2;b \jr \FH{\neg e \wedge \phi_1}{s_2}{\phi_2};b'
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr};b}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\phi \Rightarrow \phi' \\ \Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b' \\ \psi' \Rightarrow \psi
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
+\;(\textsc{Weaken})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b' \\ \accessVars(\rho) \cap \mods = \{\}
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi};b'}
+\;(\textsc{Frame})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\mods' \subseteq \mods \\\\
+\Refines;\procs;\actions;P;\mods';\false \jr \FH{\phi}{\stmt}{\psi};P \in \dom(\Refines)
+}
+{
+\Refines;\procs;\actions \jr P
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b \\\\
+(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
+\forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
+}
+{
+\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{(\varsL',\StmtStack)}{\psi};b
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T = (\varsTL, (\varsL, \StmtStack)) \\
+\MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \\
+\mods \subseteq \ThreadLocal \\\\
+\Refines;\procs;\actions;\NoProc;\mods;\false \jr \FH{\phi}{\StmtStack}{\true};\false
+}
+{
+\Refines;\procs;\actions;\varsG \jr T
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall P \in \ProcName.\ \Refines;\procs;\actions \jr P \\\\
+\forall 1 \le i \le n.\ \Refines;\procs;\actions;\varsG \jr T_i
+}
+{
+\Refines \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Refinement}
+\label{fig:refinement}
+\end{figure}
+
+Next we examine the rules for the the judgment $\Refines \jr \Prog$ in Figure~\ref{fig:refinement}.
+The crux of these rules is the judgment $\Refines;\actions;P \jr \stmt : b$, 
+where $P$ is a procedure in $\dom(\Refines)$, $\stmt$ is a statement inside the body of $P$, and $b$ is a 
+$\mathit{Boolean}$ value.
+Suppose $\Refines(P) = A$ and $\actions(A) = (\rho, \alpha, m)$.
+If $b$ is $\true$, this judgment indicates that during any execution of $\stmt$, 
+an atomic block that could be simulated by $\elim{\Local}.\ \alpha$ happened exactly once;
+this unique atomic modifies global and thread-local variables as constrained by $\alpha$.
+If $b$ is $\false$, this judgment indicates that during any execution of $\stmt$, each atomic block
+was simulated by $\Havoc(\Local)$, that is, it did not modify any global or thread-local variables.
+Informally, we say that $\stmt$ {\em acts\/} if $b$ is $\true$ and {\em stutters\/} if $b$ is $\false$.
+
+Starting from the bottom, rule \textsc{Program} checks that $\Refines;\actions;P \jr \stmt : \true$
+for each $P \in \dom(\Refines)$.
+The rule \textsc{While} checks that the body of the loop stutters and concludes that the loop itself stutters.
+The rule \textsc{Ite} checks that both branches behave in the same way.
+The rule \textsc{Seq} for $\stmt_1;\stmt_2$ guesses the behavior of $\stmt_1$ and $\stmt_2$ but constrains
+at most one of them to act.
+Rules \textsc{Ablock1} and \textsc{Ablock2} for $\ablock{e,\lins}{s}$ have been described informally in the last paragraph.  
+The main difference in the formal rules is that the simulation check is weakened using the predicate $e$
+assumed to hold upon entry into the atomic block.
+The other interesting rules are \textsc{Call1}, \textsc{Call2}, and \textsc{Async}.
+These rules require that the called procedure $P'$ is in $\dom(\Refines)$;
+thus, the set of procedures being introduced during refinement must be closed under the call relation.
+The rule for ordinary call $\call{P'}$ is similar to that of atomic blocks with the action $\Refines(P')$
+taking on the role of the atomic block;
+the gate and transition relation of $\Refines(P')$ are used analogously to the predicate and the code of the atomic block.
+The rule for asynchronous call $\async{P'}$ checks that $\Refines(P')$ stutters.
+
+%% We now discuss the judgment $\Refines \js \Prog$;
+%% the rules for this judgment are presented in Figure~\ref{fig:sequential-correctness}.
+%% Due to space constraints, we present only the rules that are different from the standard Floyd-Hoare rules for sequential programs;
+%% the full set of rules is presented in supplemental material.
+%% The judgment at the level of statements
+%% is as follows: $\procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\stmt}{\psi}$.
+%% Here $\RefinementAny$ is a value in the set $\{\RefinementInside, \RefinementOutside\}$.
+%% The value $\RefinementInside$ indicates that the rule is being applied inside a procedure that is expected 
+%% to refine an atomic action; otherwise, $\RefinementAny$ is $\RefinementOutside$.
+%% The set $\mods$ is the set of thread-local variables modified by the statement $\stmt$.
+
+%% Rule \textsc{Ablock} checks the entry condition for the atomic block and then verifies 
+%% the code inside the block.
+%% Rule \textsc{Async} checks the precondition of the called procedure.
+%% Rule \textsc{Proc1} and \textsc{Proc2} handle $\call{P}$.  
+%% Rule \textsc{Proc1} is similar to the standard call rule and applies if $P$ is not a refinement for an atomic action.
+%% Rule \textsc{Proc2} handles the case where the called procedure $P$ is a refinement for some action $A$.
+%% In that case, the rule checks that the precondition of $P$, the statement $\call{A}$, and the postcondition of $P$
+%% form a valid Floyd-Hoare triple.
+%% This check ensures that the sequential correctness proof is valid even after $\call{P}$ has been replaced with $\call{A}$.
+%% Rule \textsc{Atomic} checks that the precondition of the action holds, the action modifies only what it is allowed to,
+%% and that the transition relation establishes the postcondition.
+%% Rule \textsc{Yield} checks the yield predicate.
+%% Even though assertions in the abstract program are ignored in the sequential correctness proof of the refined program,
+%% the soundness of our refinement reasoning carries over their correctness from a proof of the abstract program.
+
+We now discuss the judgment $\InterferenceFree(\Prog,\Refines)$,
+where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
+Let $\Yields(\Prog)$ be the union of the following sets:
+\begin{itemize}
+\item
+$\{(\phi,\lins) \mid \yield{\phi,\lins}~\mathrm{appears~in~\Prog}\}$.
+\item
+$\{(\phi,\lins) \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
+\item
+$\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
+\end{itemize}
+Let $\Ablocks(\Prog,\Refines)$ be the set of atomic blocks in $\Prog$.
+Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Subst$ be a one-one 
+substitution function from $\ThreadLocal \cup \Local$ to $\FV$.
+Let $\Subst(\phi)$ represent the result of applying $\Subst$ to the expression $\phi$.
+The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
+if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$ and 
+for each atomic block $\ablock{e,\lins_a}{\stmt} \in \Ablocks(\Prog,\Refines)$, the following judgment holds:
+\[
+\actions \vdash \stmt \preceq \ga{\Subst(\phi) \wedge e \wedge \disjoint(\Subst(\lins_y \setminus \Global) \cup \lins_a)}{\Subst(\phi)}
+\]
+
+\subsection{Yield elimination}
+\label{sec:yield-elimination}
+
+Section~\ref{sec:refinement} showed how we can replace a call to a procedure with 
+a call to an atomic action.
+If each such call to an atomic action had a yield just before and a yield just after it,
+we would have a sound transformation of the original program and all safety properties proved
+on the abstract program would carry over to the refined program.
+However, we can do better by arguing that some of yields surrounding the calls to atomic actions 
+are unnecessary by exploiting commutativity properties of the atomic actions.
+In this section, we lay out this argument formally.
+
+Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program.
+The map $\actions$ maps each atomic action to a triple $(\rho, \alpha, m)$, the last component of which 
+denotes type of atomic action---$B$ for {\em both mover}, $R$ for {\em right mover}, $L$ for {\em left mover},
+and $N$ for {\em non mover}.
+Informally, an action labeled $N$ does not commute with other concurrent actions,
+an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
+an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
+and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
+The ability to commute past actions in the environment provides the capability to eliminate yields.
+For example, a yield after a right mover or a yield before a left mover is unncessary.
+
+We now formally define the meaning of the commutativity annotations on $\Prog$ described in the previous paragraph.
+Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
+Let $\Subst_1$ and $\Subst_2$ be one-one 
+substitution functions from $\ThreadLocal \cup \Local$ to $\FV_1$ and $\FV_2$ respectively.
+The program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
+if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
+all of the following conditions are satisfied:
+\begin{itemize}
+\item {\bf Commutativity.}
+If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+\[
+\begin{array}{l}
+(\Subst_1(\rho_1) \wedge \Subst_2(\rho_2) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2)))\ \circ \\
+(\Subst_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
+\subseteq \\
+(\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Subst_1(\alpha_1) \wedge \Same(\FV_2)).
+\end{array}
+\]
+\item {\bf Gate preservation.}
+If $m_1 \in \{B,L\}$ or $m_2 \in \{B,R\}$, then 
+$\Subst_1(\rho_1) \circ 
+\disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2))\ \circ \Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ 
+\neg \Subst_1(\rho_1)$
+is the empty set.
+\item {\bf Failure preservation.}
+If $m_2 \in \{B,L\}$, then 
+$\neg \Subst_1(\rho_1)\ \circ 
+\disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2)) \circ \Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ 
+\Subst_1(\rho_1)$ 
+is the empty set.
+\item {\bf Nonblocking.}
+If $m_1 \in \{B, L\}$, then
+$\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
+\end{itemize}
+
+\begin{figure*}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\actions \jy \skipstmt : (x, x)}
+\;(\textsc{Skip})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\actions \jy \yield{e,\lins} : (x, \RM)}
+\;(\textsc{Yield})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not \in \dom(\Refines)
+}
+{\Refines;\actions \jy \call{P} : (x, \RM)}
+\;(\textsc{Call})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, B)
+}
+{\Refines;\actions \jy \call{P} : (x, x)}
+\;(\textsc{Both})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, R)
+}
+{\Refines;\actions \jy \call{P} : (\RM, \RM)}
+\;(\textsc{Right})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, L)
+}
+{\Refines;\actions \jy \call{P} : (x, \LM)}
+\;(\textsc{Left})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, N)
+}
+{\Refines;\actions \jy \call{P} : (\RM, \LM)}
+\;(\textsc{Non})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{\Refines;\actions \jy \async{P} : (x, \LM)}
+\;(\textsc{Async})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\actions \jy s : (x, y)
+}
+{\Refines;\actions \jy \ablock{e,\lins}{s} : (x, y)}
+\;(\textsc{Ablock})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\actions \jy \StmtStack : (x, y) \\ \Refines;\actions \jy s : (y, z)
+}
+{\Refines;\actions \jy \StmtStack;s : (x, z)}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\actions \jy s_1 : (x, y) \\ \Refines;\actions \jy s_2 : (x, y)
+}
+{\Refines;\actions \jy \ite{\locExpr}{s_1}{s_2} : (x, y)}
+\;(\textsc{Ite})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\actions \jy s : (x, x)
+}
+{\Refines;\actions \jy \while{e,\alpha}{\locExpr}{s} : (x, x)}
+\;(\textsc{While})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\Refines;\actions \jy \stmt : (x, y)
+}
+{
+\Refines;\actions \jy P
+}
+\;(\textsc{Procedure})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\actions \jy \StmtStack : (x,y)
+}
+{
+\Refines;\actions \jy (\varsL,\StmtStack) : (x,y)
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+T = (\varsTL, (\varsL, \StmtStack)) \\
+\Refines;\actions \jy (\varsL, \StmtStack) : (x, y)
+}
+{
+\Refines;\actions \jy T
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall P \in \ProcName \setminus \dom(\Refines).\ \Refines;\actions \jy P \\\\
+\forall 1 \le i \le n.\ \Refines;\actions \jy T_i
+}
+{
+\Refines \jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Yield elimination}
+\label{fig:yield-elimination}
+\end{figure*}
+
+In transforming a refined program $\Prog$ to an abstract program $\Prog'$, a number of atomic actions 
+are introduced simultaneously.
+Thus, we may need to eliminate a collection of yields at the same time.
+To achieve this, we introduce the {\em Yield Sufficiency Automaton\/} ($\YSA$) that encodes 
+all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
+\begin{center}
+\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
+\end{center}
+The automaton has two states---$\RM$ and $\LM$.
+The edge labels belong to the set $\{B,R,L,N,Y\}$, where $B$, $R$, $L$, and $N$ represent the various kinds 
+of atomic actions described earlier, $A$ represents an atomic block, and $Y$ represents a yield.
+The judgment $\Refines;\actions \jy \Prog$ checks that all the code in $\Prog$, except procedures in $\dom(\Refines)$,
+can be simulated by traces of this automaton.
+This automaton allows traces in which {\em transactions\/} are separated by yields;
+each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
+In the middle, it can have at most one non mover.
+
+The essence of the rules in Figure~\ref{fig:yield-elimination}
+is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\LM\}$;
+the meaning is that to simulate the computation the automaton moves from state $x$ to state $y$.
+Rule \textsc{Program} performs checking for all threads and for all procedures not in $\dom(\Refines)$ since these are the 
+only procedures that remain in the abstract program.
+Rules \textsc{Thread}, \textsc{Stack}, and \textsc{Procedure} are straightforward.
+Rule \textsc{While} checks that the body of the loop leaves the state of the automaton unchanged.
+Rule \textsc{Ite} checks that the effect both branches is the same.
+Rule \textsc{Seq} composes the effect of $\stmt_1$ with the effect of $\stmt_2$.
+Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, \textsc{Non}, and \textsc{Ablock} essentially 
+examine the available edges in the automaton to validate the statement and calculate its effect.
+Rule \textsc{Async} is interesting because it treats an asynchronous call as a left mover.
+Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
+Rule \textsc{Skip} leave the state of the automaton unchanged.
+
+The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
+Consider the following program with a global variable {\tt x}, a thread-local variable {\tt t},
+a procedure {\tt Nop}, and two threads (shown on the left).
+
+\begin{center}
+{\small
+\begin{tabular}{lll}
+\begin{tabular}[t]{l}
+{\tt [ x := 0 ];} \\
+{\tt yield;} \\
+{\tt [ t := x ];} \\
+{\tt assert t == 0;} \\
+{\tt yield;} \\
+\end{tabular} 
+&
+\begin{tabular}[t]{l}
+{\tt yield;} \\
+{\tt [x := x + 1];} \\
+{\tt while (true) } \\
+{\tt ~~call Nop;} \\
+{\tt yield;} \\
+\end{tabular} 
+&
+\begin{tabular}[t]{l}
+{\tt procedure Nop()} \\
+{\tt ~~both [~]} \\
+{\tt ~~\{~\}}
+\end{tabular}
+\end{tabular}
+}
+\end{center}
+
+This program violates the assertion in it.
+The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0]} and yields;
+the second thread changes {\tt x} to $1$, calls {\tt Nop} and yields (implicit yield at call);
+the first thread reads {\tt x} into {\tt t} and fails the assert {\tt t == 0}. 
+However, after {\tt call Nop} is replaced with the action {\tt [~]}, the program does not fail,
+even though the code of the program satisfies the yield elimination check described earlier.
+To address this soundness problem in the presence of left and both movers, we require additionally 
+that the abstract program is responsive, that is, it yields infinitely often in any infinite execution.
+The abstract program in the example above is not responsive.
+
+{\bf Proving responsiveness.}
+A program is responsive if any infinite execution in it yields infinitely often.
+Although it is a liveness property, proving it is about as easy as proving termination of sequential program.
+The basic idea is to provide a loop with a measure function $f$ that decreases for each yield-free and failure-free 
+execution of the body of the loop.
+Thus, we can prove responsivenes by modifying only \textsc{While} rule in Figure~\ref{fig:refinement}
+as follows:
+\[
+\scriptsize{
+\inferrule
+{
+\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ 
+\alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\ \actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
+}
+{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
+\;(\textsc{While})
+}
+\]
+The modified rule above exploits the judgment $\actions \vdash s \preceq \alpha$ for statement summarization in 
+Figure~\ref{fig:statement-summarization}.
+
+\subsection{Correctness}
+\label{sec:correctness}
+
+\begin{theorem}
+Let $\Prog$ and $\Prog'$ be two programs, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
+and $\AvailableActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
+\begin{enumerate}
+\item
+$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$.
+\item
+$\Refines \jr \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
+\item
+$\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
+\end{enumerate}
+If $\Safe(\Prog')$ and $\Responsive(\Prog')$, then $\Safe(\Prog)$.
+\end{theorem}
+
+Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety and responsiveness of $\Prog'$.
+In general, the correctness proof of a large program is obtained by chaining together
+multiple instances of this theorem connecting a sequence of programs.  
+The code of adjacent programs in this chain are constrained by the $\leadsto$ relation but the annotations are left 
+unconstrained to allow as much flexibility in verification as possible.
+
+\subsection{Implementation}
+\label{sec:implementation}
+
+We have implemented the method described in this section as a conservation extension 
+of the Boogie~\cite{BarnettCDJL05} language and verifier.
+Our implementation provides new language primitives for linear variables, asynchronous and parallel procedure calls, 
+yields, and atomic actions as procedure specifications.
+At its core, Boogie is an unstructured language comprising code blocks and goto statements.
+Our implementation handles the complexity of unstructured control flow.
+To simplify the exposition, our formalization uses Floyd-Hoare triples to present sequential correctness and 
+annotated atomic code blocks to present refinement and non-interference checks.
+However, our implementation is considerably more automated.  
+All the annotations, except those at yields, loops, and procedure boundaries, are automatically generated 
+using the technique of verification conditions~\cite{BL05}.
+Annotated atomic code blocks are also inferred automatically.
+Non-interference checks are collected as inlined procedures
+invoked at appropriate places within the code of a procedure for increased precision.
+
+The judgment $\Refines \jy \Prog$ from Section~\ref{sec:yield-elimination} is fully automated.
+We adapted an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
+labeled graphs to check that the control flow graph of a procedure is simulated by
+the $\YSA$ automaton.
+The complexity of the algorithm is $O(n*m)$, where $n$ and $m$ are the number of control-flow graph nodes and edges.
+In practice, this part of the verification is fast.
+
+As mentioned in Section~\ref{sec:correctness}, a large proof usually comprises multiple layers of refinement chained together.
+Our implementation allows the specification of multiple views of a program in a single file by using the mechanism of {\em phases}.
+The programmer may attach a positive phase number to each annotation and procedure; 
+version $i$ of the program is constructed from annotations labeled $i$ and procedures labeled at least $i$.
+We have implemented a type checker to make sure that phase numbers are used appropriately, e.g., 
+it is illegal for a procedure with phase $i$ to call a procedure with phase $j$ greater than $i$.
+
+Our verifier also supports hiding of global variables.
+These operations were used in several places in the proof of a concurrent garbage collector (described in Section~\ref{sec:gc}).
+Hiding global variables is particularly useful because simple summaries can be written for complicated procedures
+once enough variables relevant to their implementation have been hidden.

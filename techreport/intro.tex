@@ -1,0 +1,68 @@
+Verifying software systems is challenging.
+Due to the difficulty of verifying software directly at the implementation level,
+researchers have long advocated a refinement approach in which a simple high-level description is refined, 
+through several phases, down to an implementation.
+However, there is little tool support for refinement of concurrent systems software down to an executable implementation.
+In this paper, we present such a refinement method, and an intermediate language and a verification tool (\civl) to support it.
+We demonstrate our approach on a realistic concurrent garbage collection (GC) algorithm.
+The high level specification for the mutators consists of atomic action specifications for memory allocation and field accesses;
+the garbage collector itself is specified as an atomic action with no side effects.
+This description is refined down to a highly-concurrent implementation described in terms of individual memory accesses.
+
+In our proof method, a program is described at several different levels of abstraction. 
+All of these descriptions as well as the refinement relationships connecting them reside in the same \civl file, the input to our tool. 
+Atomic actions in a high-level description are refined to fine-grain and optimized lower-level implementations. 
+An implementation of an atomic action may make use of additional variables which are hidden in the action's specification. 
+Modular specifications and proof annotations, such as location invariants and procedure pre- and post-conditions, 
+are specified separately, independently at each level in terms of the variables visible at that level. 
+For instance, in the GC, the top-level specifications and annotations reflect the client's view 
+in terms of an idealized infinite heap and field relationships between objects, 
+whereas lower levels represent different views of the implementation, referring to, 
+e.g., atomic updates of objects' colors or lock operations.
+In addition to making it possible to verify specifications at the most abstract level possible, 
+we find that such an approach is a natural way to design a program to be verified.  
+
+The verification method, language, and tool design have all been carried out with the goal of supporting  modular refinement 
+verification in a natural and computationally efficient manner. 
+\civl integrates in a sound proof system three concurrent program verification techniques that collectively enable refinement verification. 
+The first of these is a generalization of the Owicki-Gries method~\cite{OwickiG76} for non-preemptive concurrency, 
+allowing arbitrary code to appear inside an atomic action. 
+This simple but surprisingly powerful generalization allows us to compactly encode rely-guarantee reasoning~\cite{Jones83}
+and to reuse non-interference specifications from one program location to another.
+The second verification technique in \civl is an implementation of linear type checking.
+Linear types~\cite{Wadler90lineartypes} and separation logic~\cite{Reynolds02} enable substructural reasoning about data types
+(e.g. using separating conjunction or linear maps~\cite{LahiriQW11}).
+Linear types can also be used to encode the notion of unique thread identifiers useful for reasoning about non-interference. 
+The third technique in \civl is atomicity refinement through reduction~\cite{Lipton75}, abstraction, and variable hiding. 
+Atomicity refinement allows reasoning with coarser-grain atomic actions at higher levels of abstraction, 
+and reduces the annotation burden and the computational cost of verification. 
+Prior to our work, these verification techniques have never been put together into a single automated verifier.
+
+This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
+In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
+it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
+These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
+and coordination between the GC and mutator threads during root scanning; our use of linearity aids the proof of root scanning, 
+while our rely-guarantee encoding aids management of colors inside the write barrier.  
+Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
+from low-level memory operations all the way up to high-level specifications; 
+we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
+We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
+
+To summarize, the key contributions of this paper are as follows:
+\begin{itemize}
+\item 
+A modular and automated proof system to support refinement reasoning for concurrent programs.
+\item 
+An implementation of the proof system as a conservative extension to the Boogie programming language and verifier.
+\item 
+The design and verified implementation, comprising 2100 lines of code and specification, of a realistic concurrent GC algorithm.
+\end{itemize}
+
+%To force commit
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "paper"
+%%% End: 
+
