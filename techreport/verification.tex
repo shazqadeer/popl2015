@@ -205,11 +205,10 @@ occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines
 the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
 Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
 
-For space reasons, we have chosen to present the more interesting rules in Figure~\ref{fig:program-transformation};
-the complete set of rules in presented in supplemental material.
+The program transformation rules are presented in Figure~\ref{fig:program-transformation}.
 Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
 which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
-It also checks that every action in $\range(\Refines)$ has a precondition 
+It also checks that every action in $\range(\Refines)$ has a gate 
 that is independent of procedure-local variables and a transition relation that leaves 
 procedure-local variables unchanged.  
 This check is meaningful because the action $\Refines(P)$ is written from the 
@@ -252,18 +251,6 @@ The judgment $\InterferenceFree(\Prog, \Refines)$ checks that each thread preser
 yield predicate of every other thread.
 The judgment $\Refines \jr \Prog$ checks sequential correctness of each computation
 and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
-
-Finally, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, collectively 
-referred to as {\em yield elimination\/} and described in Section~\ref{sec:yield-elimination}.
-These judgments allow us to reduce the complexity of annotations and invariants 
-required for proving the correctness of the abstract program $\Prog'$
-by justifying the absence of (implicit) yields between some of the 
-invocations of atomic actions in $\range(\Refines)$.
-We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
-to perform yield elimination soundly.
-
-In the remainder of this section, we will formalize the judgments discussed above
-and present our soundness theorem in Section~\ref{sec:correctness}.
 
 \begin{figure*}
 \scriptsize{
@@ -427,8 +414,8 @@ $
 \lins \cap \Global = \lins' \cap \Global \\
 \actions(A) = (\rho, \alpha, m) \\\\
 \forall (\sigma,\sigma') \in \alpha.\ 
-  \disjoint(\{\sigma(x) \mid x \in \lins\}) \Rightarrow
-  \disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
+  \Disjoint(\{\sigma(x) \mid x \in \lins\}) \Rightarrow
+  \Disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
 \forall (\sigma,\sigma') \in \alpha.\ 
   \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
 }
@@ -448,7 +435,7 @@ $
 \forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocal) \\
 \forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
-\disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
+\Disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
   \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
 }
 {
@@ -463,6 +450,18 @@ $
 \label{fig:linearity}
 \end{figure*}
 
+Finally, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, collectively 
+referred to as {\em yield elimination\/} and described in Section~\ref{sec:yield-elimination}.
+These judgments allow us to reduce the complexity of annotations and invariants 
+required for proving the correctness of the abstract program $\Prog'$
+by justifying the absence of (implicit) yields between some of the 
+invocations of atomic actions in $\range(\Refines)$.
+We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
+to perform yield elimination soundly.
+
+In the remainder of this section, we will formalize the judgments discussed above in Sections~\ref{sec:linearity},~\ref{sec:refinement}, and~\ref{sec:yield-elimination},
+present our soundness theorem in Section~\ref{sec:correctness}, and provide important details of our implementation in Section~\ref{sec:implementation}.
+
 \subsection{Using linear variables}
 \label{sec:linearity}
 
@@ -471,11 +470,16 @@ The goal of this judgment is to check that
 linear variables and atomic blocks are used appropriately in $\Prog$.
 The judgment $\vdash \Prog$ enforces that linear permissions are never duplicated during the 
 execution of $\Prog$.
-The predicate $\disjoint(\Lambda)$, where $\Lambda$ is a subset of $\Global \cup \ThreadLocal$,
-encodes a disjointness invariant enforced by the linear type checker
-with respect to an arbitrary function $\Set$ (provided by the programmer) from $\Value$ to $2^\Value$.
-$\disjoint(\Lambda)$ states that the sets $\Set(\lins)$ for $\lins \in \Lambda$ are pairwise disjoint.
-Rule \textsc{Program} (supplemental material) checks that the disjointness invariant holds in the initial state of $\Prog$.
+The programmer provides a function $\Set$ from $\Value$ to $2^\Value$
+and the linear type checker guarantees that the sets $\Set(v)$ for all values $v$ contained 
+in available variables are always pairwise disjoint.
+We formalize the non-duplicate property with the function $\Collect$ and the predicate $\Disjoint$
+defined as follows.
+For any partial map $\pi$ from $\VarName$ to $\Value$ and $\Lambda \subseteq \dom(\pi)$, 
+let $\Collect(\pi, \Lambda)$ be the multiset $\{\pi(x) \mid x \in \Lambda\}$.
+For each multiset $V$ over $\Value$, let $\Disjoint(V)$ be true iff the sets $\Set(v)$ for all $v \in V$ are pairwise disjoint.
+
+Rule \textsc{Program} checks that the disjointness invariant holds in the initial state of $\Prog$.
 Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
 Consequently, the invariant holds throughout the execution of $\Prog$.
 There are three conditions being checked by rule \textsc{Action}.
@@ -577,9 +581,9 @@ $
 $
 \inferrule
 {
-\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\ \actions \vdash \stmt_2 \preceq \ga{\neg \locExpr}{\alpha_2}
+\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\ \actions \vdash \stmt_2 \preceq \ga{\comp{\locExpr}}{\alpha_2}
 }
-{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \vee \alpha_2}
+{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \cup \alpha_2}
 \;(\textsc{Ite})
 $
 \medskip
@@ -587,9 +591,9 @@ $
 $
 \inferrule
 {
-\actions \vdash \stmt \preceq \beta \\ \neg \locExpr \circ \Havoc(\{\}) \Rightarrow \alpha \\ \beta \circ \alpha \Rightarrow \alpha 
+\actions \vdash \stmt \preceq \beta \\ \comp{\locExpr} \circ \Havoc(\{\}) \subseteq \alpha \\ \beta \circ \alpha \subseteq \alpha 
 }
-{\actions \vdash \while{e,\alpha}{\locExpr}{\stmt} \preceq e \circ \alpha \circ \neg \locExpr}
+{\actions \vdash \while{e,\alpha}{\locExpr}{\stmt} \preceq e \circ \alpha \circ \comp{\locExpr}}
 \;(\textsc{While})
 $
 \medskip
@@ -597,7 +601,7 @@ $
 $
 \inferrule
 {
-\actions \vdash \stmt \preceq \alpha \\ \alpha \Rightarrow \alpha'
+\actions \vdash \stmt \preceq \alpha \\ \alpha \subseteq \alpha'
 }
 {\actions \vdash \stmt \preceq \alpha'}
 \;(\textsc{Weaken})
@@ -609,6 +613,8 @@ $
 \end{figure}
 
 In this section, we formalize the judgments $\Refines \jr \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
+This judgment uses the notation $\Havoc(X)$, where $X \subseteq \Var$, to represent the transition relation 
+$\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)\}$.
 The rules for the judgment $\Refines \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
 each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.  
 Suppose $P$ is a procedure in $\dom(\Refines)$, $A = \Refines(P)$, and $\actions(A) = (\rho, \alpha, m)$.
@@ -644,7 +650,7 @@ then $\ite{\locExpr}{\stmt_1}{\stmt_2}$ is simulated by $\alpha_1 \vee \alpha_2$
 The rule \textsc{While} summarizes the body of the while loop by the transition relation $\beta$ and checks that the 
 loop summary $\alpha$ provided by the programmer is inductive.
 These checks allow the rule to conclude that the loop is summarized by $e \circ \alpha \circ \neg \locExpr$.
-Here (and elsewhere in this section), we overload a predicate $e$ over the store as the transition relation $\{(\sigma,\sigma') \mid \sigma \in e\}$.
+Here (and elsewhere in this section), we overload a predicate $e$ over the store as the transition relation $\{(\sigma,\sigma) \mid \sigma \in e\}$.
 Note that the computed loop summary assumes the loop invariant $e$ since it is checked using the other judgments discussed later in this section.
 
 \begin{figure}
@@ -655,7 +661,7 @@ $
 \inferrule
 {
 }
-{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{\phi}{\skipstmt}{\phi};b}
+{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\phi}{\skipstmt}{\phi};b}
 \;(\textsc{Skip})
 $
 \medskip
@@ -663,9 +669,9 @@ $
 $
 \inferrule
 {
-\RefinementAny \in \dom(\Refines) \\ \actions(\Refines(\RefinementAny)) = (\rho, \alpha, m)
+\ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho, \alpha, m)
 }
-{\Refines;\procs;\actions;\RefinementAny;\{\};\false \jr \FH{e}{\yield{e,\lins}}{e \wedge \rho};\false}
+{\Refines;\procs;\actions;\ProcOrNone;\{\};\false \jr \FH{e}{\yield{e,\lins}}{e \wedge \rho};\false}
 \;(\textsc{Yield1})
 $
 \medskip
@@ -674,7 +680,7 @@ $
 \inferrule
 {
 }
-{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
+{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
 \;(\textsc{Yield2})
 $
 \medskip
@@ -684,11 +690,11 @@ $
 {
 \actions(A) = (\rho, \alpha, m) \\ 
 \mods \subseteq \ThreadLocal \\
-\alpha \Rightarrow \Havoc(\Global \cup \mods \cup \Local) \\
-\RefinementAny \in \dom(\Refines) \Rightarrow \phi \subseteq \rho \\ 
+\alpha \subseteq \Havoc(\Global \cup \mods \cup \Local) \\
+\ProcOrNone \in \dom(\Refines) \Rightarrow \phi \subseteq \rho \\ 
 \phi \circ \alpha \circ \neg \psi = \{\} \\
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -696,9 +702,9 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\ \RefinementAny \not \in \dom(\Refines)
+\procs(P) = (\phi, \mods, \psi, \stmt) \\ \ProcOrNone \not \in \dom(\Refines)
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
 \;(\textsc{Call1})
 $
 \medskip
@@ -706,10 +712,10 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\ \RefinementAny \in \dom(\Refines) \\\\ 
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\true,\Havoc(\Local),m) 
+\procs(P) = (\phi, \mods, \psi, \stmt) \\ \ProcOrNone \in \dom(\Refines) \\\\ 
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\true,\Havoc(\{\}),m) 
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
 \;(\textsc{Call2})
 $
 \medskip
@@ -718,9 +724,9 @@ $
 \inferrule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
-\RefinementAny \not \in \dom(\Refines)
+\ProcOrNone \not \in \dom(\Refines)
 }
-{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{\rho \wedge \phi}{\async{P}}{\rho};b}
+{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\rho \wedge \phi}{\async{P}}{\rho};b}
 \;(\textsc{Async1})
 $
 \medskip
@@ -729,11 +735,11 @@ $
 \inferrule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
-\RefinementAny \in \dom(\Refines) \\
+\ProcOrNone \in \dom(\Refines) \\
 P \in \dom(\Refines) \\
-\actions(\Refines(P)) = (\true,\Havoc(\Local),m)
+\actions(\Refines(P)) = (\true,\Havoc(\{\}),m)
 }
-{\Refines;\procs;\actions;\RefinementAny;\{\};b \jr \FH{\rho \wedge \phi}{\async{P}}{\rho};b}
+{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\rho \wedge \phi}{\async{P}}{\rho};b}
 \;(\textsc{Async2})
 $
 \medskip
@@ -741,10 +747,10 @@ $
 $
 \inferrule
 {
-\RefinementAny \not \in \dom(\Refines) \\
-\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{s}{\phi_2};b
+\ProcOrNone \not \in \dom(\Refines) \\
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{s}{\phi_2};b
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};b}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};b}
 \;(\textsc{Ablock1})
 $
 \medskip
@@ -752,10 +758,10 @@ $
 $
 \inferrule
 {
-\RefinementAny \in \dom(\Refines) \\ \actions \vdash s \preceq \ga{e}{\Havoc(\Local)} \\\\
-\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{s}{\phi_2};b
+\ProcOrNone \in \dom(\Refines) \\ \actions \vdash s \preceq \ga{e}{\Havoc(\Local)} \\\\
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{s}{\phi_2};b
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};b}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};b}
 \;(\textsc{Ablock2})
 $
 \medskip
@@ -763,11 +769,11 @@ $
 $
 \inferrule
 {
-\RefinementAny \in \dom(\Refines) \\ \actions(\Refines(\RefinementAny)) = (\rho,\alpha,m) \\\\
+\ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho,\alpha,m) \\\\
 \actions \vdash s \preceq \ga{e}{\elim{\Local}.\ \alpha} \\
-\Refines;\procs;\actions;\RefinementAny;\mods;\false \jr \FH{\phi_1 \wedge e}{s}{\phi_2};\false
+\Refines;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{s}{\phi_2};\false
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;\false \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};\true}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{s}}{\phi_2};\true}
 \;(\textsc{Ablock3})
 $
 \medskip
@@ -775,10 +781,10 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\RefinementAny;\mods_1;b_1 \jr \FH{\phi_1}{\StmtStack}{\phi_2};b_2 \\\\ 
-\Refines;\procs;\actions;\RefinementAny;\mods_2;b_2 \jr \FH{\phi_2}{s}{\phi_3};b_3
+\Refines;\procs;\actions;\ProcOrNone;\mods_1;b_1 \jr \FH{\phi_1}{\StmtStack}{\phi_2};b_2 \\\\ 
+\Refines;\procs;\actions;\ProcOrNone;\mods_2;b_2 \jr \FH{\phi_2}{s}{\phi_3};b_3
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2;b_1 \jr \FH{\phi_1}{\StmtStack;s}{\phi_3};b_3}
+{\Refines;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b_1 \jr \FH{\phi_1}{\StmtStack;s}{\phi_3};b_3}
 \;(\textsc{Seq})
 $
 \medskip
@@ -786,10 +792,10 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\RefinementAny;\mods_1;b \jr \FH{e \wedge \phi_1}{s_1}{\phi_2};b' \\\\
-\Refines;\procs;\actions;\RefinementAny;\mods_2;b \jr \FH{\neg e \wedge \phi_1}{s_2}{\phi_2};b'
+\Refines;\procs;\actions;\ProcOrNone;\mods_1;b \jr \FH{e \wedge \phi_1}{s_1}{\phi_2};b' \\\\
+\Refines;\procs;\actions;\ProcOrNone;\mods_2;b \jr \FH{\neg e \wedge \phi_1}{s_2}{\phi_2};b'
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
+{\Refines;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
 \;(\textsc{Ite})
 $
 \medskip
@@ -797,9 +803,9 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr};b}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr};b}
 \;(\textsc{While})
 $
 \medskip
@@ -807,9 +813,9 @@ $
 $
 \inferrule
 {
-\phi \Rightarrow \phi' \\ \Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b' \\ \psi' \Rightarrow \psi
+\phi \Rightarrow \phi' \\ \Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b' \\ \psi' \Rightarrow \psi
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
 \;(\textsc{Weaken})
 $
 \medskip
@@ -817,9 +823,9 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b' \\ \accessVars(\rho) \cap \mods = \{\}
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b' \\ \accessVars(\rho) \cap \mods = \{\}
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi};b'}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi};b'}
 \;(\textsc{Frame})
 $
 \medskip
@@ -841,12 +847,12 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b \\\\
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b \\\\
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
 \forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
 }
 {
-\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{\phi}{(\varsL',\StmtStack)}{\psi};b
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{(\varsL',\StmtStack)}{\psi};b
 }
 \;(\textsc{Stack})
 $
@@ -858,7 +864,7 @@ $
 T = (\varsTL, (\varsL, \StmtStack)) \\
 \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \\
 \mods \subseteq \ThreadLocal \\\\
-\Refines;\procs;\actions;\NoProc;\mods;\false \jr \FH{\phi}{\StmtStack}{\true};\false
+\Refines;\procs;\actions;\None;\mods;\false \jr \FH{\phi}{\StmtStack}{\true};\false
 }
 {
 \Refines;\procs;\actions;\varsG \jr T
@@ -914,32 +920,6 @@ taking on the role of the atomic block;
 the gate and transition relation of $\Refines(P')$ are used analogously to the predicate and the code of the atomic block.
 The rule for asynchronous call $\async{P'}$ checks that $\Refines(P')$ stutters.
 
-%% We now discuss the judgment $\Refines \js \Prog$;
-%% the rules for this judgment are presented in Figure~\ref{fig:sequential-correctness}.
-%% Due to space constraints, we present only the rules that are different from the standard Floyd-Hoare rules for sequential programs;
-%% the full set of rules is presented in supplemental material.
-%% The judgment at the level of statements
-%% is as follows: $\procs;\actions;\RefinementAny;\mods \js \FH{\phi}{\stmt}{\psi}$.
-%% Here $\RefinementAny$ is a value in the set $\{\RefinementInside, \RefinementOutside\}$.
-%% The value $\RefinementInside$ indicates that the rule is being applied inside a procedure that is expected 
-%% to refine an atomic action; otherwise, $\RefinementAny$ is $\RefinementOutside$.
-%% The set $\mods$ is the set of thread-local variables modified by the statement $\stmt$.
-
-%% Rule \textsc{Ablock} checks the entry condition for the atomic block and then verifies 
-%% the code inside the block.
-%% Rule \textsc{Async} checks the precondition of the called procedure.
-%% Rule \textsc{Proc1} and \textsc{Proc2} handle $\call{P}$.  
-%% Rule \textsc{Proc1} is similar to the standard call rule and applies if $P$ is not a refinement for an atomic action.
-%% Rule \textsc{Proc2} handles the case where the called procedure $P$ is a refinement for some action $A$.
-%% In that case, the rule checks that the precondition of $P$, the statement $\call{A}$, and the postcondition of $P$
-%% form a valid Floyd-Hoare triple.
-%% This check ensures that the sequential correctness proof is valid even after $\call{P}$ has been replaced with $\call{A}$.
-%% Rule \textsc{Atomic} checks that the precondition of the action holds, the action modifies only what it is allowed to,
-%% and that the transition relation establishes the postcondition.
-%% Rule \textsc{Yield} checks the yield predicate.
-%% Even though assertions in the abstract program are ignored in the sequential correctness proof of the refined program,
-%% the soundness of our refinement reasoning carries over their correctness from a proof of the abstract program.
-
 We now discuss the judgment $\InterferenceFree(\Prog,\Refines)$,
 where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
 Let $\Yields(\Prog)$ be the union of the following sets:
@@ -957,9 +937,28 @@ substitution function from $\ThreadLocal \cup \Local$ to $\FV$.
 Let $\Subst(\phi)$ represent the result of applying $\Subst$ to the expression $\phi$.
 The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$ and 
-for each atomic block $\ablock{e,\lins_a}{\stmt} \in \Ablocks(\Prog,\Refines)$, the following judgment holds:
+for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog,\Refines)$, there exists $\alpha$ such that 
+$\actions \vdash \stmt \preceq \alpha$ and 
 \[
-\actions \vdash \stmt \preceq \ga{\Subst(\phi) \wedge e \wedge \disjoint(\Subst(\lins_y \setminus \Global) \cup \lins_a)}{\Subst(\phi)}
+\scriptsize{
+\begin{array}{l}
+\forall \varsG,\varsTL,\varsL,\varsG',\varsTL',\varsL',\varsTL_y,\varsL_y.\\ 
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG, \lins \cap \Global) \\
+\cup & \Collect(\varsTL, \lins \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_y, \lins_y \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in}\
+\begin{array}{ll}
+\wedge & \Disjoint(\Lambda) \\
+\wedge & \MakeStore{\varsG}{\varsTL}{\varsL} \in e \\
+\wedge & (\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \in \alpha \\
+\wedge & \MakeStore{\varsG}{\varsTL_y}{\varsL_y} \in \phi
+\end{array}
+\Rightarrow \MakeStore{\varsG'}{\varsTL_y}{\varsL_y} \in \phi.
+\end{array}
+}
 \]
 
 \subsection{Yield elimination}
@@ -984,38 +983,94 @@ an action labeled $R$ commutes to the right (or later in time) of other concurre
 and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
 The ability to commute past actions in the environment provides the capability to eliminate yields.
 For example, a yield after a right mover or a yield before a left mover is unncessary.
-
-We now formally define the meaning of the commutativity annotations on $\Prog$ described in the previous paragraph.
-Let $\FV_1,\FV_2 \subseteq \VarName \setminus \Var$ be two sets of disjoint fresh variables.
-Let $\Subst_1$ and $\Subst_2$ be one-one 
-substitution functions from $\ThreadLocal \cup \Local$ to $\FV_1$ and $\FV_2$ respectively.
-The program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
+Formally, the program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
 if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
 $\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
-all of the following conditions are satisfied:
+then all of the following conditions are satisfied:
 \begin{itemize}
 \item {\bf Commutativity.}
 If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
 \[
+\scriptsize{
 \begin{array}{l}
-(\Subst_1(\rho_1) \wedge \Subst_2(\rho_2) \wedge \disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2)))\ \circ \\
-(\Subst_1(\alpha_1) \wedge \Same(\FV_2)) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \\ 
-\subseteq \\
-(\Subst_2(\alpha_2) \wedge \Same(\FV_1)) \circ (\Subst_1(\alpha_1) \wedge \Same(\FV_2)).
+\forall \varsG^-,\varsG,\varsG^+,\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2,\varsTL'_2,\varsL'_2.\ \exists \varsG'. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG^-, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in}\\
+\begin{array}{ll}
+\wedge & \Disjoint(\Lambda) \\
+\wedge & \MakeStore{\varsG^-}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & \MakeStore{\varsG^-}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\wedge & (\MakeStore{\varsG^-}{\varsTL_1}{\varsL_1},\MakeStore{\varsG}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_2}{\varsL_2},\MakeStore{\varsG^+}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
+\end{array} \\
+\Rightarrow \\
+\begin{array}{ll}
+\wedge & (\MakeStore{\varsG^-}{\varsTL_2}{\varsL_2},\MakeStore{\varsG'}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
+\wedge & (\MakeStore{\varsG'}{\varsTL_1}{\varsL_1},\MakeStore{\varsG^+}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
 \end{array}
+\end{array}
+}
 \]
-\item {\bf Gate preservation.}
-If $m_1 \in \{B,L\}$ or $m_2 \in \{B,R\}$, then 
-$\Subst_1(\rho_1) \circ 
-\disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2))\ \circ \Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ 
-\neg \Subst_1(\rho_1)$
-is the empty set.
-\item {\bf Failure preservation.}
-If $m_2 \in \{B,L\}$, then 
-$\neg \Subst_1(\rho_1)\ \circ 
-\disjoint(\Subst_1(\lins_1 \setminus \Global) \cup \Subst_2(\lins_2)) \circ \Subst_2(\rho_2) \circ (\Subst_2(\alpha_2) \wedge \Same(\FV_1))\ \circ 
-\Subst_1(\rho_1)$ 
-is the empty set.
+
+\item {\bf Forward preservation.}
+If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in}
+\begin{array}{ll}
+\wedge & \Disjoint(\Lambda) \\
+\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & \MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\end{array} 
+\Rightarrow 
+\begin{array}{l}
+\MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 
+\end{array}
+\end{array}
+}
+\]
+
+\item {\bf Backward preservation.}
+If $m_1 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in}
+\begin{array}{ll}
+\wedge & \Disjoint(\Lambda) \\
+\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & \MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\end{array} 
+\Rightarrow 
+\begin{array}{l}
+\MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 
+\end{array}
+\end{array}
+}
+\]
+
 \item {\bf Nonblocking.}
 If $m_1 \in \{B, L\}$, then
 $\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
@@ -1283,10 +1338,10 @@ as follows:
 \scriptsize{
 \inferrule
 {
-\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ 
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ 
 \alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\ \actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
 }
-{\Refines;\procs;\actions;\RefinementAny;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
+{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
 \;(\textsc{While})
 }
 \]

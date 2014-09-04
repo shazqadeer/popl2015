@@ -12,7 +12,7 @@ $\varsTL$ & $\in$ & $\StoreThreadLocal = \ThreadLocal  \rightarrow \Value$ \\
 $\varsL$ & $\in$ & $\StoreLocal = \Local \rightarrow \Value$ \\
 $e, \phi, \psi, \rho$ & $\in$ & $\StateExpr = 2^{\Store}$ \\
 $\alpha, \beta$ & $\in$ & $\TransExpr = 2^{(\Store,\Store)}$ \\
-$\locExpr$ & $\in$ & $\LocalStateExpr = 2^{\StoreLocal}$ \\
+$\locExpr$ & $\in$ & $\LocalStateExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
@@ -21,7 +21,6 @@ $\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocal, \StateExp
 $\lins$ & $\in$ & $\LinearVar = 2^{\Global \cup \ThreadLocal}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVar, \LinearVar)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
-$\RefinementAny$ & $\in$ & $\mathit{InsideRefinement} ::= \RefinementInside \mid \RefinementOutside$ \\
 $\Refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
 $\AvailableActions$ & $\in$ & $2^\ActionName$ 
 \end{tabular}
@@ -194,8 +193,7 @@ $
 $
 \inferrule
 {
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \not\in \locExpr
+\vars \not\in \locExpr
 }
 {\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
 \;{(\textsc{If-False})}
@@ -205,8 +203,7 @@ $
 $
 \inferrule
 {
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \in \locExpr
+\vars \in \locExpr
 }
 {\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
 \;{(\textsc{If-True})}
@@ -216,8 +213,7 @@ $
 $
 \inferrule
 {
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \not\in \locExpr \\
+\vars \not\in \locExpr \\
 }
 {\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
 \;{(\textsc{While-False})}
@@ -227,8 +223,7 @@ $
 $
 \inferrule
 {
-\vars = \MakeStore{\varsG}{\varsTL}{\varsL} \\
-\varsL \in \locExpr \\
+\vars \in \locExpr \\
 \stmt' = \while{e,\alpha}{\locExpr}{\stmt}
 }
 {\actions \vdash (\vars, \stmt') \trans (\vars, \stmt;\stmt')}
@@ -269,7 +264,7 @@ Procedures do not have parameters, but parameters may be modeled using thread-lo
 {\bf Actions.}
 $\actions$ maps an action name $A \in \ActionName$ to a tuple $(\rho,\alpha,m)$.
 Actions are used inside procedure bodies to access variables.
-The predicate $\rho$ is the precondition and the predicate $\alpha$ is the transition relation of $A$;
+The predicate $\rho$ is the gate and the predicate $\alpha$ is the transition relation of $A$;
 $\rho$ is a predicate over $\Store$ and $\alpha$ is a predicate over $\Store \times \Store$.
 Finally, $m$ is one of four values in $\{B,R,L,N\}$;
 it denotes the commutativity type of the action, $B$ for both mover, $R$ for right mover, $L$ for left mover, 
@@ -277,7 +272,7 @@ and $N$ for non mover~\cite{FlanaganFLQ08}.
 
 \noindent
 {\bf Linear interfaces.}
-$\ProcLins$ maps each procdure and action name in $\ProcName \cup \ActionName$ to a linear interface 
+$\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface 
 $(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
 The procedure (or action) requires that the set $\lins$ be available at the beginning of its invocation 
 and makes available the set $\lins'$ at the end of its invocation; 
@@ -371,6 +366,11 @@ The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr
 The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
 The expression $e$ is a loop invariant and the expression $\alpha$ is a summary for failure-free executions of the loop that do not go 
 through a yield (Section~\ref{sec:refinement}).
+The expression $\locExpr \in \LocalStateExpr$ is a predicate that depends only on local variables.
+Formally, the predicate satisfies the following property:
+$
+\forall \varsL.\ (\exists \varsG. \exists \varsTL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \locExpr) \Rightarrow (\forall \varsG. \forall \varsTL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \locExpr)
+$.
 
 $\Prog$ is {\em unsafe\/} if there exists $\Prog'$ such that $\Prog \trans^* \Prog'$ and $\Prog'$ fails.
 $\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
