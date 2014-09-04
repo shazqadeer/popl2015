@@ -134,7 +134,7 @@ $
 \Refines;\AvailableActions \vdash s \leadsto s'
 }
 {
-\Refines;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e,\alpha}{\locExpr}{s'}
+\Refines;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e',\alpha'}{\locExpr}{s'}
 }
 \;(\textsc{While})
 $
@@ -205,7 +205,6 @@ occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines
 the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
 Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
 
-The program transformation rules are presented in Figure~\ref{fig:program-transformation}.
 Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
 which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
 It also checks that every action in $\range(\Refines)$ has a gate 
@@ -216,8 +215,6 @@ perspective of the caller of $P$.
 Since the procedure-local variables of the caller of $P$ are distinct from those of $P$,
 these variables are quantified out from the transition relation of $\Refines(P)$ when 
 the body of $P$ is being checked (see Section~\ref{sec:refinement}).
-The judgment uses the notation $\elim{\Local}.\ \alpha$, defined to be the following transition relation:
-\[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
 Finally, this rule constrains actions in $\AvailableActions$ to be identical in $\Prog$ and $\Prog'$ and then rewrites all threads
 and all procedures that are still used in $\Prog'$.
 
@@ -237,7 +234,7 @@ The judgment $\vdash \Prog$, described in Section~\ref{sec:linearity},
 checks that $\Prog$ uses linear variables appropriately and that the statement
 inside any atomic block does not contain any yield.
 The former is important because appropriate use of linear variables gives our verifier access to free disjointness
-assumptions that are important for precise non-interference and commutativity reasoning (as described later in this section).
+assumptions that are important for precise non-interference (Section~\ref{sec:refinement}) and commutativity reasoning (Section~\ref{sec:yield-elimination}).
 The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
 in one thread is preserved by each atomic block in a different thread.
 
@@ -459,8 +456,9 @@ invocations of atomic actions in $\range(\Refines)$.
 We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
 to perform yield elimination soundly.
 
-In the remainder of this section, we will formalize the judgments discussed above in Sections~\ref{sec:linearity},~\ref{sec:refinement}, and~\ref{sec:yield-elimination},
-present our soundness theorem in Section~\ref{sec:correctness}, and provide important details of our implementation in Section~\ref{sec:implementation}.
+In the remainder of this section, in addition to formalizing the judgments discussed above,
+we will also present our soundness theorem in Section~\ref{sec:correctness} 
+and provide important details of our implementation in Section~\ref{sec:implementation}.
 
 \subsection{Using linear variables}
 \label{sec:linearity}
@@ -474,10 +472,7 @@ The programmer provides a function $\Set$ from $\Value$ to $2^\Value$
 and the linear type checker guarantees that the sets $\Set(v)$ for all values $v$ contained 
 in available variables are always pairwise disjoint.
 We formalize the non-duplicate property with the function $\Collect$ and the predicate $\Disjoint$
-defined as follows.
-For any partial map $\pi$ from $\VarName$ to $\Value$ and $\Lambda \subseteq \dom(\pi)$, 
-let $\Collect(\pi, \Lambda)$ be the multiset $\{\pi(x) \mid x \in \Lambda\}$.
-For each multiset $V$ over $\Value$, let $\Disjoint(V)$ be true iff the sets $\Set(v)$ for all $v \in V$ are pairwise disjoint.
+defined in Section~\ref{sec:definitions}.
 
 Rule \textsc{Program} checks that the disjointness invariant holds in the initial state of $\Prog$.
 Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
@@ -613,8 +608,6 @@ $
 \end{figure}
 
 In this section, we formalize the judgments $\Refines \jr \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
-This judgment uses the notation $\Havoc(X)$, where $X \subseteq \Var$, to represent the transition relation 
-$\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)\}$.
 The rules for the judgment $\Refines \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
 each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.  
 Suppose $P$ is a procedure in $\dom(\Refines)$, $A = \Refines(P)$, and $\actions(A) = (\rho, \alpha, m)$.

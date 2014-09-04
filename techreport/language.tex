@@ -10,9 +10,8 @@ $\sigma$ & $\in$ & $\Store = \Var \rightarrow \Value$ \\
 $\varsG$ & $\in$ & $\StoreGlobal = \Global \rightarrow \Value$ \\
 $\varsTL$ & $\in$ & $\StoreThreadLocal = \ThreadLocal  \rightarrow \Value$ \\
 $\varsL$ & $\in$ & $\StoreLocal = \Local \rightarrow \Value$ \\
-$e, \phi, \psi, \rho$ & $\in$ & $\StateExpr = 2^{\Store}$ \\
+$e, \phi, \psi, \rho, \locExpr$ & $\in$ & $\StateExpr = 2^{\Store}$ \\
 $\alpha, \beta$ & $\in$ & $\TransExpr = 2^{(\Store,\Store)}$ \\
-$\locExpr$ & $\in$ & $\LocalStateExpr$ \\
 $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
@@ -366,11 +365,7 @@ The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr
 The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
 The expression $e$ is a loop invariant and the expression $\alpha$ is a summary for failure-free executions of the loop that do not go 
 through a yield (Section~\ref{sec:refinement}).
-The expression $\locExpr \in \LocalStateExpr$ is a predicate that depends only on local variables.
-Formally, the predicate satisfies the following property:
-$
-\forall \varsL.\ (\exists \varsG. \exists \varsTL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \locExpr) \Rightarrow (\forall \varsG. \forall \varsTL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \locExpr)
-$.
+The condtional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ statements cannot refer to global variables.
 
 $\Prog$ is {\em unsafe\/} if there exists $\Prog'$ such that $\Prog \trans^* \Prog'$ and $\Prog'$ fails.
 $\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
@@ -383,7 +378,19 @@ Define the predicate $\Yielding$ as follows:
 \]
 $\Prog$ is {\em responsive\/}, denoted $\Responsive(\Prog)$, iff every infinite execution from $\Prog$ satisfies $\Yielding$ infinitely often.
 
+\subsection{Definitions}
+\label{sec:definitions}
+We conclude this section by presenting a few definitions of concepts that are used in Section~\ref{sec:verification} to formalize
+our verification method.
+For any transition relation $\alpha$, let $\elim{\Local}.\ \alpha$ be the transition relation
+\[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
+For any $X \subseteq \Var$, let $\Havoc(X)$, be the transition relation 
+$\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)\}$.
+For any partial map $\pi$ from $\VarName$ to $\Value$ and $\Lambda \subseteq \dom(\pi)$, 
+let $\Collect(\pi, \Lambda)$ be the multiset $\{\pi(x) \mid x \in \Lambda\}$.
+For any multiset $V$ over $\Value$, let $\Disjoint(V)$ be true iff the sets $\Set(v)$ for all $v \in V$ are pairwise disjoint.
 
+ 
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "paper"
