@@ -15,8 +15,8 @@ $
 \inferrule
 {
 }
-{\Refines;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e,\lins}}
-\;(\textsc{Yield})
+{\Refines;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e',\lins'}}
+\;(\textsc{Yield1})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -410,11 +410,11 @@ $
 \ProcLins(A) = (\lins,\lins') \\
 \lins \cap \Global = \lins' \cap \Global \\
 \actions(A) = (\rho, \alpha, m) \\\\
+%% \forall (\sigma,\sigma') \in \alpha.\ 
+%%   \IsSet(\Collect(\sigma, \lins)) \Rightarrow
+%%   \IsSet(\Collect(\sigma', \lins')) \\
 \forall (\sigma,\sigma') \in \alpha.\ 
-  \Disjoint(\{\sigma(x) \mid x \in \lins\}) \Rightarrow
-  \Disjoint(\{\sigma'(x) \mid x \in \lins'\}) \\
-\forall (\sigma,\sigma') \in \alpha.\ 
-  \bigcup\{\sigma'(x) \mid x \in \lins'\} \subseteq \bigcup\{\sigma(x) \mid x \in \lins\}
+  \Collect(\sigma', \lins') \subseteq \Collect(\sigma, \lins)
 }
 {
 \vdash A
@@ -432,8 +432,7 @@ $
 \forall 1 \le i \le n. (\lins_i \subseteq \ThreadLocal) \\
 \forall 1 \le i \le n. (\lins_G,\lins_i \vdash T_i) \\
 \forall 1 \le i \le n. (T_i = (\varsTL_i, \ldots)) \\
-\Disjoint(\{\varsG(x) \mid x \in \lins_G\} \cup
-  \{\varsTL_i(x) \mid 1 \le i \le n, x \in \lins_i\})
+\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))
 }
 {
 \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
@@ -468,10 +467,10 @@ The goal of this judgment is to check that
 linear variables and atomic blocks are used appropriately in $\Prog$.
 The judgment $\vdash \Prog$ enforces that linear permissions are never duplicated during the 
 execution of $\Prog$.
-The programmer provides a function $\Set$ from $\Value$ to $2^\Value$
-and the linear type checker guarantees that the sets $\Set(v)$ for all values $v$ contained 
+The programmer provides a function $\Perm$ from $\Value$ to $2^\Value$
+and the linear type checker guarantees that the sets $\Perm(v)$ for all values $v$ contained 
 in available variables are always pairwise disjoint.
-We formalize the non-duplicate property with the function $\Collect$ and the predicate $\Disjoint$
+We formalize the non-duplicate property with the function $\Collect$ and the predicate $\IsSet$
 defined in Section~\ref{sec:definitions}.
 
 Rule \textsc{Program} checks that the disjointness invariant holds in the initial state of $\Prog$.
@@ -530,7 +529,7 @@ $
 {
 \actions(A) = (\rho, \alpha, m) 
 }
-{\actions \vdash \call{A} \preceq \alpha}
+{\actions \vdash \call{A} \preceq \rho \circ \alpha}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -685,7 +684,7 @@ $
 \mods \subseteq \ThreadLocal \\
 \alpha \subseteq \Havoc(\Global \cup \mods \cup \Local) \\
 \ProcOrNone \in \dom(\Refines) \Rightarrow \phi \subseteq \rho \\ 
-\phi \circ \alpha \circ \neg \psi = \{\} \\
+(\phi \wedge \rho) \circ \alpha \circ \neg \psi = \{\} \\
 }
 {\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
 \;(\textsc{Atomic})
@@ -944,7 +943,7 @@ $\actions \vdash \stmt \preceq \alpha$ and
 \end{array} \\
 \mathit{in}\
 \begin{array}{ll}
-\wedge & \Disjoint(\Lambda) \\
+\wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG}{\varsTL}{\varsL} \in e \\
 \wedge & (\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \in \alpha \\
 \wedge & \MakeStore{\varsG}{\varsTL_y}{\varsL_y} \in \phi
@@ -995,7 +994,7 @@ If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \end{array} \\
 \mathit{in}\\
 \begin{array}{ll}
-\wedge & \Disjoint(\Lambda) \\
+\wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG^-}{\varsTL_1}{\varsL_1} \in \rho_1 \\
 \wedge & \MakeStore{\varsG^-}{\varsTL_2}{\varsL_2} \in \rho_2 \\
 \wedge & (\MakeStore{\varsG^-}{\varsTL_1}{\varsL_1},\MakeStore{\varsG}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
@@ -1024,7 +1023,7 @@ If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \end{array} \\
 \mathit{in}
 \begin{array}{ll}
-\wedge & \Disjoint(\Lambda) \\
+\wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
 \wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
 \wedge & \MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 \\
@@ -1051,7 +1050,7 @@ If $m_1 \in \{B,L\}$, then
 \end{array} \\
 \mathit{in}
 \begin{array}{ll}
-\wedge & \Disjoint(\Lambda) \\
+\wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
 \wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
 \wedge & \MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 \\
@@ -1279,43 +1278,52 @@ Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
 Rule \textsc{Skip} leave the state of the automaton unchanged.
 
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
-Consider the following program with a global variable {\tt x}, a thread-local variable {\tt t},
-a procedure {\tt Nop}, and two threads (shown on the left).
+Consider the following program with a global variable {\tt x}, two threads,
+and two procedures {\tt Block}.
 
-\begin{center}
 {\small
+\begin{tabular}{l}
 \begin{tabular}{lll}
 \begin{tabular}[t]{l}
 {\tt [ x := 0 ];} \\
-{\tt yield;} \\
-{\tt [ t := x ];} \\
-{\tt assert t == 0;} \\
-{\tt yield;} \\
+{\tt [ assert x == 0 ];} \\
 \end{tabular} 
 &
-\begin{tabular}[t]{l}
-{\tt yield;} \\
-{\tt [x := x + 1];} \\
-{\tt while (true) } \\
-{\tt ~~call Nop;} \\
-{\tt yield;} \\
-\end{tabular} 
+{\tt ||}
 &
 \begin{tabular}[t]{l}
-{\tt procedure Nop()} \\
-{\tt ~~both [~]} \\
-{\tt ~~\{~\}}
+{\tt call IncrAndBlock;} \\
+\end{tabular} 
+\end{tabular} \\
+~\\
+\begin{tabular}[t]{l}
+{\tt procedure IncrAndBlock} \\
+{\tt ~~refines Block} \\
+{\tt \{} \\
+{\tt ~~[ x := x + 1 ];} \\
+{\tt ~~while (true)} \\
+{\tt ~~~~call Nop;} \\
+{\tt \}}
+\end{tabular} \\
+~\\
+\begin{tabular}{l}
+{\tt action Nop} \\
+{\tt ~~both [ ]}
+\end{tabular} \\
+~\\
+\begin{tabular}{l}
+{\tt action Block} \\
+{\tt ~~atomic [ assume false ]}
 \end{tabular}
 \end{tabular}
 }
-\end{center}
 
 This program violates the assertion in it.
 The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0]} and yields;
-the second thread changes {\tt x} to $1$, calls {\tt Nop} and yields (implicit yield at call);
-the first thread reads {\tt x} into {\tt t} and fails the assert {\tt t == 0}. 
-However, after {\tt call Nop} is replaced with the action {\tt [~]}, the program does not fail,
-even though the code of the program satisfies the yield elimination check described earlier.
+the second thread changes {\tt x} to $1$ and yields;
+the first thread fails the assert {\tt x == 0}. 
+However, after {\tt call IncrAndBlock} is replaced with the {\tt call Block}, the program does not fail,
+even though the code of {\tt IncrAndBlock} satisfies the yield elimination check described earlier and refines the action {\tt Block}.
 To address this soundness problem in the presence of left and both movers, we require additionally 
 that the abstract program is responsive, that is, it yields infinitely often in any infinite execution.
 The abstract program in the example above is not responsive.
@@ -1355,10 +1363,11 @@ $\Refines \jr \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
 \item
 $\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
 \end{enumerate}
-If $\Safe(\Prog')$ and $\Responsive(\Prog')$, then $\Safe(\Prog)$.
+If $\Safe(\Prog')$ and $\Responsive(\Prog)$, then $\Safe(\Prog)$.
 \end{theorem}
 
-Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety and responsiveness of $\Prog'$.
+Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety of $\Prog'$ 
+and the responsiveness of $\Prog$.
 In general, the correctness proof of a large program is obtained by chaining together
 multiple instances of this theorem connecting a sequence of programs.  
 The code of adjacent programs in this chain are constrained by the $\leadsto$ relation but the annotations are left 

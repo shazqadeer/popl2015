@@ -21,7 +21,8 @@ $\lins$ & $\in$ & $\LinearVar = 2^{\Global \cup \ThreadLocal}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVar, \LinearVar)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
 $\Refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
-$\AvailableActions$ & $\in$ & $2^\ActionName$ 
+$\AvailableActions$ & $\in$ & $2^\ActionName$ \\
+$\Perm$ & $\in$ & $\Var \rightarrow \Value$
 \end{tabular}
 \caption{Definitions}
 \label{fig:definitions}
@@ -42,8 +43,7 @@ $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
 $\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Local}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, ([]_{\Local}, \StmtCtxt)) \mid$ \\
  & &$([]_{\ThreadLocal}, (\varsL, \StmtStackCtxt))$ \\
-$\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
-$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \YieldingThreads \cdot \ThreadCtxt \cdot \YieldingThreads)$
+$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \TS \cdot \ThreadCtxt \cdot \TS)$
 \end{tabular}
 \caption{Syntax}
 \label{fig:syntax}
@@ -79,15 +79,13 @@ $
 \inferrule
 {
 \procs(P) = (\phi, \mods, \psi,\stmt) \\
-\ProcLins(P) = (\lins, \lins') \\
-T' = (\varsTL, (\varsL, \yield{\phi,\lins};\stmt)) \\
-\TS = \ThreadCtxt[\varsTL][\varsL][\async{P}] \\
-\TS' = \ThreadCtxt[\varsTL][\varsL][\skipstmt]
+\TS = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\async{P}] \cdot \Vector{T_2} \\
+\TS' = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\skipstmt] \cdot \Vector{T_2}
 }
 {
 (\procs, \actions, \ProcLins, \varsG, \TS)
 \trans
-(\procs, \actions, \ProcLins, \varsG, \TS' \cdot T')
+(\procs, \actions, \ProcLins, \varsG, \TS' \cdot (\varsTL, (\varsL, \stmt)))
 }
 \;(\textsc{Async})
 $
@@ -106,11 +104,9 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi,\stmt) \\
-\ProcLins(P) = (\lins, \lins') \\
-\StmtStack = \yield{\phi,\lins};\stmt;\yield{\psi,\lins'}
+\procs(P) = (\phi, \mods, \psi,\stmt)
 }
-{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\Frame{L}{\StmtStack}]}
+{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\stmt]}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -387,8 +383,8 @@ For any transition relation $\alpha$, let $\elim{\Local}.\ \alpha$ be the transi
 For any $X \subseteq \Var$, let $\Havoc(X)$, be the transition relation 
 $\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)\}$.
 For any partial map $\pi$ from $\VarName$ to $\Value$ and $\Lambda \subseteq \dom(\pi)$, 
-let $\Collect(\pi, \Lambda)$ be the multiset $\{\pi(x) \mid x \in \Lambda\}$.
-For any multiset $V$ over $\Value$, let $\Disjoint(V)$ be true iff the sets $\Set(v)$ for all $v \in V$ are pairwise disjoint.
+let $\Collect(\pi, \Lambda)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in \Lambda\}$.
+For any multiset $V$ over $\Value$, let $\IsSet(V)$ be true iff $V$ is a set.
 
  
 %%% Local Variables: 
