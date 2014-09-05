@@ -837,7 +837,7 @@ $
 {
 \Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b \\\\
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
-\forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
+\forall \varsG,\varsTL,\varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi'
 }
 {
 \Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{(\varsL',\StmtStack)}{\psi};b
