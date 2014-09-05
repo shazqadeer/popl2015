@@ -410,9 +410,6 @@ $
 \ProcLins(A) = (\lins,\lins') \\
 \lins \cap \Global = \lins' \cap \Global \\
 \actions(A) = (\rho, \alpha, m) \\\\
-%% \forall (\sigma,\sigma') \in \alpha.\ 
-%%   \IsSet(\Collect(\sigma, \lins)) \Rightarrow
-%%   \IsSet(\Collect(\sigma', \lins')) \\
 \forall (\sigma,\sigma') \in \alpha.\ 
   \Collect(\sigma', \lins') \subseteq \Collect(\sigma, \lins)
 }
@@ -575,9 +572,9 @@ $
 $
 \inferrule
 {
-\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\ \actions \vdash \stmt_2 \preceq \ga{\comp{\locExpr}}{\alpha_2}
+\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\ \actions \vdash \stmt_2 \preceq \ga{\neg\locExpr}{\alpha_2}
 }
-{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \cup \alpha_2}
+{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \vee \alpha_2}
 \;(\textsc{Ite})
 $
 \medskip
@@ -585,9 +582,9 @@ $
 $
 \inferrule
 {
-\actions \vdash \stmt \preceq \beta \\ \comp{\locExpr} \circ \Havoc(\{\}) \subseteq \alpha \\ \beta \circ \alpha \subseteq \alpha 
+\actions \vdash \stmt \preceq \beta \\ \Havoc(\{\}) \subseteq \alpha \\ \beta \circ \alpha \subseteq \alpha 
 }
-{\actions \vdash \while{e,\alpha}{\locExpr}{\stmt} \preceq e \circ \alpha \circ \comp{\locExpr}}
+{\actions \vdash \while{e,\alpha}{\locExpr}{\stmt} \preceq e \circ \alpha \circ \neg \locExpr}
 \;(\textsc{While})
 $
 \medskip
@@ -635,9 +632,8 @@ Rule \textsc{Atomic} summarizes the call to an atomic action by the transition r
 Rule \textsc{Ablock} simply summarizes the code block contained inside the atomic block.
 The rule \textsc{Seq} states that if $\stmt_1$ and $\stmt_2$ are simulated by $\alpha_1$ and $\alpha_2$ respectively, 
 then $\stmt_1;\stmt_2$ is simulated by the relational composition $\alpha_1 \circ \alpha_2$.
-The rule \textsc{Ite} uses the notation $\ga{\locExpr}{\alpha}$ which represents the set of all transitions $(\sigma, \sigma')$ 
-such that $\sigma \in \locExpr \Rightarrow (\sigma,\sigma') \in \alpha$.
-It states that if $\stmt_1$ is simulated by $\ga{\locExpr}{\alpha_1}$ and $\stmt_2$ is simulated by $\ga{\neg \locExpr}{\alpha_2}$,
+The rule \textsc{Ite} states that if $\stmt_1$ is simulated by $\ga{\locExpr}{\alpha_1}$ and 
+$\stmt_2$ is simulated by $\ga{\neg \locExpr}{\alpha_2}$,
 then $\ite{\locExpr}{\stmt_1}{\stmt_2}$ is simulated by $\alpha_1 \vee \alpha_2$.
 The rule \textsc{While} summarizes the body of the while loop by the transition relation $\beta$ and checks that the 
 loop summary $\alpha$ provided by the programmer is inductive.
@@ -784,8 +780,8 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods_1;b \jr \FH{e \wedge \phi_1}{s_1}{\phi_2};b' \\\\
-\Refines;\procs;\actions;\ProcOrNone;\mods_2;b \jr \FH{\neg e \wedge \phi_1}{s_2}{\phi_2};b'
+\Refines;\procs;\actions;\ProcOrNone;\mods_1;b \jr \FH{\locExpr \wedge \phi_1}{s_1}{\phi_2};b' \\\\
+\Refines;\procs;\actions;\ProcOrNone;\mods_2;b \jr \FH{\neg \locExpr \wedge \phi_1}{s_2}{\phi_2};b'
 }
 {\Refines;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
 \;(\textsc{Ite})
@@ -805,7 +801,7 @@ $
 $
 \inferrule
 {
-\phi \Rightarrow \phi' \\ \Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b' \\ \psi' \Rightarrow \psi
+\phi \subseteq \phi' \\ \Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b' \\ \psi' \subseteq \psi
 }
 {\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
 \;(\textsc{Weaken})
@@ -924,9 +920,6 @@ $\{(\phi,\lins) \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stm
 $\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
 \end{itemize}
 Let $\Ablocks(\Prog,\Refines)$ be the set of atomic blocks in $\Prog$.
-Let $\FV \subseteq \VarName \setminus \Var$ be a set of fresh variables and $\Subst$ be a one-one 
-substitution function from $\ThreadLocal \cup \Local$ to $\FV$.
-Let $\Subst(\phi)$ represent the result of applying $\Subst$ to the expression $\phi$.
 The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$ and 
 for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog,\Refines)$, there exists $\alpha$ such that 
@@ -1278,8 +1271,8 @@ Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
 Rule \textsc{Skip} leave the state of the automaton unchanged.
 
 The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
-Consider the following program with a global variable {\tt x}, two threads,
-and two procedures {\tt Block}.
+Consider the following program with a global variable {\tt x}, two threads, procedure {\tt IncrAndBlock},
+and actions {\tt Nop} and {\tt Block}.
 
 {\small
 \begin{tabular}{l}
@@ -1339,8 +1332,11 @@ as follows:
 \scriptsize{
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\ e \wedge \locExpr \Rightarrow f \geq 0 \\ 
-\alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\ \actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
+\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
+\rho = \{ \sigma \mid \sigma(f) \geq 0 \} \\
+e \wedge \locExpr \subseteq \rho \\\\
+\alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\
+\actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
 }
 {\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
 \;(\textsc{While})
@@ -1353,7 +1349,7 @@ Figure~\ref{fig:statement-summarization}.
 \label{sec:correctness}
 
 \begin{theorem}
-Let $\Prog$ and $\Prog'$ be two programs, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
+Let $\Prog,\Prog' \in \XProgram$, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
 and $\AvailableActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
 \begin{enumerate}
 \item

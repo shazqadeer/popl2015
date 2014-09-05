@@ -43,7 +43,9 @@ $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
 $\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Local}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, ([]_{\Local}, \StmtCtxt)) \mid$ \\
  & &$([]_{\ThreadLocal}, (\varsL, \StmtStackCtxt))$ \\
-$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \TS \cdot \ThreadCtxt \cdot \TS)$
+$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \TS \cdot \ThreadCtxt \cdot \TS)$ \vspace{6pt} \\
+$\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
+$\XProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads)$
 \end{tabular}
 \caption{Syntax}
 \label{fig:syntax}
@@ -96,7 +98,7 @@ $
 {
 T = (\varsTL, (\varsL,\skipstmt)) 
 }
-{(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads') \trans (\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot \YieldingThreads')}
+{(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot \Vector{T'})}
 \;(\textsc{End})
 $
 \medskip
@@ -363,8 +365,15 @@ The expression $e$ is a loop invariant and the expression $\alpha$ is a summary 
 through a yield (Section~\ref{sec:refinement}).
 The condtional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ statements cannot refer to global variables.
 
-$\Prog$ is {\em unsafe\/} if there exists $\Prog'$ such that $\Prog \trans^* \Prog'$ and $\Prog'$ fails.
+A finite $\trans$-execution from $\Prog$ is a sequence of programs $\Prog_0,\Prog_1,\ldots,\Prog_n$ such that $\Prog_0 = \Prog$ 
+and $\Prog_i \trans \Prog_{i+1}$ for all $0 \leq i < n$.
+An infinite $\trans$-execution from $\Prog$ is defined similarly.
+The program $\Prog$ is {\em unsafe\/} if there is a finite $\trans$-execution from $\Prog$ ending in a state $\Prog'$ 
+such that $\Prog'$ fails.
 $\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
+
+Let $\xtrans$ be the relation $\trans$ restricted to $\XProgram$.
+A finite or infinite $\xtrans$-execution from a program $\Prog \in \XProgram$ is defined similarly to a $\trans$-execution.
 Define the predicate $\Yielding$ as follows:
 \[
 \begin{array}{lcl}
@@ -372,7 +381,9 @@ Define the predicate $\Yielding$ as follows:
                  &   & ~~~~~~\forall T \in \TS.\ T \in \mathit{YieldingThread}.
 \end{array}
 \]
-$\Prog$ is {\em responsive\/}, denoted $\Responsive(\Prog)$, iff every infinite execution from $\Prog$ satisfies $\Yielding$ infinitely often.
+Consider a program $\Prog \in \XProgram$.
+$\Prog$ is {\em responsive\/}, denoted $\Responsive(\Prog)$, 
+iff every infinite $\xtrans$-execution from $\Prog$ satisfies $\Yielding$ infinitely often.
 
 \subsection{Definitions}
 \label{sec:definitions}
@@ -382,11 +393,20 @@ For any transition relation $\alpha$, let $\elim{\Local}.\ \alpha$ be the transi
 \[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
 For any $X \subseteq \Var$, let $\Havoc(X)$, be the transition relation 
 $\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)\}$.
-For any partial map $\pi$ from $\VarName$ to $\Value$ and $\Lambda \subseteq \dom(\pi)$, 
-let $\Collect(\pi, \Lambda)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in \Lambda\}$.
-For any multiset $V$ over $\Value$, let $\IsSet(V)$ be true iff $V$ is a set.
+For any partial map $\pi$ from $\VarName$ to $\Value$ and $X \subseteq \dom(\pi)$, 
+let $\Collect(\pi, X)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X\}$.
+For any multiset $\Lambda$ over $\Value$, let $\IsSet(\Lambda)$ be true iff $\Lambda$ is a set.
 
- 
+Given $\rho_1, \rho_2 \in \StateExpr$, we write $\rho_1 \vee \rho_2$ for the union of $\rho_1$ and $\rho_2$, 
+$\rho_1 \wedge \rho_2$ for the intersection of $\rho_1$ and $\rho_2$, and $\neg \rho_1$ for $\StateExpr \setminus \rho_1$.
+Similarly, given $\alpha_1, \alpha_2 \in \StateExpr$, we write $\alpha_1 \vee \alpha_2$ for the union of $\alpha_1$ and $\alpha_2$, 
+$\alpha_1 \wedge \alpha_2$ for the intersection of $\alpha_1$ and $\alpha_2$, and $\neg \alpha_1$ for $\TransExpr \setminus \alpha_1$.
+We denote the relational composition of $\alpha_1$ and $\alpha_2$ by $\alpha_1 \circ \alpha_2$.
+Given $\rho \in \StateExpr$ and $\alpha \in \TransExpr$, we denote by $\ga{\locExpr}{\alpha}$ the
+set $\{(\sigma, \sigma') \mid \sigma \in \locExpr \Rightarrow (\sigma,\sigma') \in \alpha\}$.
+We let $\rho \circ \alpha$ denote the relation obtained by restricting the domain of $\alpha$ to $\rho$.
+Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the co-domain of $\alpha$ to $\rho$.
+
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "paper"
