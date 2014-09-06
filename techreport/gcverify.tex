@@ -15,8 +15,8 @@ we use a naive allocator (sequential search for free space),
 we assume a sequentially consistent memory model,
 and we assume that all objects have the same number of fields.
 (Except for the assumption of sequential consistency, none of these substantially alter the nature of the proof.)
-Overall, our implementation consists of about 2100 lines of Boogie code (included in supplemental material),
-and it takes Boogie/Z3 about 80 minutes to verify.
+Overall, our implementation consists of about 2100 lines of Boogie code,
+and it takes our verifier less than two minutes to verify on a standard PC (quad-core 2.8 GHz) running Windows 8.1.
 
 Our verification takes advantage of all techniques in \civl: refinement, assertions, reduction, and linearity.
 Refinement gives us extremely simple high-level action specifications for Initialize, ReadField, WriteField, Eq, and Alloc,

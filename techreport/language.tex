@@ -1,3 +1,6 @@
+\section{A concurrent programming language}
+\label{sec:language}
+
 \begin{figure}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{rclcl}
@@ -38,12 +41,12 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e,\lins} \mid \call{A} \mid \cal
 \begin{tabular}{rclcl}
 $\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
-$\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \vspace{6pt} \\
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
 $\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Local}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, ([]_{\Local}, \StmtCtxt)) \mid$ \\
  & &$([]_{\ThreadLocal}, (\varsL, \StmtStackCtxt))$ \\
-$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \TS \cdot \ThreadCtxt \cdot \TS)$ \vspace{6pt} \\
+$\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \TS \cdot \ThreadCtxt \cdot \TS)$ \\
+$\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \vspace{6pt} \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
 $\XProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads)$
 \end{tabular}
@@ -274,6 +277,13 @@ $(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global 
 The procedure (or action) requires that the set $\lins$ be available at the beginning of its invocation 
 and makes available the set $\lins'$ at the end of its invocation; 
 we refer to $\lins$ and $\lins'$ as the input and output linear permissions respectively.
+The programmer provides a function $\Perm$ from $\Value$ to $2^\Value$
+and the linear type checker (Section~\ref{sec:linearity}) guarantees that the sets $\Perm(v)$ for all values $v$ contained 
+in available variables are always pairwise disjoint.
+It is often convenient to collect the permissions in a set of available variables.
+To that end, we define the function $\Collect(\pi,X)$ for a partial map $\pi$ 
+from $\VarName$ to $\Value$ and $X \subseteq \dom(\pi)$ as the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X\}$.
+For any multiset $\Lambda$ over $\Value$, we also define $\IsSet(\Lambda)$ be true iff $\Lambda$ is a set.
 
 \noindent
 {\bf Global store.}
@@ -321,48 +331,38 @@ according to any rule in Figure~\ref{fig:operational-semantics2} except for rule
 Similarly, rule~\textsc{Fail} allows $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ to fail if $(\MakeStore{\varsG}{\varsTL}{\varsL}, \stmt)$
 fails according to rule \textsc{Atomic-False}. 
 Rule \textsc{Async} describes the creation of a thread via $\async{P}$.  
-There is an implicit yield at the beginning of the freshly-created thread.
-The stable predicate and the linear permission associated with this yield are 
-the precondition and the input linear permission of $P$.
 The new thread is added to the sequence of threads in the program.
-Since it is a yielding thread, the invariant that at most one thread is non-yielding is preserved.
 Rule \textsc{End} describes the termination of a thread; the terminating thread is removed
 from the sequence of threads in the program.
 Rules \textsc{Call} and \textsc{Return} describe the call and return of a procedure via $\call{P}$.
-There are implicit yields associated with the call and the return.
-The stable predicates for the yields at call and return are the precondition and postcondition of $P$ respectively.
-The linear permissions for the yields at call and return are the input and output linear permissions of $P$ respectively.
-
-It is important to note that all except at most one thread in a program are yielding threads blocked at a yield statement;
-such a thread is captured by the symbol $\YieldingThread$ in Figure~\ref{fig:syntax}.
-The one (possibly) non-yielding thread is the only one allowed to execute until it reaches a yield statement and becomes a yielding thread.
-At that point, all threads are yielding and any one can be picked for execution.
 
 The rules in Figure~\ref{fig:operational-semantics2} provide the operational semantics for the statements in \civl.
 The statement $\skipstmt$ has no side effect and is used as a marker in the formal operational semantics.
-The statement $\yield{e,\lins}$ yields control to the scheduler which may pick any existing thread to execute.
-The predicate $e$, called a stable or yield predicate, is expected to be established by the executing thread and preserved across
-execution of other threads subsequent to the yield.
-Similarly, the linear permissions $\lins$ are expected to be available as long as the control of the thread
-is at the yield.
+The statement $\yield{e,\lins}$ contains a predicate $e$ and the linear permissions $\lins$.
+The yield predicate $e$ is expected to be established by the executing thread and preserved by other threads;
+the linear permissions $\lins$ are expected to be available as long as the control of the thread
+is at the yield statement.
 The statement $\call{A}$ invokes the action $A$.
-Suppose $\actions(A) = (\rho, \alpha, m)$.
+Suppose $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins, \lins')$.
 If $\rho$ does not hold, the statement $\call{A}$ fails, 
 otherwise the store is updated according to the transition relation $\alpha$.
-The statement $\call{P}$ invokes the procedure $P$;
-if $\procs(P) = (\phi, \mods, \psi, \stmt)$, then the precondition $\phi$ is expected to hold at the invocation,
-the statement $\stmt$ begins execution, and the postcondition $\psi$ is expected to hold when $\stmt$ finishes.
-An important aspect of the semantics of a procedure $P$ is that there is an implicit $\yield{\phi}$ before $\stmt$
-and an implicit $\yield{\psi}$ after $\stmt$; therefore $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
+The permissions in $\lins$ are expected to be available at the beginning
+and the permissions in $\lins'$ are guaranteed to be available at the end.
+The statement $\call{P}$ invokes the procedure $P$.
+Suppose $\procs(P) = (\phi, \mods, \psi, \stmt)$ and $\ProcLins(P) = (\lins, \lins')$.
+It is expected that the precondition $\phi$ holds and the permissions $\lins$ are available at the beginning.
+Then, the statement $\stmt$ executes.
+When $\stmt$ terminates, the postcondition $\psi$ holds and the permissions $\lins'$ are available.
+The predicates $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
 The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
-The statement $\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield inside it and consequently executes atomically;
+The statement $\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield staetement inside it;
 the predicate $e$ is expected to hold and the permissions $\lins$ expected to be available at the beginning.
 This statement is useful for compactly encoding non-interference checks (Section~\ref{sec:refinement}).
 The statement $\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$.
 The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr$ is true and otherwise executes $\stmt_2$.
 The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
 The expression $e$ is a loop invariant and the expression $\alpha$ is a summary for failure-free executions of the loop that do not go 
-through a yield (Section~\ref{sec:refinement}).
+through a yield statement (Section~\ref{sec:refinement}).
 The condtional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ statements cannot refer to global variables.
 
 A finite $\trans$-execution from $\Prog$ is a sequence of programs $\Prog_0,\Prog_1,\ldots,\Prog_n$ such that $\Prog_0 = \Prog$ 
@@ -372,9 +372,14 @@ The program $\Prog$ is {\em unsafe\/} if there is a finite $\trans$-execution fr
 such that $\Prog'$ fails.
 $\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
 
+Figure~\ref{fig:syntax} also defines the subset $\mathit{YieldingThread}$ of threads and the subset $\XProgram$ of programs.
+A yielding thread in $\mathit{YieldingThread}$ is one that is waiting to execute at a yield statement.
+A transactional program in $\XProgram$ is one in which all threads except at most one thread are yielding threads.
 Let $\xtrans$ be the relation $\trans$ restricted to $\XProgram$.
 A finite or infinite $\xtrans$-execution from a program $\Prog \in \XProgram$ is defined similarly to a $\trans$-execution.
-Define the predicate $\Yielding$ as follows:
+In such an execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches a yield statement and becomes a yielding thread.
+At that point, all threads are yielding and any one can be picked for execution.
+We define the predicate $\Yielding$ as follows:
 \[
 \begin{array}{lcl}
 \Yielding(\Prog) & = & \mathit{let}\ \Prog = (\procs, \actions, \ProcLins, G, \TS)\ \mathit{in}\\
@@ -393,9 +398,6 @@ For any transition relation $\alpha$, let $\elim{\Local}.\ \alpha$ be the transi
 \[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
 For any $X \subseteq \Var$, let $\Havoc(X)$, be the transition relation 
 $\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)\}$.
-For any partial map $\pi$ from $\VarName$ to $\Value$ and $X \subseteq \dom(\pi)$, 
-let $\Collect(\pi, X)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X\}$.
-For any multiset $\Lambda$ over $\Value$, let $\IsSet(\Lambda)$ be true iff $\Lambda$ is a set.
 
 Given $\rho_1, \rho_2 \in \StateExpr$, we write $\rho_1 \vee \rho_2$ for the union of $\rho_1$ and $\rho_2$, 
 $\rho_1 \wedge \rho_2$ for the intersection of $\rho_1$ and $\rho_2$, and $\neg \rho_1$ for $\StateExpr \setminus \rho_1$.
@@ -405,7 +407,8 @@ We denote the relational composition of $\alpha_1$ and $\alpha_2$ by $\alpha_1 \
 Given $\rho \in \StateExpr$ and $\alpha \in \TransExpr$, we denote by $\ga{\locExpr}{\alpha}$ the
 set $\{(\sigma, \sigma') \mid \sigma \in \locExpr \Rightarrow (\sigma,\sigma') \in \alpha\}$.
 We let $\rho \circ \alpha$ denote the relation obtained by restricting the domain of $\alpha$ to $\rho$.
-Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the co-domain of $\alpha$ to $\rho$.
+Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the range of $\alpha$ to $\rho$.
+We also sometimes use $\false$ to represent the empty set of states or the empty set of transitions.
 
 %%% Local Variables: 
 %%% mode: latex
