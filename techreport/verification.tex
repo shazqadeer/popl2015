@@ -654,9 +654,9 @@ $
 $
 \inferrule
 {
-\ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho, \alpha, m)
+\ProcOrNone \not \in \dom(\Refines)
 }
-{\Refines;\procs;\actions;\ProcOrNone;\{\};\false \jr \FH{e}{\yield{e,\lins}}{e \wedge \rho};\false}
+{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
 \;(\textsc{Yield1})
 $
 \medskip
@@ -664,8 +664,9 @@ $
 $
 \inferrule
 {
+\ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho, \alpha, m)
 }
-{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
+{\Refines;\procs;\actions;\ProcOrNone;\{\};\false \jr \FH{e}{\yield{e,\lins}}{e \wedge \rho};\false}
 \;(\textsc{Yield2})
 $
 \medskip
@@ -930,6 +931,22 @@ where the gate is unconstrained and the transition relation does not modify any 
 These constraints ensure that the execution inside the callee does not interfere with the caller's refinement checking 
 which can then be performed locally.
 Rules \textsc{Async1} and \textsc{Async2} handle asynchronous calls and are similar to \textsc{Call1} and \textsc{Call2}, respectively.
+
+Rule \textsc{Atomic} handles the call of an atomic action.
+It computes the set of thread-local variables possibly modified by the action in $\mods$.
+It checks that the gate of the action holds but only when the call occurs inside the body of a procedure 
+that is refining an atomic action.
+This is adequate for our soundness theorem stated in Section~\ref{sec:correctness} which concludes the safety of the concrete 
+program from the safety of the abstract program.
+Thus, if an assertion (gate of an atomic action) remains in the abstract it is safe to leave it unverified.
+Finally, this rule verifies the postcondition $\psi$ from the precondition $\phi$ using the semantics of the atomic action.
+
+Rules \textsc{Yield1} and \textsc{Yield2} handle the yield statement.
+Rule \textsc{Yield1} considers the case when $\ProcOrNone \not \in \dom(\Refines)$ and is straightforward;
+only the yield predicate is available in the postcondition of the statement.
+Rule \textsc{Yield2} considers the case when $\ProcOrNone \in \dom(\Refines)$ and makes available in the postcondition, in 
+addition to the yield predicate, the gate of the action being refined.
+Again, this is safe because the gate remains as an assertion in the abstract program.
 
 We now discuss the judgment $\InterferenceFree(\Prog,\Refines)$,
 where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
