@@ -19,7 +19,7 @@ $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
-$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^\ThreadLocal, \StateExpr, \Stmt)$ \\
+$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^{\Global \cup \ThreadLocal}, \StateExpr, \Stmt)$ \\
 $\lins$ & $\in$ & $\LinearVar = 2^{\Global \cup \ThreadLocal}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVar, \LinearVar)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
@@ -255,7 +255,7 @@ Formally, a \civl program is a tuple $(\procs, \actions, \ProcLins, G, \TS)$ wit
 \noindent
 {\bf Procedures.}
 $\procs$ maps a procedure name $P \in \ProcName$ to a tuple $(\phi, \mods, \psi, \stmt)$, 
-where $\phi$ is the precondition of $P$, $\mods$ is the set of thread-local variables potentially modified by $P$, 
+where $\phi$ is the precondition of $P$, $\mods$ is the set of global and thread-local variables potentially modified by $P$, 
 $\psi$ is the postcondition of $P$, and $\stmt$ is the body of $P$.
 The predicates $\phi$ and $\psi$ cannot refer to procedure-local variables.
 Procedures do not have parameters, but parameters may be modeled using thread-local variables.
@@ -410,9 +410,5 @@ We let $\rho \circ \alpha$ denote the relation obtained by restricting the domai
 Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the range of $\alpha$ to $\rho$.
 We also sometimes use $\false$ to represent the empty set of states or the empty set of transitions.
 
-%%% Local Variables: 
-%%% mode: latex
-%%% TeX-master: "paper"
-%%% End: 
 
 
