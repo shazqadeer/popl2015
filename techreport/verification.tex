@@ -9,7 +9,7 @@ $
 \inferrule
 {
 }
-{\Refines;\AvailableActions \vdash \skipstmt \leadsto \skipstmt}
+{\Refines;\SkipProcs;\AvailableActions \vdash \skipstmt \leadsto \skipstmt}
 \;(\textsc{Skip})
 $
 \medskip
@@ -18,8 +18,8 @@ $
 \inferrule
 {
 }
-{\Refines;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e',\lins'}}
-\;(\textsc{Yield1})
+{\Refines;\SkipProcs;\AvailableActions \vdash \yield{e,\lins} \leadsto \yield{e',\lins'}}
+\;(\textsc{Yield})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -28,7 +28,7 @@ $
 {
 A \in \AvailableActions
 }
-{\Refines;\AvailableActions \vdash \call{A} \leadsto \call{A}}
+{\Refines;\SkipProcs;\AvailableActions \vdash \call{A} \leadsto \call{A}}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -36,10 +36,10 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash s \leadsto s'
+\Refines;\SkipProcs;\AvailableActions \vdash s \leadsto s'
 }
 {
-\Refines;\AvailableActions \vdash \ablock{e,\lins}{s} \leadsto s'
+\Refines;\SkipProcs;\AvailableActions \vdash \ablock{e,\lins}{s} \leadsto s'
 }
 \;(\textsc{Ablock1})
 $
@@ -48,10 +48,10 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash s \leadsto s'
+\Refines;\SkipProcs;\AvailableActions \vdash s \leadsto s'
 }
 {
-\Refines;\AvailableActions \vdash s \leadsto \ablock{e,\lins}{s'}
+\Refines;\SkipProcs;\AvailableActions \vdash s \leadsto \ablock{e,\lins}{s'}
 }
 \;(\textsc{Ablock2})
 $
@@ -63,7 +63,7 @@ $
 P \in \dom(\Refines)
 }
 {
-\Refines;\AvailableActions \vdash \call{P} \leadsto \call{\Refines(P)}
+\Refines;\SkipProcs;\AvailableActions \vdash \call{P} \leadsto \call{\Refines(P)}
 }
 \;(\textsc{Proc1})
 $
@@ -72,10 +72,10 @@ $
 $
 \inferrule
 {
-P \not\in \dom(\Refines)
+P \in \SkipProcs
 }
 {
-\Refines;\AvailableActions \vdash \call{P} \leadsto \call{P}
+\Refines;\SkipProcs;\AvailableActions \vdash \call{P} \leadsto \skipstmt
 }
 \;(\textsc{Proc2})
 $
@@ -84,22 +84,46 @@ $
 $
 \inferrule
 {
-P \not\in \dom(\Refines)
+P \not\in \dom(\Refines) \cup \SkipProcs
 }
 {
-\Refines;\AvailableActions \vdash \async{P} \leadsto \async{P}
+\Refines;\SkipProcs;\AvailableActions \vdash \call{P} \leadsto \call{P}
 }
-\;(\textsc{Async})
+\;(\textsc{Proc3})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+P \in \SkipProcs
 }
 {
-\Refines;\AvailableActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
+\Refines;\SkipProcs;\AvailableActions \vdash \async{P} \leadsto \skipstmt
+}
+\;(\textsc{Async1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not\in \dom(\Refines) \cup \SkipProcs
+}
+{
+\Refines;\SkipProcs;\AvailableActions \vdash \async{P} \leadsto \async{P}
+}
+\;(\textsc{Async2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\SkipProcs;\AvailableActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
 }
 \;(\textsc{Stack})
 $
@@ -108,11 +132,11 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack' \\
-\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
+\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\SkipProcs;\AvailableActions \vdash \stmt \leadsto \stmt'
 }
 {
-\Refines;\AvailableActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
 }
 \;(\textsc{Seq})
 $
@@ -121,11 +145,11 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash s_1 \leadsto s_1' \\
-\Refines;\AvailableActions \vdash s_2 \leadsto s_2'
+\Refines;\SkipProcs;\AvailableActions \vdash s_1 \leadsto s_1' \\
+\Refines;\SkipProcs;\AvailableActions \vdash s_2 \leadsto s_2'
 }
 {
-\Refines;\AvailableActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+\Refines;\SkipProcs;\AvailableActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
 }
 \;(\textsc{Ite})
 $
@@ -134,10 +158,10 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash s \leadsto s'
+\Refines;\SkipProcs;\AvailableActions \vdash s \leadsto s'
 }
 {
-\Refines;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e',\alpha'}{\locExpr}{s'}
+\Refines;\SkipProcs;\AvailableActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e',\alpha'}{\locExpr}{s'}
 }
 \;(\textsc{While})
 $
@@ -146,10 +170,10 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash \stmt \leadsto \stmt'
+\Refines;\SkipProcs;\AvailableActions \vdash \stmt \leadsto \stmt'
 }
 {
-\Refines;\AvailableActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
+\Refines;\SkipProcs;\AvailableActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
 }
 \;(\textsc{Procedure})
 $
@@ -158,10 +182,10 @@ $
 $
 \inferrule
 {
-\Refines;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
 }
 {
-\Refines;\AvailableActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
+\Refines;\SkipProcs;\AvailableActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
 }
 \;(\textsc{Thread})
 $
@@ -170,14 +194,15 @@ $
 $
 \inferrule
 {
-\range(\Refines) \subseteq \AvailableActions \\
-\forall (\rho,\alpha,m) \in \range(\actions \circ \Refines).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
+\dom(\Refines) \cap \SkipProcs = \{ \} \\
+\cod(\Refines) \subseteq \AvailableActions \\\\
+\forall (\rho,\alpha,m) \in \cod(\Refines \circ \actions).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\\\
 \forall A \in \AvailableActions.\ \actions(A) = \actions'(A) \\
-\forall 1 \le i \le n.\ \Refines;\AvailableActions \vdash T_i \leadsto T_i' \\
-\forall P \not\in \dom(\Refines).\ \Refines;\AvailableActions \vdash \procs(P) \leadsto \procs'(P)
+\forall 1 \le i \le n.\ \Refines;\SkipProcs;\AvailableActions \vdash T_i \leadsto T_i' \\
+\forall P \not\in \dom(\Refines) \cup \SkipProcs.\ \Refines;\SkipProcs;\AvailableActions \vdash \procs(P) \leadsto \procs'(P)
 }
 {
-\Refines;\AvailableActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
+\Refines;\SkipProcs;\AvailableActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
 }
 \;(\textsc{Program})
 $
@@ -187,6 +212,112 @@ $
 \caption{Program transformation}
 \label{fig:program-transformation}
 \end{figure*}
+
+Suppose a program $\Prog'$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
+invocation $\call{P}$ of a procedure that is implemented using low-level actions.
+The main contribution of this paper is a verification method that allows us to safely refine
+program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
+safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
+
+We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
+$\Refines;\SkipProcs;\AvailableActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
+In this judgment,
+$\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
+and $\AvailableActions \in 2^{\ActionName}$ is a set of action names.
+This judgment expresses the intention that $\Prog$ is abstracted by replacing
+occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines)$ such that 
+the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
+Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
+
+Rule \textsc{Program} checks that $\cod(\Refines) \subseteq \AvailableActions$,
+which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
+It also checks that every action in $\cod(\Refines)$ has a gate 
+that is independent of procedure-local variables and a transition relation that leaves 
+procedure-local variables unchanged.  
+This check is meaningful because the action $\Refines(P)$ is written from the 
+perspective of the caller of $P$.
+Since the procedure-local variables of the caller of $P$ are distinct from those of $P$,
+these variables are quantified out from the transition relation of $\Refines(P)$ when 
+the body of $P$ is being checked (see Section~\ref{sec:refinement}).
+Finally, this rule constrains actions in $\AvailableActions$ to be identical in $\Prog$ and $\Prog'$ and then rewrites all threads
+and all procedures that are still used in $\Prog'$.
+
+If $P \in \dom(\Refines)$, rule \textsc{Proc1} rewrites $\call{P}$ to $\call{\Refines(P)}$;
+otherwise, rule \textsc{Proc2} leaves $\call{P}$ unchanged.
+Rule \textsc{Async} leaves the call unchanged but checks that $P \not \in \dom(\Refines)$.
+Rule \textsc{Ablock2} breaks up atomic blocks that contain calls
+to atomic actions that are being refined to procedures.
+Rule \textsc{Ablock1} allows smaller atomic blocks to be created in the refined program.
+Rule \textsc{Atomic} checks that $A \in \AvailableActions$ before leaving $\call{A}$ unchanged;
+this rule ensures that the abstract program only uses actions in $\AvailableActions$.
+
+The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
+To justify the transformation, a collection of auxiliary judgments need to be proved.
+We now present an overview of these judgments.
+The judgment $\vdash \Prog$, described in Section~\ref{sec:linearity}, 
+checks that $\Prog$ uses linear variables appropriately and that the statement
+inside any atomic block does not contain any yield.
+The former is important because appropriate use of linear variables gives our verifier access to free disjointness
+assumptions that are important for commutativity reasoning (Section~\ref{sec:yield-elimination})
+and precise non-interference (Section~\ref{sec:refinement}).
+The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
+in one thread is preserved by each atomic block in a different thread.
+
+Next, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, collectively 
+referred to as {\em yield elimination\/} and described in Section~\ref{sec:yield-elimination}.
+These judgments allow us to reduce the complexity of annotations and invariants 
+required for proving the correctness of the concrete program $\Prog$
+by justifying the absence of (implicit) yields between some of the 
+invocations of atomic actions.
+We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
+to perform yield elimination soundly.
+
+Finally, we have two judgments, $\InterferenceFree(\Prog)$ and $\Refines;\SkipProcs \jr \Prog$,
+described in Section~\ref{sec:refinement},
+that together establish that all program annotations are consistent and that 
+each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
+for all $P \in \dom(\Refines)$.
+The rules for these judgments generalize the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
+The judgment $\InterferenceFree(\Prog)$ checks that each thread preserves the
+yield predicate of every other thread.
+The judgment $\Refines;\SkipProcs \jr \Prog$ checks sequential correctness of each computation
+and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
+
+\begin{theorem}
+\label{thm:correctness}
+Let $\Prog, \Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
+Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, and $\AvailableActions \in 2^{\ActionName}$,
+be such that the following conditions hold:
+\begin{enumerate}
+\item
+$\Refines;\SkipProcs;\AvailableActions \vdash \Prog \leadsto \Prog'$.
+\item
+$\jy \Prog$ and $\CommutativitySafe(\Prog)$.
+\item
+$\Refines;\SkipProcs \jr \Prog$ and $\InterferenceFree(\Prog)$.
+\end{enumerate}
+Then, the following hold:
+\begin{enumerate}
+\item
+If $\Prog \in \XProgram$, then $\Prog' \in \XProgram$.
+\item
+If $\Prog \in \XProgram$, $\Responsive(\Prog)$, and $\Safe(\Prog')$, then $\Safe(\Prog)$.
+\end{enumerate}
+\end{theorem}
+
+Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety of $\Prog'$ 
+and the responsiveness of $\Prog$.
+In general, the correctness proof of a large program is obtained by chaining together
+multiple instances of this theorem connecting a sequence of programs.  
+The code of adjacent programs in this chain are constrained by the $\leadsto$ relation but the annotations are left 
+unconstrained to allow as much flexibility in verification as possible.
+
+\subsection{Using linear variables}
+\label{sec:linearity}
 
 \begin{figure*}[t]
 \scriptsize{
@@ -382,87 +513,6 @@ $
 \label{fig:linearity}
 \end{figure*}
 
-Suppose a program $\Prog'$ has been proved to be safe.
-However, it is implemented using atomic actions that are too coarse to be directly implementable.  
-To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
-these coarse atomic actions must be refined down to lower-level actions.
-During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
-invocation $\call{P}$ of a procedure that is implemented using low-level actions.
-The main contribution of this paper is a verification method that allows us to safely refine
-program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
-safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
-
-We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
-$\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
-In this judgment,
-$\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
-and $\AvailableActions \in 2^{\ActionName}$ is a set of action names.
-This judgment expresses the intention that $\Prog$ is abstracted by replacing
-occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines)$ such that 
-the resulting program $\Prog'$ uses only actions in $\AvailableActions$.
-Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
-
-Rule \textsc{Program} checks that $\range(\Refines) \subseteq \AvailableActions$,
-which ensures that $\Prog'$ only uses actions in $\AvailableActions$.
-It also checks that every action in $\range(\Refines)$ has a gate 
-that is independent of procedure-local variables and a transition relation that leaves 
-procedure-local variables unchanged.  
-This check is meaningful because the action $\Refines(P)$ is written from the 
-perspective of the caller of $P$.
-Since the procedure-local variables of the caller of $P$ are distinct from those of $P$,
-these variables are quantified out from the transition relation of $\Refines(P)$ when 
-the body of $P$ is being checked (see Section~\ref{sec:refinement}).
-Finally, this rule constrains actions in $\AvailableActions$ to be identical in $\Prog$ and $\Prog'$ and then rewrites all threads
-and all procedures that are still used in $\Prog'$.
-
-If $P \in \dom(\Refines)$, rule \textsc{Proc1} rewrites $\call{P}$ to $\call{\Refines(P)}$;
-otherwise, rule \textsc{Proc2} leaves $\call{P}$ unchanged.
-Rule \textsc{Async} leaves the call unchanged but checks that $P \not \in \dom(\Refines)$.
-Rule \textsc{Ablock2} breaks up atomic blocks that contain calls
-to atomic actions that are being refined to procedures.
-Rule \textsc{Ablock1} allows smaller atomic blocks to be created in the refined program.
-Rule \textsc{Atomic} checks that $A \in \AvailableActions$ before leaving $\call{A}$ unchanged;
-this rule ensures that the abstract program only uses actions in $\AvailableActions$.
-
-The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
-To justify the transformation, a collection of auxiliary judgments need to be proved.
-We now present an overview of these judgments.
-The judgment $\vdash \Prog$, described in Section~\ref{sec:linearity}, 
-checks that $\Prog$ uses linear variables appropriately and that the statement
-inside any atomic block does not contain any yield.
-The former is important because appropriate use of linear variables gives our verifier access to free disjointness
-assumptions that are important for precise non-interference (Section~\ref{sec:refinement}) 
-and commutativity reasoning (Section~\ref{sec:yield-elimination}).
-The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
-in one thread is preserved by each atomic block in a different thread.
-
-Next, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, collectively 
-referred to as {\em yield elimination\/} and described in Section~\ref{sec:yield-elimination}.
-These judgments allow us to reduce the complexity of annotations and invariants 
-required for proving the correctness of the concrete program $\Prog$
-by justifying the absence of (implicit) yields between some of the 
-invocations of atomic actions.
-We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
-to perform yield elimination soundly.
-
-Finally, we have two judgments, $\InterferenceFree(\Prog, \Refines)$ and $\Refines \jr \Prog$,
-described in Section~\ref{sec:refinement},
-that together establish that all program annotations are consistent and that 
-each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
-for all $P \in \dom(\Refines)$.
-The rules for these judgments generalize the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
-The judgment $\InterferenceFree(\Prog, \Refines)$ checks that each thread preserves the
-yield predicate of every other thread.
-The judgment $\Refines \jr \Prog$ checks sequential correctness of each computation
-and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
-
-In the remainder of this section, in addition to formalizing the judgments discussed above,
-we will also present our soundness theorem in Section~\ref{sec:correctness} 
-and provide important details of our implementation in Section~\ref{sec:implementation}.
-
-\subsection{Using linear variables}
-\label{sec:linearity}
-
 In this section, we formalize the judgment $\vdash \Prog$.
 The goal of this judgment is to check that
 linear variables and atomic blocks are used appropriately in $\Prog$.
@@ -484,7 +534,7 @@ Note that all global permissions in $\lins_G$ are also made available to the new
 there is no duplication because all threads refer to the same set of global variables.
 
 The judgment $\vdash \Prog$ also checks that 
-(1)~each atomic block does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, $\mathit{async}$, or $\mathit{assert}$ statements inside it, and
+(1)~each atomic block does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it, and
 (2)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block.
 To facilitate these checks, the judgments have a parameter containing one of two values,
 $\ABlockOutside$ stating that the current statement is outside any atomic block and
@@ -493,6 +543,12 @@ These two requirements together provide two simplifications that we exploit in S
 First, an atomic block cannot fail and can therefore be summarized by a transition relation.
 Second, checking non-interference of a yield predicate against all atomic blocks concurrently executing 
 in the environment will preserve the yield predicate across the entire computation across a context switch by the environment.
+
+\begin{lemma}
+Let $\Prog \in \Program$ such that $\vdash \Prog$.
+If $\Prog \trans^* (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
+then $\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))$.
+\end{lemma}
 
 \subsection{Yield elimination}
 \label{sec:yield-elimination}
@@ -533,7 +589,7 @@ If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
 \cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
 \end{array} \\
-\mathit{in}\\
+\mathit{in} \\
 \begin{array}{ll}
 \wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG^-}{\varsTL_1}{\varsL_1} \in \rho_1 \\
@@ -562,7 +618,7 @@ If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
 \cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
 \end{array} \\
-\mathit{in}
+\mathit{in} \\
 \begin{array}{ll}
 \wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
@@ -589,7 +645,7 @@ If $m_1 \in \{B,L\}$, then
 \cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
 \cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
 \end{array} \\
-\mathit{in}
+\mathit{in} \\
 \begin{array}{ll}
 \wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
@@ -617,7 +673,7 @@ $
 \inferrule
 {
 }
-{\Refines;\actions \jy \skipstmt : (x, x)}
+{\actions \jy \skipstmt : (x, x)}
 \;(\textsc{Skip})
 $
 \medskip
@@ -626,7 +682,7 @@ $
 \inferrule
 {
 }
-{\Refines;\actions \jy \yield{e,\lins} : (x, \RM)}
+{\actions \jy \yield{e,\lins} : (x, \RM)}
 \;(\textsc{Yield})
 $
 \medskip
@@ -634,9 +690,8 @@ $
 $
 \inferrule
 {
-P \not \in \dom(\Refines)
 }
-{\Refines;\actions \jy \call{P} : (x, \RM)}
+{\actions \jy \call{P} : (x, \RM)}
 \;(\textsc{Call})
 $
 \medskip
@@ -644,48 +699,8 @@ $
 $
 \inferrule
 {
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, B)
 }
-{\Refines;\actions \jy \call{P} : (x, x)}
-\;(\textsc{Both})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, R)
-}
-{\Refines;\actions \jy \call{P} : (\RM, \RM)}
-\;(\textsc{Right})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, L)
-}
-{\Refines;\actions \jy \call{P} : (x, \LM)}
-\;(\textsc{Left})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, N)
-}
-{\Refines;\actions \jy \call{P} : (\RM, \LM)}
-\;(\textsc{Non})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\Refines;\actions \jy \async{P} : (x, \LM)}
+{\actions \jy \async{P} : (x, \LM)}
 \;(\textsc{Async})
 $
 \medskip
@@ -693,9 +708,49 @@ $
 $
 \inferrule
 {
-\Refines;\actions \jy s : (x, y)
+\actions(A) = (\rho, \alpha, B)
 }
-{\Refines;\actions \jy \ablock{e,\lins}{s} : (x, y)}
+{\actions \jy \call{A} : (x, x)}
+\;(\textsc{Both})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions(A) = (\rho, \alpha, R)
+}
+{\actions \jy \call{A} : (\RM, \RM)}
+\;(\textsc{Right})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions(A) = (\rho, \alpha, L)
+}
+{\actions \jy \call{A} : (x, \LM)}
+\;(\textsc{Left})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions(A) = (\rho, \alpha, N)
+}
+{\actions \jy \call{A} : (\RM, \LM)}
+\;(\textsc{Non})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\actions \jy s : (x, y)
+}
+{\actions \jy \ablock{e,\lins}{s} : (x, y)}
 \;(\textsc{Ablock})
 $
 \medskip
@@ -703,9 +758,9 @@ $
 $
 \inferrule
 {
-\Refines;\actions \jy \StmtStack : (x, y) \\ \Refines;\actions \jy s : (y, z)
+\actions \jy \StmtStack : (x, y) \\ \actions \jy s : (y, z)
 }
-{\Refines;\actions \jy \StmtStack;s : (x, z)}
+{\actions \jy \StmtStack;s : (x, z)}
 \;(\textsc{Seq})
 $
 \medskip
@@ -713,9 +768,9 @@ $
 $
 \inferrule
 {
-\Refines;\actions \jy s_1 : (x, y) \\ \Refines;\actions \jy s_2 : (x, y)
+\actions \jy s_1 : (x, y) \\ \actions \jy s_2 : (x, y)
 }
-{\Refines;\actions \jy \ite{\locExpr}{s_1}{s_2} : (x, y)}
+{\actions \jy \ite{\locExpr}{s_1}{s_2} : (x, y)}
 \;(\textsc{Ite})
 $
 \medskip
@@ -723,9 +778,9 @@ $
 $
 \inferrule
 {
-\Refines;\actions \jy s : (x, x)
+\actions \jy s : (x, x)
 }
-{\Refines;\actions \jy \while{e,\alpha}{\locExpr}{s} : (x, x)}
+{\actions \jy \while{e,\alpha}{\locExpr}{s} : (x, x)}
 \;(\textsc{While})
 $
 \medskip
@@ -734,10 +789,10 @@ $
 \inferrule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
-\Refines;\actions \jy \stmt : (x, y)
+\actions \jy \stmt : (x, y)
 }
 {
-\Refines;\actions \jy P
+\actions \jy P
 }
 \;(\textsc{Procedure})
 $
@@ -746,10 +801,10 @@ $
 $
 \inferrule
 {
-\Refines;\actions \jy \StmtStack : (x,y)
+\actions \jy \StmtStack : (x,y)
 }
 {
-\Refines;\actions \jy (\varsL,\StmtStack) : (x,y)
+\actions \jy (\varsL,\StmtStack) : (x,y)
 }
 \;(\textsc{Stack})
 $
@@ -759,10 +814,10 @@ $
 \inferrule
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
-\Refines;\actions \jy (\varsL, \StmtStack) : (x, y)
+\actions \jy (\varsL, \StmtStack) : (x, y)
 }
 {
-\Refines;\actions \jy T
+\actions \jy T
 }
 \;(\textsc{Thread})
 $
@@ -771,11 +826,11 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName.\ \Refines;\actions \jy P \\\\
-\forall 1 \le i \le n.\ \Refines;\actions \jy T_i
+\forall P \in \ProcName.\ \actions \jy P \\\\
+\forall 1 \le i \le n.\ \actions \jy T_i
 }
 {
-\Refines \jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -797,7 +852,7 @@ all sequences of atomic actions, atomic blocks, and yields with enough yields to
 The automaton has two states---$\RM$ and $\LM$.
 The edge labels belong to the set $\{B,R,L,N,Y\}$, where $B$, $R$, $L$, and $N$ represent the various kinds 
 of atomic actions described earlier, $A$ represents an atomic block, and $Y$ represents a yield.
-The judgment $\Refines;\actions \jy \Prog$ checks that all the code in $\Prog$, except procedures in $\dom(\Refines)$,
+The judgment $\actions \jy \Prog$ checks that all the code in $\Prog$, except procedures in $\dom(\Refines)$,
 can be simulated by traces of this automaton.
 This automaton allows traces in which {\em transactions\/} are separated by yields;
 each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
@@ -818,13 +873,13 @@ Rule \textsc{Async} is interesting because it treats an asynchronous call as a l
 Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
 Rule \textsc{Skip} leave the state of the automaton unchanged.
 
-The judgment $\Refines;\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
+The judgment $\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
 Consider the following program with a global variable {\tt x}, two threads, procedure {\tt IncrAndBlock},
 and actions {\tt Nop} and {\tt Block}.
 
 {\small
 \begin{tabular}{l}
-\begin{tabular}{lll}
+\begin{tabular}{l@{}l@{}l}
 \begin{tabular}[t]{l}
 {\tt [ x := 0 ];} \\
 {\tt [ assert x == 0 ];} \\
@@ -868,6 +923,11 @@ even though the code of {\tt IncrAndBlock} satisfies the yield elimination check
 To address this soundness problem in the presence of left and both movers, we require additionally 
 that the abstract program is responsive, that is, it yields infinitely often in any infinite execution.
 The abstract program in the example above is not responsive.
+
+\begin{lemma}
+Let $\Prog \in \Program$ be such that $\vdash \Prog$ and $\jy \Prog$.
+If $\XSafe(\Prog)$ and $\Responsive(\Prog)$, then $\Safe(\Prog)$.
+\end{lemma}
 
 \subsection{Refinement}
 \label{sec:refinement}
@@ -976,8 +1036,8 @@ $
 \label{fig:statement-summarization}
 \end{figure}
 
-In this section, we formalize the judgments $\Refines \jr \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
-The rules for the judgment $\Refines \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
+In this section, we formalize the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceFree(\Prog)$.
+The rules for the judgment $\Refines;\SkipProcs \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
 each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.  
 Suppose $P$ is a procedure in $\dom(\Refines)$, $A = \Refines(P)$, and $\actions(A) = (\rho, \alpha, m)$.
 Our strategy for $P$ is to check that along all paths in its body, there occurs exactly one atomic block 
@@ -989,7 +1049,7 @@ are presented in Figure~\ref{fig:statement-summarization}.
 In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
 Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution or the invariants
 of the loop inside the atomic block may also be needed.
-Proving such predicates throughout the program is the job of the judgments $\Refines \jr \Prog$ and $\InterferenceFree(\Prog, \Refines)$.
+Proving such predicates throughout the program is the job of the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceFree(\Prog)$.
 The rules for the former are presented in Figure~\ref{fig:refinement} and the latter is formalized in text towards the end of this 
 subsection.
 
@@ -1014,7 +1074,7 @@ These checks allow the rule to conclude that the loop is summarized by $e \circ 
 Note that the computed loop summary assumes the loop invariant $e$ since it is checked by the judgments 
 discussed later (Figure~\ref{fig:refinement}).
 
-\begin{figure}
+\begin{figure*}
 \scriptsize{
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1022,7 +1082,7 @@ $
 \inferrule
 {
 }
-{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\phi}{\skipstmt}{\phi};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\phi}{\skipstmt}{\phi};b}
 \;(\textsc{Skip})
 $
 \medskip
@@ -1030,9 +1090,9 @@ $
 $
 \inferrule
 {
-\ProcOrNone \not \in \dom(\Refines)
+\ProcOrNone \not \in \dom(\Refines) \vee \ProcOrNone \in \SkipProcs
 }
-{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
 \;(\textsc{Yield1})
 $
 \medskip
@@ -1042,7 +1102,7 @@ $
 {
 \ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho, \alpha, m)
 }
-{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e \wedge (\rho \vee b)};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e \wedge (\rho \vee b)};b}
 \;(\textsc{Yield2})
 $
 \medskip
@@ -1050,13 +1110,13 @@ $
 $
 \inferrule
 {
-\actions(A) = (\rho, \alpha, m) \\ 
-\mods \subseteq \Global \cup \ThreadLocal \\
-\alpha \subseteq \Havoc(\mods \cup \Local) \\
-\ProcOrNone \in \dom(\Refines) \Rightarrow \phi \subseteq \rho \\ 
-\range((\phi \wedge \rho) \circ \alpha) \subseteq \psi  \\
+\actions(A) = (\rho, \alpha, m) \\\\ 
+\mods \subseteq \ThreadLocal \\
+\alpha \subseteq \Havoc(\Global \cup \mods \cup \Local) \\\\
+\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \Rightarrow \phi \subseteq \rho \\ 
+\cod((\phi \wedge \rho) \circ \alpha) \subseteq \psi  \\
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -1064,9 +1124,10 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\ \ProcOrNone \in \dom(\Refines) \Rightarrow \mods = \{\}
+\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \Rightarrow P \in \SkipProcs \\
+\procs(P) = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
 \;(\textsc{Call})
 $
 \medskip
@@ -1074,9 +1135,10 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi, \stmt) \\ \ProcOrNone \in \dom(\Refines) \Rightarrow \mods = \{\} 
+\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \Rightarrow P \in \SkipProcs \\
+\procs(P) = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\rho \wedge \phi}{\async{P}}{\rho};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\phi}{\async{P}}{\phi};b}
 \;(\textsc{Async})
 $
 \medskip
@@ -1084,10 +1146,10 @@ $
 $
 \inferrule
 {
-\ProcOrNone \not \in \dom(\Refines) \\
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
+\ProcOrNone \not \in \dom(\Refines) \cup \SkipProcs \\\\
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
 \;(\textsc{Ablock1})
 $
 \medskip
@@ -1095,10 +1157,10 @@ $
 $
 \inferrule
 {
-\ProcOrNone \in \dom(\Refines) \\ \actions \vdash \stmt \preceq \ga{e}{\Havoc(\Local)} \\\\
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
+\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \\ \actions \vdash \stmt \preceq \ga{e}{\Havoc(\Local)} \\\\
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
 \;(\textsc{Ablock2})
 $
 \medskip
@@ -1107,10 +1169,10 @@ $
 \inferrule
 {
 \ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho,\alpha,m) \\\\
-\actions \vdash \stmt \preceq \ga{e}{\elim{\Local}.\ \alpha} \\
-\Refines;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};\false
+\actions \vdash \stmt \preceq \ga{e}{\elim{\Local}.\ \alpha} \\\\
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};\false
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};\true}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};\true}
 \;(\textsc{Ablock3})
 $
 \medskip
@@ -1118,10 +1180,10 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods_1;b_1 \jr \FH{\phi_1}{\StmtStack}{\phi_2};b_2 \\\\ 
-\Refines;\procs;\actions;\ProcOrNone;\mods_2;b_2 \jr \FH{\phi_2}{s}{\phi_3};b_3
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1;b_1 \jr \FH{\phi_1}{\StmtStack}{\phi_2};b_2 \\\\ 
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_2;b_2 \jr \FH{\phi_2}{s}{\phi_3};b_3
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b_1 \jr \FH{\phi_1}{\StmtStack;s}{\phi_3};b_3}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b_1 \jr \FH{\phi_1}{\StmtStack;s}{\phi_3};b_3}
 \;(\textsc{Seq})
 $
 \medskip
@@ -1129,10 +1191,10 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods_1;b \jr \FH{\locExpr \wedge \phi_1}{s_1}{\phi_2};b' \\\\
-\Refines;\procs;\actions;\ProcOrNone;\mods_2;b \jr \FH{\neg \locExpr \wedge \phi_1}{s_2}{\phi_2};b'
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1;b \jr \FH{\locExpr \wedge \phi_1}{s_1}{\phi_2};b' \\\\
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_2;b \jr \FH{\neg \locExpr \wedge \phi_1}{s_2}{\phi_2};b'
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
 \;(\textsc{Ite})
 $
 \medskip
@@ -1140,9 +1202,9 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr};b}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr};b}
 \;(\textsc{While})
 $
 \medskip
@@ -1150,9 +1212,10 @@ $
 $
 \inferrule
 {
-\phi \subseteq \phi' \\ \Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b' \\ \psi' \subseteq \psi
+\phi \subseteq \phi' \\ \psi' \subseteq \psi \\\\
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b'
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
 \;(\textsc{Weaken})
 $
 \medskip
@@ -1160,9 +1223,9 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b' \\ \accessVars(\rho) \cap \mods = \{\}
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b' \\ \accessVars(\rho) \cap \mods = \{\}
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi};b'}
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi};b'}
 \;(\textsc{Frame})
 $
 \medskip
@@ -1172,10 +1235,10 @@ $
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
 \mods' \subseteq \mods \\\\
-\Refines;\procs;\actions;P;\mods';\false \jr \FH{\phi}{\stmt}{\psi};P \in \dom(\Refines)
+\Refines;\SkipProcs;\procs;\actions;P;\mods';\false \jr \FH{\phi}{\stmt}{\psi};P \in \dom(\Refines)
 }
 {
-\Refines;\procs;\actions \jr P
+\Refines;\SkipProcs;\procs;\actions \jr P
 }
 \;(\textsc{Procedure})
 $
@@ -1184,12 +1247,12 @@ $
 $
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b \\\\
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b \\\\
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
 \forall \varsG,\varsTL.\ \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi'
 }
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{(\varsL',\StmtStack)}{\psi};b
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{(\varsL',\StmtStack)}{\psi};b
 }
 \;(\textsc{Stack})
 $
@@ -1200,11 +1263,11 @@ $
 {
 T = (\varsTL, (\varsL, \StmtStack)) \\
 \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \\
-\mods \subseteq \Global \cup \ThreadLocal \\\\
-\Refines;\procs;\actions;\None;\mods;\false \jr \FH{\phi}{\StmtStack}{\StateExpr};\false
+\mods \subseteq \ThreadLocal \\\\
+\Refines;\SkipProcs;\procs;\actions;\None;\mods;\false \jr \FH{\phi}{\StmtStack}{\StateExpr};\false
 }
 {
-\Refines;\procs;\actions;\varsG \jr T
+\Refines;\SkipProcs;\procs;\actions;\varsG \jr T
 }
 \;(\textsc{Thread})
 $
@@ -1213,11 +1276,11 @@ $
 $
 \inferrule
 {
-\forall P \in \ProcName.\ \Refines;\procs;\actions \jr P \\\\
-\forall 1 \le i \le n.\ \Refines;\procs;\actions;\varsG \jr T_i
+\forall P \in \ProcName.\ \Refines;\SkipProcs;\procs;\actions \jr P \\\\
+\forall 1 \le i \le n.\ \Refines;\SkipProcs;\procs;\actions;\varsG \jr T_i
 }
 {
-\Refines \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\Refines;\SkipProcs \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -1226,14 +1289,14 @@ $
 }
 \caption{Refinement}
 \label{fig:refinement}
-\end{figure}
+\end{figure*}
 
 Next we examine the rules for the the judgment $\Refines \jr \Prog$ in Figure~\ref{fig:refinement}.
 These rules are a generalization of the sequential correctness rules in the Owicki-Gries method.
 In addition to checking that annotations such preconditions, postconditions, loop invariants, 
 and predicates labeling yield and atomic block statements are correct, it also checks that the bodies
 of each procedure $P \in \dom(\Refines)$ is abstracted by the atomic action $\Refines(P)$.
-The crux of these rules is the judgment $\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi} : b'$.
+The crux of these rules is the judgment $\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi} : b'$.
 In this judgment $\ProcOrNone$ is either a procedure $P \in \dom(\Refines)$ if the body of $P$ is being checked
 or a special value $\None$ different from all procedure names in $\dom(\procs)$ if the code of some thread 
 is being checked.
@@ -1287,7 +1350,7 @@ Rule \textsc{Atomic} handles the call of an atomic action.
 It computes the set of thread-local variables possibly modified by the action in $\mods$.
 It checks that the gate of the action holds but only when the call occurs inside the body of a procedure 
 that is refining an atomic action.
-This is adequate for our soundness theorem stated in Section~\ref{sec:correctness} which concludes the safety of the concrete 
+This is adequate for our soundness theorem (Theorem~\ref{thm:correctness}) which concludes the safety of the concrete 
 program from the safety of the abstract program.
 Thus, if an assertion (gate of an atomic action) remains in the abstract it is safe to leave it unverified.
 Finally, this rule verifies the postcondition $\psi$ from the precondition $\phi$ using the semantics of the atomic action.
@@ -1299,7 +1362,7 @@ Rule \textsc{Yield2} considers the case when $\ProcOrNone \in \dom(\Refines)$ an
 addition to the yield predicate, the gate of the action being refined.
 Again, this is safe because the gate remains as an assertion in the abstract program.
 
-We now discuss the judgment $\InterferenceFree(\Prog,\Refines)$,
+We now discuss the judgment $\InterferenceFree(\Prog)$,
 where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
 Let $\Yields(\Prog)$ be the union of the following sets:
 \begin{itemize}
@@ -1310,10 +1373,10 @@ $\{(\phi,\lins) \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stm
 \item
 $\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
 \end{itemize}
-Let $\Ablocks(\Prog,\Refines)$ be the set of atomic blocks in $\Prog$.
-The program $\Prog$ is interference-free with respect to $\Refines$, denoted by $\InterferenceFree(\Prog,\Refines)$,
+Let $\Ablocks(\Prog)$ be the set of atomic blocks in $\Prog$.
+The program $\Prog$ is interference-free, denoted by $\InterferenceFree(\Prog)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$ and 
-for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog,\Refines)$, there exists $\alpha$ such that 
+for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, there exists $\alpha$ such that 
 $\actions \vdash \stmt \preceq \alpha$ and 
 \[
 \scriptsize{
@@ -1348,76 +1411,19 @@ as follows:
 \scriptsize{
 \inferrule
 {
-\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
+\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
 \rho = \{ \sigma \mid \sigma(f) \geq 0 \} \\
 e \wedge \locExpr \subseteq \rho \\\\
 \alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\
 \actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
 }
-{\Refines;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
-\;(\textsc{While})
+{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
 }
 \]
-The modified rule above exploits the judgment $\actions \vdash s \preceq \alpha$ for statement summarization in 
-Figure~\ref{fig:statement-summarization}.
 
-\subsection{Correctness}
-\label{sec:correctness}
-
-\begin{theorem}
-Let $\Prog,\Prog' \in \XProgram$, $\Refines \in \ProcName \pf \ActionName$ be a partial function,
-and $\AvailableActions \in 2^{\ActionName}$ be a set such that the following conditions are satisfied:
-\begin{enumerate}
-\item
-$\vdash \Prog$ and $\vdash \Prog'$ and $\Refines;\AvailableActions \vdash \Prog \leadsto \Prog'$.
-\item
-$\Refines \jr \Prog$ and $\InterferenceFree(\Prog,\Refines)$.
-\item
-$\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
-\end{enumerate}
-If $\Safe(\Prog')$ and $\Responsive(\Prog)$, then $\Safe(\Prog)$.
-\end{theorem}
-
-Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety of $\Prog'$ 
-and the responsiveness of $\Prog$.
-In general, the correctness proof of a large program is obtained by chaining together
-multiple instances of this theorem connecting a sequence of programs.  
-The code of adjacent programs in this chain are constrained by the $\leadsto$ relation but the annotations are left 
-unconstrained to allow as much flexibility in verification as possible.
-
-\subsection{Implementation}
-\label{sec:implementation}
-
-We have implemented the method described in this section as a conservation extension 
-of the Boogie~\cite{BarnettCDJL05} language and verifier.
-Our implementation provides new language primitives for linear variables, asynchronous and parallel procedure calls, 
-yields, and atomic actions as procedure specifications.
-At its core, Boogie is an unstructured language comprising code blocks and goto statements.
-Our implementation handles the complexity of unstructured control flow.
-To simplify the exposition, our formalization uses Floyd-Hoare triples to present sequential correctness and 
-annotated atomic code blocks to present refinement and non-interference checks.
-However, our implementation is considerably more automated.  
-All the annotations, except those at yields, loops, and procedure boundaries, are automatically generated 
-using the technique of verification conditions~\cite{BL05}.
-Annotated atomic code blocks are also inferred automatically.
-Non-interference checks are collected as inlined procedures
-invoked at appropriate places within the code of a procedure for increased precision.
-
-The judgment $\Refines \jy \Prog$ from Section~\ref{sec:yield-elimination} is fully automated.
-We adapted an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
-labeled graphs to check that the control flow graph of a procedure is simulated by
-the $\YSA$ automaton.
-The complexity of the algorithm is $O(n*m)$, where $n$ and $m$ are the number of control-flow graph nodes and edges.
-In practice, this part of the verification is fast.
-
-As mentioned in Section~\ref{sec:correctness}, a large proof usually comprises multiple layers of refinement chained together.
-Our implementation allows the specification of multiple views of a program in a single file by using the mechanism of {\em phases}.
-The programmer may attach a positive phase number to each annotation and procedure; 
-version $i$ of the program is constructed from annotations labeled $i$ and procedures labeled at least $i$.
-We have implemented a type checker to make sure that phase numbers are used appropriately, e.g., 
-it is illegal for a procedure with phase $i$ to call a procedure with phase $j$ greater than $i$.
-
-Our verifier also supports hiding of global variables.
-These operations were used in several places in the proof of a concurrent garbage collector (described in Section~\ref{sec:gc}).
-Hiding global variables is particularly useful because simple summaries can be written for complicated procedures
-once enough variables relevant to their implementation have been hidden.
+\begin{lemma}
+Let $\Prog, \Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
+Let $\Refines \in \ProcName \pf \ActionName$ and $\SkipProcs \in 2^{\ProcName}$
+be such that $\Refines;\SkipProcs \jr \Prog$.
+If $\Safe(\Prog')$, then $\XSafe(\Prog)$.
+\end{lemma}

@@ -26,6 +26,7 @@
 \usetikzlibrary{shapes}
 
 \newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
 
 \theoremstyle{remark}
 \newtheorem{example}{Example}
@@ -44,11 +45,6 @@
 \makeatother
 
 \begin{document}
-
-\special{papersize=8.5in,11in}
-\setlength{\pdfpageheight}{\paperheight}
-\setlength{\pdfpagewidth}{\paperwidth}
-
 
 \title{Automated and modular refinement reasoning for concurrent programs}
 \author{Chris Hawblitzel \\ Microsoft \and Erez Petrank \\ Technion \and Shaz Qadeer \\ Microsoft \and Serdar Tasiran \\ Ko\c{c} University}
@@ -72,6 +68,7 @@ from a simple high-level specification down to a highly-concurrent implementatio
 \input{examples}
 \input{language}
 \input{verification}
+\input{implementation}
 \input{related}
 
 \bibliographystyle{abbrv}

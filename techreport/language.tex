@@ -19,7 +19,7 @@ $P$ & $\in$ & $\ProcName$ \\
 $A$ & $\in$ & $\ActionName$ \\
 $m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
 $\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
-$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^{\Global \cup \ThreadLocal}, \StateExpr, \Stmt)$ \\
+$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^{\ThreadLocal}, \StateExpr, \Stmt)$ \\
 $\lins$ & $\in$ & $\LinearVar = 2^{\Global \cup \ThreadLocal}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVar, \LinearVar)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
@@ -83,7 +83,7 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi,\stmt) \\
+\procs(P) = (\phi, \mods, \psi,\stmt) \\\\
 \TS = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\async{P}] \cdot \Vector{T_2} \\
 \TS' = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\skipstmt] \cdot \Vector{T_2}
 }
@@ -355,7 +355,7 @@ Then, the statement $\stmt$ executes.
 When $\stmt$ terminates, the postcondition $\psi$ holds and the permissions $\lins'$ are available.
 The predicates $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
 The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
-The statement $\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield staetement inside it;
+The statement $\ablock{e,\lins}{\stmt}$ is a block of statements that may not have a yield statement inside it;
 the predicate $e$ is expected to hold and the permissions $\lins$ expected to be available at the beginning.
 This statement is useful for compactly encoding non-interference checks (Section~\ref{sec:refinement}).
 The statement $\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$.
@@ -381,14 +381,18 @@ In such an execution, the one (possibly) non-yielding thread is the only one all
 At that point, all threads are yielding and any one can be picked for execution.
 We define the predicate $\Yielding$ as follows:
 \[
-\begin{array}{lcl}
-\Yielding(\Prog) & = & \mathit{let}\ \Prog = (\procs, \actions, \ProcLins, G, \TS)\ \mathit{in}\\
-                 &   & ~~~~~~\forall T \in \TS.\ T \in \mathit{YieldingThread}.
+\begin{array}{l}
+\Yielding(\Prog)\ \stackrel{\triangle}{=} \\
+\mathit{let}\ \Prog = (\procs, \actions, \ProcLins, G, \TS)\ \mathit{in} \\
+~~~~~~\forall T \in \TS.\ T \in \mathit{YieldingThread}.
 \end{array}
 \]
 Consider a program $\Prog \in \XProgram$.
 $\Prog$ is {\em responsive\/}, denoted $\Responsive(\Prog)$, 
 iff every infinite $\xtrans$-execution from $\Prog$ satisfies $\Yielding$ infinitely often.
+A program $\Prog$ is {\em transactionally unsafe\/} if there is a finite $\xtrans$-execution from $\Prog$ ending in a state $\Prog'$ 
+such that $\Prog'$ fails.
+$\Prog$ is {\em transactionally safe}, denoted $\XSafe(\Prog)$, iff $\Prog$ is not transactionally unsafe.
 
 \subsection{Definitions}
 \label{sec:definitions}
@@ -401,14 +405,15 @@ $\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)
 
 Given $\rho_1, \rho_2 \in \StateExpr$, we write $\rho_1 \vee \rho_2$ for the union of $\rho_1$ and $\rho_2$, 
 $\rho_1 \wedge \rho_2$ for the intersection of $\rho_1$ and $\rho_2$, and $\neg \rho_1$ for $\StateExpr \setminus \rho_1$.
-Similarly, given $\alpha_1, \alpha_2 \in \StateExpr$, we write $\alpha_1 \vee \alpha_2$ for the union of $\alpha_1$ and $\alpha_2$, 
+Similarly, given $\alpha_1, \alpha_2 \in \TransExpr$, we write $\alpha_1 \vee \alpha_2$ for the union of $\alpha_1$ and $\alpha_2$, 
 $\alpha_1 \wedge \alpha_2$ for the intersection of $\alpha_1$ and $\alpha_2$, and $\neg \alpha_1$ for $\TransExpr \setminus \alpha_1$.
 We denote the relational composition of $\alpha_1$ and $\alpha_2$ by $\alpha_1 \circ \alpha_2$.
-Given $\rho \in \StateExpr$ and $\alpha \in \TransExpr$, we denote by $\ga{\locExpr}{\alpha}$ the
-set $\{(\sigma, \sigma') \mid \sigma \in \locExpr \Rightarrow (\sigma,\sigma') \in \alpha\}$.
+Given $\rho \in \StateExpr$ and $\alpha \in \TransExpr$, we denote by $\ga{\rho}{\alpha}$ the
+set $\{(\sigma, \sigma') \mid \sigma \in \rho \Rightarrow (\sigma,\sigma') \in \alpha\}$.
 We let $\rho \circ \alpha$ denote the relation obtained by restricting the domain of $\alpha$ to $\rho$.
-Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the range of $\alpha$ to $\rho$.
+Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the codomain of $\alpha$ to $\rho$.
 We also sometimes use $\false$ to represent the empty set of states or the empty set of transitions.
 
+Given a relation $R$ (over a pair of sets), we denote the domain of $R$ by $\dom(R)$ and the codomain of $R$ by $\cod(R)$.
 
 
