@@ -925,7 +925,7 @@ that the abstract program is responsive, that is, it yields infinitely often in 
 The abstract program in the example above is not responsive.
 
 \begin{lemma}
-Let $\Prog \in \Program$ be such that $\vdash \Prog$ and $\jy \Prog$.
+Let $\Prog \in \Program$ be such that $\vdash \Prog$, $\CommutativitySafe(\Prog)$, and $\jy \Prog$.
 If $\XSafe(\Prog)$ and $\Responsive(\Prog)$, then $\Safe(\Prog)$.
 \end{lemma}
 
@@ -1400,6 +1400,14 @@ $\actions \vdash \stmt \preceq \alpha$ and
 }
 \]
 
+\begin{lemma}
+Let $\Prog, \Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
+Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, and $\AvailableActions \in 2^{\ActionName}$
+be such that $\Refines;\SkipProcs;\AvailableActions \vdash \Prog \leadsto \Prog'$, $\Refines;\SkipProcs \jr \Prog$, and
+$\InterferenceFree(\Prog)$.
+If $\Safe(\Prog')$, then $\XSafe(\Prog)$.
+\end{lemma}
+
 {\bf Proving responsiveness.}
 A program is responsive if any infinite execution in it yields infinitely often.
 Although it is a liveness property, proving it is about as easy as proving termination of sequential program.
@@ -1420,10 +1428,3 @@ e \wedge \locExpr \subseteq \rho \\\\
 {\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
 }
 \]
-
-\begin{lemma}
-Let $\Prog, \Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
-Let $\Refines \in \ProcName \pf \ActionName$ and $\SkipProcs \in 2^{\ProcName}$
-be such that $\Refines;\SkipProcs \jr \Prog$.
-If $\Safe(\Prog')$, then $\XSafe(\Prog)$.
-\end{lemma}

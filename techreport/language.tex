@@ -83,14 +83,16 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi,\stmt) \\\\
+\procs(P) = (\phi, \mods, \psi,\stmt) \\
+\ProcLins(P) = (\lins, \lins') \\
+T' = (\varsTL, (\varsL, \yield{\phi,\lins};\stmt)) \\
 \TS = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\async{P}] \cdot \Vector{T_2} \\
 \TS' = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\skipstmt] \cdot \Vector{T_2}
 }
 {
 (\procs, \actions, \ProcLins, \varsG, \TS)
 \trans
-(\procs, \actions, \ProcLins, \varsG, \TS' \cdot (\varsTL, (\varsL, \stmt)))
+(\procs, \actions, \ProcLins, \varsG, \TS' \cdot T')
 }
 \;(\textsc{Async})
 $
@@ -109,9 +111,11 @@ $
 $
 \inferrule
 {
-\procs(P) = (\phi, \mods, \psi,\stmt)
+\procs(P) = (\phi, \mods, \psi,\stmt) \\
+\ProcLins(P) = (\lins, \lins') \\
+\StmtStack = \yield{\phi,\lins};\stmt;\yield{\psi,\lins'}
 }
-{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\stmt]}
+{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][(\varsL,\StmtStack)]}
 \;{(\textsc{Call})}
 $
 \medskip
