@@ -161,7 +161,7 @@ $
 P \in \dom(\Refines)
 }
 {
-\Refines;\SkipProcs;\AvailableActions;\false \vdash (P,\varsL,\StmtStack) \leadsto \call{\Refines(P)}
+\Refines;\SkipProcs;\AvailableActions;\false \vdash (P,\varsL,\StmtStack) \leadsto \yield{e,\lins}; \call{\Refines(P)}; \yield{e',\lins'}
 }
 \;(\textsc{Stack1})
 $
@@ -173,7 +173,7 @@ $
 P \in \dom(\Refines) \cup \SkipProcs
 }
 {
-\Refines;\SkipProcs;\AvailableActions;\true \vdash (P,\varsL,\StmtStack) \leadsto \skipstmt
+\Refines;\SkipProcs;\AvailableActions;\true \vdash (P,\varsL,\StmtStack) \leadsto \yield{e',\lins'}
 }
 \;(\textsc{Stack2})
 $
