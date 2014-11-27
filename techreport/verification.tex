@@ -114,32 +114,7 @@ P \not\in \dom(\Refines) \cup \SkipProcs
 \Refines;\SkipProcs;\AvailableActions \vdash \async{P} \leadsto \async{P}
 }
 \;(\textsc{Async2})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
-}
-{
-\Refines;\SkipProcs;\AvailableActions \vdash (\varsL,\StmtStack) \leadsto (\varsL,\StmtStack')
-}
-\;(\textsc{Stack})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack \leadsto \StmtStack' \\
-\Refines;\SkipProcs;\AvailableActions \vdash \stmt \leadsto \stmt'
-}
-{
-\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
-}
-\;(\textsc{Seq})
-$
+$\\
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
@@ -170,6 +145,56 @@ $
 $
 \inferrule
 {
+\Refines;\SkipProcs;\AvailableActions;b \vdash \StmtStack \leadsto \StmtStack' \\
+\Refines;\SkipProcs;\AvailableActions \vdash \stmt \leadsto \stmt'
+}
+{
+\Refines;\SkipProcs;\AvailableActions;b \vdash \StmtStack;\stmt \leadsto \StmtStack';\stmt'
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines)
+}
+{
+\Refines;\SkipProcs;\AvailableActions;\false \vdash (P,\varsL,\StmtStack) \leadsto \call{\Refines(P)}
+}
+\;(\textsc{Stack1})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \in \dom(\Refines) \cup \SkipProcs
+}
+{
+\Refines;\SkipProcs;\AvailableActions;\true \vdash (P,\varsL,\StmtStack) \leadsto \skipstmt
+}
+\;(\textsc{Stack2})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not \in \dom(\Refines) \cup \SkipProcs \\
+\Refines;\SkipProcs;\AvailableActions;b \vdash \StmtStack \leadsto \StmtStack'
+}
+{
+\Refines;\SkipProcs;\AvailableActions;b \vdash (P,\varsL,\StmtStack) \leadsto (P,\varsL,\StmtStack')
+}
+\;(\textsc{Stack3})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
 \Refines;\SkipProcs;\AvailableActions \vdash \stmt \leadsto \stmt'
 }
 {
@@ -182,10 +207,10 @@ $
 $
 \inferrule
 {
-\Refines;\SkipProcs;\AvailableActions \vdash \StmtStack \leadsto \StmtStack'
+\Refines;\SkipProcs;\AvailableActions;b \vdash (P, \varsL, \StmtStack) \leadsto \StmtStack'
 }
 {
-\Refines;\SkipProcs;\AvailableActions \vdash (\varsTL, (\varsL, \StmtStack)) \leadsto (\varsTL, (\varsL, \StmtStack'))
+\Refines;\SkipProcs;\AvailableActions;b \vdash (\varsTL, (P, \varsL, \StmtStack)) \leadsto (\varsTL, \StmtStack')
 }
 \;(\textsc{Thread})
 $
@@ -195,14 +220,14 @@ $
 \inferrule
 {
 \dom(\Refines) \cap \SkipProcs = \{ \} \\
-\cod(\Refines) \subseteq \AvailableActions \\\\
+\cod(\Refines) \subseteq \AvailableActions \\
+\forall A \in \AvailableActions.\ \actions(A) = \actions'(A) \\\\
 \forall (\rho,\alpha,m) \in \cod(\Refines \circ \actions).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\\\
-\forall A \in \AvailableActions.\ \actions(A) = \actions'(A) \\
-\forall 1 \le i \le n.\ \Refines;\SkipProcs;\AvailableActions \vdash T_i \leadsto T_i' \\
+\forall 1 \le i \le n.\ \Refines;\SkipProcs;\AvailableActions;b_i \vdash T_i \leadsto T_i' \\
 \forall P \not\in \dom(\Refines) \cup \SkipProcs.\ \Refines;\SkipProcs;\AvailableActions \vdash \procs(P) \leadsto \procs'(P)
 }
 {
-\Refines;\SkipProcs;\AvailableActions \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
+\Refines;\SkipProcs;\AvailableActions;b_1;\ldots;b_n \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG, T_1' \ldots T_n')
 }
 \;(\textsc{Program})
 $
@@ -276,37 +301,31 @@ invocations of atomic actions.
 We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
 to perform yield elimination soundly.
 
-Finally, we have two judgments, $\InterferenceFree(\Prog)$ and $\Refines;\SkipProcs \jr \Prog$,
+Finally, we have two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\SkipProcs \jr \Prog$,
 described in Section~\ref{sec:refinement},
 that together establish that all program annotations are consistent and that 
 each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
 for all $P \in \dom(\Refines)$.
 The rules for these judgments generalize the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
-The judgment $\InterferenceFree(\Prog)$ checks that each thread preserves the
+The judgment $\InterferenceSafe(\Prog)$ checks that each thread preserves the
 yield predicate of every other thread.
 The judgment $\Refines;\SkipProcs \jr \Prog$ checks sequential correctness of each computation
 and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
 
 \begin{theorem}
 \label{thm:correctness}
-Let $\Prog, \Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
-Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, and $\AvailableActions \in 2^{\ActionName}$,
-be such that the following conditions hold:
+Let $\Prog,\Prog' \in \CProgram$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
+Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
+and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that the following conditions hold:
 \begin{enumerate}
 \item
-$\Refines;\SkipProcs;\AvailableActions \vdash \Prog \leadsto \Prog'$.
+$\Refines;\SkipProcs;\AvailableActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
 \item
 $\jy \Prog$ and $\CommutativitySafe(\Prog)$.
 \item
-$\Refines;\SkipProcs \jr \Prog$ and $\InterferenceFree(\Prog)$.
+$\Refines;\SkipProcs;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 \end{enumerate}
-Then, the following hold:
-\begin{enumerate}
-\item
-If $\Prog \in \XProgram$, then $\Prog' \in \XProgram$.
-\item
-If $\Prog \in \XProgram$, $\Responsive(\Prog)$, and $\Safe(\Prog')$, then $\Safe(\Prog)$.
-\end{enumerate}
+If $\Cooperative^*(\Prog)$ and $\Safe^*(\Prog')$, then $\Safe^*(\Prog)$.
 \end{theorem}
 
 Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety of $\Prog'$ 
@@ -546,8 +565,13 @@ in the environment will preserve the yield predicate across the entire computati
 
 \begin{lemma}
 Let $\Prog \in \Program$ such that $\vdash \Prog$.
-If $\Prog \trans^* (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
+If $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
 then $\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))$.
+\end{lemma}
+
+\begin{lemma}
+Let $Prog_1, \Prog_2 \in \Program$ such that $\vdash \Prog_1$ and $\Prog_1 \trans \Prog_2$.
+Then, we have $\vdash \Prog_2$.
 \end{lemma}
 
 \subsection{Yield elimination}
@@ -925,8 +949,8 @@ that the abstract program is responsive, that is, it yields infinitely often in 
 The abstract program in the example above is not responsive.
 
 \begin{lemma}
-Let $\Prog \in \Program$ be such that $\vdash \Prog$, $\CommutativitySafe(\Prog)$, and $\jy \Prog$.
-If $\XSafe(\Prog)$ and $\Responsive(\Prog)$, then $\Safe(\Prog)$.
+Let $\Prog \in \CProgram$ be such that $\vdash \Prog$, $\CommutativitySafe(\Prog)$, and $\jy \Prog$.
+If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
 \end{lemma}
 
 \subsection{Refinement}
@@ -1036,7 +1060,7 @@ $
 \label{fig:statement-summarization}
 \end{figure}
 
-In this section, we formalize the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceFree(\Prog)$.
+In this section, we formalize the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 The rules for the judgment $\Refines;\SkipProcs \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
 each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.  
 Suppose $P$ is a procedure in $\dom(\Refines)$, $A = \Refines(P)$, and $\actions(A) = (\rho, \alpha, m)$.
@@ -1049,7 +1073,7 @@ are presented in Figure~\ref{fig:statement-summarization}.
 In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
 Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution or the invariants
 of the loop inside the atomic block may also be needed.
-Proving such predicates throughout the program is the job of the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceFree(\Prog)$.
+Proving such predicates throughout the program is the job of the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 The rules for the former are presented in Figure~\ref{fig:refinement} and the latter is formalized in text towards the end of this 
 subsection.
 
@@ -1082,7 +1106,7 @@ $
 \inferrule
 {
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\phi}{\skipstmt}{\phi};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\{\};b \jr \FH{\phi}{\skipstmt}{\phi};b}
 \;(\textsc{Skip})
 $
 \medskip
@@ -1090,9 +1114,9 @@ $
 $
 \inferrule
 {
-\ProcOrNone \not \in \dom(\Refines) \vee \ProcOrNone \in \SkipProcs
+P \not \in \dom(\Refines) \vee P \in \SkipProcs
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\{\};b \jr \FH{e}{\yield{e,\lins}}{e};b}
 \;(\textsc{Yield1})
 $
 \medskip
@@ -1100,9 +1124,9 @@ $
 $
 \inferrule
 {
-\ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho, \alpha, m)
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, m)
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{e}{\yield{e,\lins}}{e \wedge (\rho \vee b)};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\{\};b \jr \FH{e}{\yield{e,\lins}}{e \wedge (\rho \vee b)};b}
 \;(\textsc{Yield2})
 $
 \medskip
@@ -1113,10 +1137,10 @@ $
 \actions(A) = (\rho, \alpha, m) \\\\ 
 \mods \subseteq \ThreadLocal \\
 \alpha \subseteq \Havoc(\Global \cup \mods \cup \Local) \\\\
-\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \Rightarrow \phi \subseteq \rho \\ 
+P \in \dom(\Refines) \cup \SkipProcs \Rightarrow \phi \subseteq \rho \\ 
 \cod((\phi \wedge \rho) \circ \alpha) \subseteq \psi  \\
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi}{\call{A}}{\psi};b}
 \;(\textsc{Atomic})
 $
 \medskip
@@ -1124,10 +1148,10 @@ $
 $
 \inferrule
 {
-\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \Rightarrow P \in \SkipProcs \\
-\procs(P) = (\phi, \mods, \psi, \stmt)
+P \in \dom(\Refines) \cup \SkipProcs \Rightarrow P' \in \SkipProcs \\
+\procs(P') = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\call{P}}{\psi};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi}{\call{P'}}{\psi};b}
 \;(\textsc{Call})
 $
 \medskip
@@ -1135,10 +1159,10 @@ $
 $
 \inferrule
 {
-\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \Rightarrow P \in \SkipProcs \\
-\procs(P) = (\phi, \mods, \psi, \stmt)
+P \in \dom(\Refines) \cup \SkipProcs \Rightarrow P' \in \SkipProcs \\
+\procs(P') = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\{\};b \jr \FH{\phi}{\async{P}}{\phi};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\{\};b \jr \FH{\phi}{\async{P'}}{\phi};b}
 \;(\textsc{Async})
 $
 \medskip
@@ -1146,10 +1170,10 @@ $
 $
 \inferrule
 {
-\ProcOrNone \not \in \dom(\Refines) \cup \SkipProcs \\\\
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
+P \not \in \dom(\Refines) \cup \SkipProcs \\\\
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
 \;(\textsc{Ablock1})
 $
 \medskip
@@ -1157,10 +1181,10 @@ $
 $
 \inferrule
 {
-\ProcOrNone \in \dom(\Refines) \cup \SkipProcs \\ \actions \vdash \stmt \preceq \ga{e}{\Havoc(\Local)} \\\\
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
+P \in \dom(\Refines) \cup \SkipProcs \\ \actions \vdash \stmt \preceq \ga{e}{\Havoc(\Local)} \\\\
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};b
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};b}
 \;(\textsc{Ablock2})
 $
 \medskip
@@ -1168,11 +1192,11 @@ $
 $
 \inferrule
 {
-\ProcOrNone \in \dom(\Refines) \\ \actions(\Refines(\ProcOrNone)) = (\rho,\alpha,m) \\\\
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\\\
 \actions \vdash \stmt \preceq \ga{e}{\elim{\Local}.\ \alpha} \\\\
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};\false
+\Refines;\SkipProcs;\procs;\actions;P;\mods;\false \jr \FH{\phi_1 \wedge e}{\stmt}{\phi_2};\false
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;\false \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};\true}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;\false \jr \FH{\phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\phi_2};\true}
 \;(\textsc{Ablock3})
 $
 \medskip
@@ -1180,21 +1204,10 @@ $
 $
 \inferrule
 {
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1;b_1 \jr \FH{\phi_1}{\StmtStack}{\phi_2};b_2 \\\\ 
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_2;b_2 \jr \FH{\phi_2}{s}{\phi_3};b_3
+\Refines;\SkipProcs;\procs;\actions;P;\mods_1;b \jr \FH{\locExpr \wedge \phi_1}{s_1}{\phi_2};b' \\\\
+\Refines;\SkipProcs;\procs;\actions;P;\mods_2;b \jr \FH{\neg \locExpr \wedge \phi_1}{s_2}{\phi_2};b'
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b_1 \jr \FH{\phi_1}{\StmtStack;s}{\phi_3};b_3}
-\;(\textsc{Seq})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1;b \jr \FH{\locExpr \wedge \phi_1}{s_1}{\phi_2};b' \\\\
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_2;b \jr \FH{\neg \locExpr \wedge \phi_1}{s_2}{\phi_2};b'
-}
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods_1 \cup \mods_2;b \jr \FH{\phi_1}{\ite{\locExpr}{s_1}{s_2}}{\phi_2};b'}
 \;(\textsc{Ite})
 $
 \medskip
@@ -1202,9 +1215,9 @@ $
 $
 \inferrule
 {
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{e}{\while{e,\alpha}{\locExpr}{s}}{e \wedge \neg \locExpr};b}
 \;(\textsc{While})
 $
 \medskip
@@ -1213,9 +1226,9 @@ $
 \inferrule
 {
 \phi \subseteq \phi' \\ \psi' \subseteq \psi \\\\
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b'
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi'};b'
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b'}
 \;(\textsc{Weaken})
 $
 \medskip
@@ -1223,10 +1236,35 @@ $
 $
 \inferrule
 {
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b' \\ \accessVars(\rho) \cap \mods = \{\}
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi}{\StmtStack}{\psi};b' \\ \accessVars(\rho) \cap \mods = \{\}
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi};b'}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\rho \wedge \phi}{\StmtStack}{\rho \wedge \psi};b'}
 \;(\textsc{Frame})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\SkipProcs;\procs;\actions;P;\mods_1;b_1 \jr \FH{\phi_1}{\StmtStack}{\phi_2};b_2 \\\\ 
+\Refines;\SkipProcs;\procs;\actions;P;\mods_2;b_2 \jr \FH{\phi_2}{s}{\phi_3};b_3
+}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods_1 \cup \mods_2;b_1 \jr \FH{\phi_1}{\StmtStack;s}{\phi_3};b_3}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\SkipProcs;\procs;\actions;P';\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b' \\\\
+(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
+\forall \varsG,\varsTL.\ \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi'
+}
+{
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi}{(P',\varsL',\StmtStack)}{\psi};b'
+}
+\;(\textsc{Stack})
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1235,7 +1273,7 @@ $
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
 \mods' \subseteq \mods \\\\
-\Refines;\SkipProcs;\procs;\actions;P;\mods';\false \jr \FH{\phi}{\stmt}{\psi};P \in \dom(\Refines)
+\Refines;\SkipProcs;\procs;\actions;P;\mods';P \not \in \dom(\Refines) \jr \FH{\phi}{\stmt}{\psi};\true
 }
 {
 \Refines;\SkipProcs;\procs;\actions \jr P
@@ -1247,27 +1285,13 @@ $
 $
 \inferrule
 {
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi'}{\StmtStack}{\psi};b \\\\
-(\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
-\forall \varsG,\varsTL.\ \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi'
-}
-{
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{(\varsL',\StmtStack)}{\psi};b
-}
-\;(\textsc{Stack})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-T = (\varsTL, (\varsL, \StmtStack)) \\
+T = (\varsTL, (P, \varsL, \StmtStack)) \\
 \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi \\
 \mods \subseteq \ThreadLocal \\\\
-\Refines;\SkipProcs;\procs;\actions;\None;\mods;\false \jr \FH{\phi}{\StmtStack}{\StateExpr};\false
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi}{\StmtStack}{\StateExpr};\true
 }
 {
-\Refines;\SkipProcs;\procs;\actions;\varsG \jr T
+\Refines;\SkipProcs;\procs;\actions;\varsG;b \jr T
 }
 \;(\textsc{Thread})
 $
@@ -1277,10 +1301,10 @@ $
 \inferrule
 {
 \forall P \in \ProcName.\ \Refines;\SkipProcs;\procs;\actions \jr P \\\\
-\forall 1 \le i \le n.\ \Refines;\SkipProcs;\procs;\actions;\varsG \jr T_i
+\forall 1 \le i \le n.\ \Refines;\SkipProcs;\procs;\actions;\varsG;b_i \jr T_i
 }
 {
-\Refines;\SkipProcs \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\Refines;\SkipProcs;b_1;\ldots;b_n \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
 \;(\textsc{Program})
 $
@@ -1296,13 +1320,11 @@ These rules are a generalization of the sequential correctness rules in the Owic
 In addition to checking that annotations such preconditions, postconditions, loop invariants, 
 and predicates labeling yield and atomic block statements are correct, it also checks that the bodies
 of each procedure $P \in \dom(\Refines)$ is abstracted by the atomic action $\Refines(P)$.
-The crux of these rules is the judgment $\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{\phi}{\StmtStack}{\psi} : b'$.
-In this judgment $\ProcOrNone$ is either a procedure $P \in \dom(\Refines)$ if the body of $P$ is being checked
-or a special value $\None$ different from all procedure names in $\dom(\procs)$ if the code of some thread 
-is being checked.
+The crux of these rules is the judgment $\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{\phi}{\StmtStack}{\psi} : b'$.
+In this judgment, $P$ is the procedure being checked.
 The set $\mods$ contains thread-local variables that are potentially modified by $\StmtStack$.
 The $\mathit{Boolean}$ values $b$ and $b'$ track whether that atomic action to be refined has already occurred;
-the refinement checking is performed only if $\ProcOrNone \in \dom(\Refines)$.
+the refinement checking is performed only if $P \in \dom(\Refines)$.
 Suppose $\Refines(P) = A$ and $\actions(A) = (\rho, \alpha, m)$.
 If $b$ is $\true$, then an atomic block refining $A$ has already happened before $\StmtStack$ begins execution, 
 the judgment checks that all atomic blocks excuted by $\StmtStack$ refine $\Havoc(\Local)$, and $b'$ remains $\true$.
@@ -1315,8 +1337,7 @@ In the discussion below, we will informally refer to the pair $(b,\phi)$ as the 
 as the postcondition of $\StmtStack$, respectively.
 
 Starting from the bottom, rule \textsc{Program} checks each thread and each procedure separately.
-The rule \textsc{Thread} checks the body of the thread in a context comprising $\None$ to indicate 
-no atomic action is being refined.
+The rule \textsc{Thread} checks the body of the thread.
 The rule \textsc{Procedure} checks the body of the procedure $P$ with
 the precondition $(\false,\phi)$ and postcondition $(P \in \dom(\Refines),\psi)$,
 where $\phi$ and $\psi$ are the preconditin and postconditions of $P$ respectively.
@@ -1329,15 +1350,15 @@ The rule \textsc{Ite} checks that both branches behave in the same way.
 The rule \textsc{Seq} for $\StmtStack;\stmt$ chains the refinement behavior of $\StmtStack$ with that of $\stmt$.
 
 Rules \textsc{Ablock1}, \textsc{Ablock2}, and \textsc{Ablock3} handle an atomic block $\ablock{e,\lins}{s}$.
-Rule \textsc{Ablock1} considers the case when $\ProcOrNone \not \in \dom(\Refines)$ and performs only the 
+Rule \textsc{Ablock1} considers the case when $P \not \in \dom(\Refines)$ and performs only the 
 standard sequential correctness check.
-Rules \textsc{Ablock2} and \textsc{Ablock3} consider the two cases when $\ProcOrNone \in \dom(\Refines)$ and handle
-the refinement of $\Havoc{Local}$ and the atomic action $\Refines(\ProcOrNone)$, respectively.
+Rules \textsc{Ablock2} and \textsc{Ablock3} consider the two cases when $P \in \dom(\Refines)$ and handle
+the refinement of $\Havoc{Local}$ and the atomic action $\Refines(P)$, respectively.
 Both rules use the judgment $\actions \vdash \stmt \preceq \alpha$ from Figure~\ref{fig:statement-summarization}.
 
 Rules \textsc{Call1}, \textsc{Call2}, \textsc{Async1}, and \textsc{Async2} handle procedure calls.
-Rule \textsc{Call1} handles an ordinary call when $\ProcOrNone \not \in \dom(\Refines)$ and is straightforward.
-Rule \textsc{Call2} handles an ordinary call when $\ProcOrNone \in \dom(\Refines)$.
+Rule \textsc{Call1} handles an ordinary call when $P \not \in \dom(\Refines)$ and is straightforward.
+Rule \textsc{Call2} handles an ordinary call when $P \in \dom(\Refines)$.
 This rule requires that the called procedure $P$ must also have an atomic specification;
 thus, the set of procedures being introduced during refinement must be closed under the call relation.
 Furthermore, the atomic specification of the callee must be of the special form
@@ -1356,13 +1377,13 @@ Thus, if an assertion (gate of an atomic action) remains in the abstract it is s
 Finally, this rule verifies the postcondition $\psi$ from the precondition $\phi$ using the semantics of the atomic action.
 
 Rules \textsc{Yield1} and \textsc{Yield2} handle the yield statement.
-Rule \textsc{Yield1} considers the case when $\ProcOrNone \not \in \dom(\Refines)$ and is straightforward;
+Rule \textsc{Yield1} considers the case when $P \not \in \dom(\Refines)$ and is straightforward;
 only the yield predicate is available in the postcondition of the statement.
-Rule \textsc{Yield2} considers the case when $\ProcOrNone \in \dom(\Refines)$ and makes available in the postcondition, in 
+Rule \textsc{Yield2} considers the case when $P \in \dom(\Refines)$ and makes available in the postcondition, in 
 addition to the yield predicate, the gate of the action being refined.
 Again, this is safe because the gate remains as an assertion in the abstract program.
 
-We now discuss the judgment $\InterferenceFree(\Prog)$,
+We now discuss the judgment $\InterferenceSafe(\Prog)$,
 where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
 Let $\Yields(\Prog)$ be the union of the following sets:
 \begin{itemize}
@@ -1374,7 +1395,7 @@ $\{(\phi,\lins) \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stm
 $\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \stmt) \wedge \ProcLins(P) = (\lins,\lins')\}$.
 \end{itemize}
 Let $\Ablocks(\Prog)$ be the set of atomic blocks in $\Prog$.
-The program $\Prog$ is interference-free, denoted by $\InterferenceFree(\Prog)$,
+The program $\Prog$ is interference-free, denoted by $\InterferenceSafe(\Prog)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$ and 
 for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, there exists $\alpha$ such that 
 $\actions \vdash \stmt \preceq \alpha$ and 
@@ -1401,16 +1422,30 @@ $\actions \vdash \stmt \preceq \alpha$ and
 \]
 
 \begin{lemma}
-Let $\Prog, \Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
-Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, and $\AvailableActions \in 2^{\ActionName}$
-be such that $\Refines;\SkipProcs;\AvailableActions \vdash \Prog \leadsto \Prog'$, $\Refines;\SkipProcs \jr \Prog$, and
-$\InterferenceFree(\Prog)$.
-If $\Safe(\Prog')$, then $\XSafe(\Prog)$.
+Let $\Prog \in \CProgram$ and $\Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
+Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
+and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that 
+$\Refines;\SkipProcs;\AvailableActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\SkipProcs;\bs{b} \jr \Prog$, and
+$\InterferenceSafe(\Prog)$.
+If $\Safe(\Prog')$, then $\CSafe(\Prog)$.
 \end{lemma}
 
-{\bf Proving responsiveness.}
-A program is responsive if any infinite execution in it yields infinitely often.
-Although it is a liveness property, proving it is about as easy as proving termination of sequential program.
+\begin{lemma}
+Let $\Prog_1,\Prog_2 \in \CProgram$ and $\Prog'_1 \in \Program$ be such that $\vdash \Prog_1$, $\vdash \Prog'_1$,
+and $\Prog_1 \ctrans \Prog_2$.
+Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
+and $\bs{b_1} \in \overrightarrow{\mathit{Boolean}}$ be such that 
+$\Refines;\SkipProcs;\AvailableActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, $\Refines;\SkipProcs;\bs{b} \jr \Prog_1$, and
+$\InterferenceSafe(\Prog_1)$.
+If $\Safe(\Prog')$, then there exists $\Prog'_2 \in \Program$ and $\bs{b_2} \in \overrightarrow{\mathit{Boolean}}$ such that 
+$\Prog_2 \trans^* \Prog'_2$, $\Refines;\SkipProcs;\AvailableActions;\bs{b_2} \vdash \Prog_2 \leadsto \Prog'_2$, 
+$\Refines;\SkipProcs;\bs{b_2} \jr \Prog_2$, and $\InterferenceSafe(\Prog_2)$.
+\end{lemma}
+
+
+{\bf Proving cooperation.}
+Given a program $\Prog \in \CProgram$, proving $\Cooperative^*(\Prog)$ 
+is similar to proving termination of sequential program.
 The basic idea is to provide a loop with a measure function $f$ that decreases for each yield-free and failure-free 
 execution of the body of the loop.
 Thus, we can prove responsivenes by modifying only \textsc{While} rule in Figure~\ref{fig:refinement}
@@ -1419,12 +1454,12 @@ as follows:
 \scriptsize{
 \inferrule
 {
-\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
+\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
 \rho = \{ \sigma \mid \sigma(f) \geq 0 \} \\
 e \wedge \locExpr \subseteq \rho \\\\
 \alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\
 \actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
 }
-{\Refines;\SkipProcs;\procs;\actions;\ProcOrNone;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
+{\Refines;\SkipProcs;\procs;\actions;P;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
 }
 \]

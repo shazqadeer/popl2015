@@ -58,7 +58,8 @@
 \newcommand{\LS}{\vec{\mathit{L}}}
 \newcommand{\yielding}[1]{\mathit{yielding}(#1)}
 \newcommand{\trans}{\longrightarrow}
-\newcommand{\xtrans}{\longmapsto}
+\newcommand{\ytrans}{\hookrightarrow}
+\newcommand{\ctrans}{\longmapsto}
 \newcommand{\transmany}{\trans^{*}}
 \newcommand{\xs}{\vec{\mathit{x}}}
 \newcommand{\ws}{\vec{\mathit{w}}}
@@ -84,6 +85,7 @@
 
 \newcommand{\YieldingThread}{\mathit{YT}}
 \newcommand{\YieldingThreads}{\overrightarrow{\YieldingThread}}
+\newcommand{\bs}[1]{\overrightarrow{#1}}
 
 \newcommand{\Vector}[1]{\overrightarrow{#1}}
 
@@ -93,15 +95,13 @@
 \newcommand{\StmtStackCtxt}{\mathit{SSC}}
 \newcommand{\ThreadCtxt}{\mathit{TC}}
 \newcommand{\ProgCtxt}{\mathit{PC}}
-\newcommand{\XProg}{\mathit{XProg}}
-\newcommand{\XProgram}{\mathit{XProgram}}
+\newcommand{\CProgram}{\mathit{CProgram}}
+\newcommand{\YProgram}{\mathit{YProgram}}
 
-\newcommand{\fails}{\ \mathrm{fails}}
-
+\newcommand{\error}{\mathit{error}}
 
 \newcommand{\tl}{\mathit{tl}}
 \newcommand{\tls}{\mathit{tls}}
-\newcommand{\Frame}[2]{(#1,#2)}
 
 \newcommand{\pre}{\mathit{pre}}
 \newcommand{\post}{\mathit{post}}
@@ -129,9 +129,6 @@
 \newcommand{\Same}{\mathit{Same}}
 \newcommand{\Havoc}{\mathit{Havoc}}
 
-\newcommand{\ProcOrNone}{Q}
-\newcommand{\None}{\bullet}
-
 \newcommand{\ABlockAny}{a}
 \newcommand{\ABlockInside}{\mathrm{a^+}}
 \newcommand{\ABlockOutside}{\mathrm{a^-}}
@@ -145,11 +142,11 @@
 
 \newcommand{\MakeStore}[3]{{#1}\!\cdot\!{#2}\!\cdot\!{#3}}
 \newcommand{\CommutativitySafe}{\mathit{CommutativitySafe}}
-\newcommand{\InterferenceFree}{\mathit{InterferenceFree}}
+\newcommand{\InterferenceSafe}{\mathit{InterferenceSafe}}
 \newcommand{\Yielding}{\mathit{Yielding}}
 \newcommand{\Safe}{\mathit{Safe}}
-\newcommand{\XSafe}{\mathit{XSafe}}
-\newcommand{\Responsive}{\mathit{Responsive}}
+\newcommand{\CSafe}{\mathit{CSafe}}
+\newcommand{\Cooperative}{\mathit{Cooperative}}
 \newcommand{\Injective}{\mathit{Injective}}
 
 \newcommand{\Subst}{\Delta}

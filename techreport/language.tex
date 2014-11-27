@@ -39,16 +39,18 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e,\lins} \mid \call{A} \mid \cal
                   & & $\ite{\locExpr}{\stmt}{\stmt} \mid \while{e,\alpha}{\locExpr}{\stmt}$ \vspace{6pt} \\
 \end{tabular}
 \begin{tabular}{rclcl}
-$\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (\varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
-$T \in \mathit{Thread}$ &::= &$(\varsTL, (\varsL, \StmtStack))$ \\
+$\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (P, \varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
+$T \in \mathit{Thread}$ &::= &$(\varsTL, (P, \varsL, \StmtStack))$ \\
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
-$\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $([]_{\Local}, \StmtCtxt) \mid (L,\StmtStackCtxt) \mid \StmtStackCtxt;\stmt$ \\
-$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, ([]_{\Local}, \StmtCtxt)) \mid$ \\
- & &$([]_{\ThreadLocal}, (\varsL, \StmtStackCtxt))$ \\
+$\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $(P, []_{\Local}, \StmtCtxt) \mid (P, L,\StmtStackCtxt) \mid$ \\ 
+ & &$\StmtStackCtxt;\stmt$ \\
+$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, (P, []_{\Local}, \StmtCtxt)) \mid$ \\
+ & &$([]_{\ThreadLocal}, (P, \varsL, \StmtStackCtxt))$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \TS \cdot \ThreadCtxt \cdot \TS)$ \\
 $\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \vspace{6pt} \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
-$\XProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads)$
+$\YProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads)$ \\
+$\CProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads)$
 \end{tabular}
 \caption{Syntax}
 \label{fig:syntax}
@@ -72,10 +74,10 @@ $
 $
 \inferrule
 {
-\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\
-\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \fails
+\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\\\
+\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \trans \error
 }
-{\ProgCtxt[\varsG][\varsTL][\varsL][s]) \fails}
+{\ProgCtxt[\varsG][\varsTL][\varsL][s]) \trans \error}
 \;(\textsc{Fail})
 $
 \medskip
@@ -85,7 +87,7 @@ $
 {
 \procs(P) = (\phi, \mods, \psi,\stmt) \\
 \ProcLins(P) = (\lins, \lins') \\
-T' = (\varsTL, (\varsL, \yield{\phi,\lins};\stmt)) \\
+T' = (\varsTL, (P, \varsL, \yield{\phi,\lins};\stmt)) \\
 \TS = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\async{P}] \cdot \Vector{T_2} \\
 \TS' = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\skipstmt] \cdot \Vector{T_2}
 }
@@ -101,7 +103,7 @@ $
 $
 \inferrule
 {
-T = (\varsTL, (\varsL,\skipstmt)) 
+T = (\varsTL, (P,\varsL,\skipstmt)) 
 }
 {(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot \Vector{T'})}
 \;(\textsc{End})
@@ -115,7 +117,7 @@ $
 \ProcLins(P) = (\lins, \lins') \\
 \StmtStack = \yield{\phi,\lins};\stmt;\yield{\psi,\lins'}
 }
-{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][(\varsL,\StmtStack)]}
+{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][(P,\varsL,\StmtStack)]}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -125,7 +127,7 @@ $
 {
 \\
 }
-{\ProgCtxt[\varsG][\varsTL][\varsL][\Frame{\varsL'}{\skipstmt}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\skipstmt]}
+{\ProgCtxt[\varsG][\varsTL][\varsL][(P,\varsL',\skipstmt)] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\skipstmt]}
 \;{(\textsc{Return})}
 $
 %%%%%%%%%%%%%%%%%%%%
@@ -145,7 +147,7 @@ $
 \vars \not \in \rho
 }
 {
-\actions \vdash (\vars, \call{A}) \fails
+\actions \vdash (\vars, \call{A}) \trans \error
 }
 \;{(\textsc{Atomic-False})}
 $
@@ -296,12 +298,12 @@ $\varsG$ is the global store of the program.
 \noindent
 {\bf Threads.}
 $\TS$ is a sequence of threads.
-Each thread $T$ in $\TS$ is a pair $(\varsTL, (\varsL, \StmtStack))$, where $\varsTL$ is the thread-local 
-store and $(\varsL, \StmtStack)$ the continuation of $T$.  
-The continuation $(\varsL, \StmtStack)$ comprises a procedure-local store $\varsL$ and a statement stack $\StmtStack$.
+Each thread $T$ in $\TS$ is a pair $(\varsTL, (P, \varsL, \StmtStack))$ where
+$\varsTL$ is the thread-local store and $(P, \varsL, \StmtStack)$ the continuation of $T$.  
+The continuation $(P, \varsL, \StmtStack)$ comprises a procedure $P$, its procedure-local store $\varsL$, and a statement stack $\StmtStack$.
 Informally, $\varsL$ is the local store at the top of the pending stack of computation $\StmtStack$ of the thread.
 A statement stack $\StmtStack$ is recursively defined to be either a statement $\stmt$ 
-or a continuation $(\varsL,\StmtStack)$ or the sequential composition $\stmt;\StmtStack$ of a statement $\stmt$ with 
+or a continuation $(P,\varsL,\StmtStack)$ or the sequential composition $\stmt;\StmtStack$ of a statement $\stmt$ with 
 a statement stack $\StmtStack$.
 
 \subsection{Operational semantics}
@@ -372,31 +374,35 @@ The condtional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ state
 A finite $\trans$-execution from $\Prog$ is a sequence of programs $\Prog_0,\Prog_1,\ldots,\Prog_n$ such that $\Prog_0 = \Prog$ 
 and $\Prog_i \trans \Prog_{i+1}$ for all $0 \leq i < n$.
 An infinite $\trans$-execution from $\Prog$ is defined similarly.
-The program $\Prog$ is {\em unsafe\/} if there is a finite $\trans$-execution from $\Prog$ ending in a state $\Prog'$ 
-such that $\Prog'$ fails.
-$\Prog$ is {\em safe}, denoted $\Safe(\Prog)$, iff $\Prog$ is not unsafe.
+We write $\Safe(\Prog)$ if $\Prog$ cannot fail in one step (by executing the rule \textsc{Fail}).
+We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
 
-Figure~\ref{fig:syntax} also defines the subset $\mathit{YieldingThread}$ of threads and the subset $\XProgram$ of programs.
+Figure~\ref{fig:syntax} also defines the subset $\mathit{YieldingThread}$ of threads and subsets 
+$\YProgram$ and $\CProgram$ of $\Program$.
 A yielding thread in $\mathit{YieldingThread}$ is one that is waiting to execute at a yield statement.
-A transactional program in $\XProgram$ is one in which all threads except at most one thread are yielding threads.
-Let $\xtrans$ be the relation $\trans$ restricted to $\XProgram$.
-A finite or infinite $\xtrans$-execution from a program $\Prog \in \XProgram$ is defined similarly to a $\trans$-execution.
-In such an execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches a yield statement and becomes a yielding thread.
+A program in $\YProgram$ is one in which all threads except at most one thread are yielding threads.
+A program in $\CProgram$ is one in which all threads are yielding threads.
+Let $\ytrans$ be the relation $\trans$ whose domain is restricted to $\YProgram$.
+A $\ytrans$-execution from a program $\Prog \in \YProgram$ is defined similarly to a $\trans$-execution.
+In such an execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches 
+a yield statement and becomes a yielding thread.
 At that point, all threads are yielding and any one can be picked for execution.
-We define the predicate $\Yielding$ as follows:
-\[
-\begin{array}{l}
-\Yielding(\Prog)\ \stackrel{\triangle}{=} \\
-\mathit{let}\ \Prog = (\procs, \actions, \ProcLins, G, \TS)\ \mathit{in} \\
-~~~~~~\forall T \in \TS.\ T \in \mathit{YieldingThread}.
-\end{array}
-\]
-Consider a program $\Prog \in \XProgram$.
-$\Prog$ is {\em responsive\/}, denoted $\Responsive(\Prog)$, 
-iff every infinite $\xtrans$-execution from $\Prog$ satisfies $\Yielding$ infinitely often.
-A program $\Prog$ is {\em transactionally unsafe\/} if there is a finite $\xtrans$-execution from $\Prog$ ending in a state $\Prog'$ 
-such that $\Prog'$ fails.
-$\Prog$ is {\em transactionally safe}, denoted $\XSafe(\Prog)$, iff $\Prog$ is not transactionally unsafe.
+
+We define the relation $\ctrans$ with domain $\CProgram$ and codomain $\CProgram \cup \{\error\}$ as follows:
+\begin{enumerate}
+\item 
+$\Prog \ctrans \Prog'$ if there is a $\ytrans$-execution from $\Prog$ to $\Prog'$ such that every program on the execution 
+except for $\Prog$ and $\Prog'$ is not in $\CProgram$.
+\item
+$\Prog \ctrans \error$ if there is a $\ytrans$-execution from $\Prog$ to $\error$ such that every program on the execution 
+except for $\Prog$ is not in $\CProgram$.
+\end{enumerate}
+
+Consider a program $\Prog \in \CProgram$.
+We write $\Cooperative(\Prog)$ if either $\Prog \ctrans \error$ or $\exists \Prog' \in \CProgram.\ \Prog \ctrans \Prog'$.
+We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
+We write $\CSafe(\Prog)$ if it is not the case that $\Prog \ctrans \error$.
+We write $\CSafe^*(\Prog)$ if $\CSafe(\Prog')$ for all $\Prog'$ such that $\Prog \ctrans^* \Prog'$.
 
 \subsection{Definitions}
 \label{sec:definitions}
