@@ -238,6 +238,7 @@ $
 \label{fig:program-transformation}
 \end{figure*}
 
+
 Suppose a program $\Prog'$ has been proved to be safe.
 However, it is implemented using atomic actions that are too coarse to be directly implementable.  
 To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
@@ -312,10 +313,78 @@ yield predicate of every other thread.
 The judgment $\Refines;\SkipProcs \jr \Prog$ checks sequential correctness of each computation
 and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
 
+\begin{figure}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+}
+{
+\Refines;\SkipProcs \ji \stmt
+}
+\;(\textsc{Stmt})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\SkipProcs \ji \StmtStack
+}
+{
+\Refines;\SkipProcs \ji \StmtStack;\stmt
+}
+\;(\textsc{Seq})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+P \not \in \dom(\Refines) \cup \SkipProcs \\ \Refines;\SkipProcs \ji \StmtStack
+}
+{
+\Refines;\SkipProcs \ji (P,\varsL,\StmtStack)
+}
+\;(\textsc{Stack})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\Refines;\SkipProcs \ji (P, \varsL, \StmtStack)
+}
+{
+\Refines;\SkipProcs \ji (\varsTL, (P, \varsL, \StmtStack))
+}
+\;(\textsc{Thread})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\inferrule
+{
+\forall 1 \le i \le n.\ \Refines;\SkipProcs \ji T_i
+}
+{
+\Refines;\SkipProcs \ji (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+}
+\;(\textsc{Program})
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Initial program}
+\label{fig:init-program}
+\end{figure}
+
 \begin{theorem}
 \label{thm:correctness}
-Let $\Prog,\Prog' \in \CProgram$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
-Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
+Let $\Prog \in \CProgram$ be such that $\vdash \Prog$.
+Let $\Prog' \in \Program$, $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that the following conditions hold:
 \begin{enumerate}
 \item
@@ -326,6 +395,14 @@ $\jy \Prog$ and $\CommutativitySafe(\Prog)$.
 $\Refines;\SkipProcs;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 \end{enumerate}
 If $\Cooperative^*(\Prog)$ and $\Safe^*(\Prog')$, then $\Safe^*(\Prog)$.
+\end{theorem}
+
+\begin{theorem}
+\label{thm:chaining}
+Let $\Prog \in \CProgram$, $\Prog' \in \Program$, $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, 
+$\AvailableActions \in 2^{\ActionName}$, and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that
+$\Refines;\SkipProcs;\AvailableActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
+If $\Refines;\SkipProcs \ji \Prog$, then $\Prog' \in \CProgram$.
 \end{theorem}
 
 Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety of $\Prog'$ 
@@ -1422,8 +1499,8 @@ $\actions \vdash \stmt \preceq \alpha$ and
 \]
 
 \begin{lemma}
-Let $\Prog \in \CProgram$ and $\Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
-Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
+Let $\Prog \in \CProgram$ be such that $\vdash \Prog$.
+Let $\Prog' \in \Program$, $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that 
 $\Refines;\SkipProcs;\AvailableActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\SkipProcs;\bs{b} \jr \Prog$, and
 $\InterferenceSafe(\Prog)$.
@@ -1431,9 +1508,8 @@ If $\Safe(\Prog')$, then $\CSafe(\Prog)$.
 \end{lemma}
 
 \begin{lemma}
-Let $\Prog_1,\Prog_2 \in \CProgram$ and $\Prog'_1 \in \Program$ be such that $\vdash \Prog_1$, $\vdash \Prog'_1$,
-and $\Prog_1 \ctrans \Prog_2$.
-Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
+Let $\Prog_1,\Prog_2 \in \CProgram$ be such that $\vdash \Prog_1$ and $\Prog_1 \ctrans \Prog_2$.
+Let $\Prog'_1 \in \Program$, $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
 and $\bs{b_1} \in \overrightarrow{\mathit{Boolean}}$ be such that 
 $\Refines;\SkipProcs;\AvailableActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, $\Refines;\SkipProcs;\bs{b} \jr \Prog_1$, and
 $\InterferenceSafe(\Prog_1)$.
