@@ -161,7 +161,7 @@ $
 P \in \dom(\Refines)
 }
 {
-\Refines;\SkipProcs;\AvailableActions;\false \vdash (P,\varsL,\StmtStack) \leadsto \yield{e,\lins}; \call{\Refines(P)}; \yield{e',\lins'}
+\Refines;\SkipProcs;\AvailableActions;\false \vdash (P,\varsL,\StmtStack) \leadsto \call{\Refines(P)}
 }
 \;(\textsc{Stack1})
 $
@@ -173,7 +173,7 @@ $
 P \in \dom(\Refines) \cup \SkipProcs
 }
 {
-\Refines;\SkipProcs;\AvailableActions;\true \vdash (P,\varsL,\StmtStack) \leadsto \yield{e',\lins'}
+\Refines;\SkipProcs;\AvailableActions;\true \vdash (P,\varsL,\StmtStack) \leadsto \skipstmt
 }
 \;(\textsc{Stack2})
 $
@@ -1422,7 +1422,7 @@ $\actions \vdash \stmt \preceq \alpha$ and
 \]
 
 \begin{lemma}
-Let $\Prog,\Prog' \in \CProgram$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
+Let $\Prog \in \CProgram$ and $\Prog' \in \Program$ be such that $\vdash \Prog$ and $\vdash \Prog'$.
 Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that 
 $\Refines;\SkipProcs;\AvailableActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\SkipProcs;\bs{b} \jr \Prog$, and
@@ -1431,7 +1431,7 @@ If $\Safe(\Prog')$, then $\CSafe(\Prog)$.
 \end{lemma}
 
 \begin{lemma}
-Let $\Prog_1,\Prog_2,\Prog'_1 \in \CProgram$ be such that $\vdash \Prog_1$, $\vdash \Prog'_1$,
+Let $\Prog_1,\Prog_2 \in \CProgram$ and $\Prog'_1 \in \Program$ be such that $\vdash \Prog_1$, $\vdash \Prog'_1$,
 and $\Prog_1 \ctrans \Prog_2$.
 Let $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\AvailableActions \in 2^{\ActionName}$,
 and $\bs{b_1} \in \overrightarrow{\mathit{Boolean}}$ be such that 
