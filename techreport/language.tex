@@ -399,10 +399,11 @@ except for $\Prog$ is not in $\CProgram$.
 \end{enumerate}
 
 Consider a program $\Prog \in \CProgram$.
-We write $\Cooperative(\Prog)$ if either $\Prog \ctrans \error$ or $\exists \Prog' \in \CProgram.\ \Prog \ctrans \Prog'$.
-We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
 We write $\CSafe(\Prog)$ if it is not the case that $\Prog \ctrans \error$.
 We write $\CSafe^*(\Prog)$ if $\CSafe(\Prog')$ for all $\Prog'$ such that $\Prog \ctrans^* \Prog'$.
+We write $\Cooperative(\Prog)$ if for each infinite $\ytrans$-execution $\Prog \ytrans \Prog_0 \ytrans \Prog_1 \ytrans \cdots$ 
+starting from $\Prog$, there is some $i \geq 0$ such that $\Prog_i \in \CProgram$.
+We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
 
 \subsection{Definitions}
 \label{sec:definitions}
