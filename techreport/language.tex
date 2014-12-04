@@ -39,13 +39,11 @@ $\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e,\lins} \mid \call{A} \mid \cal
                   & & $\ite{\locExpr}{\stmt}{\stmt} \mid \while{e,\alpha}{\locExpr}{\stmt}$ \vspace{6pt} \\
 \end{tabular}
 \begin{tabular}{rclcl}
-$\StmtStack \in \mathit{StmtStack}$ &::= & $\stmt \mid (P, \varsL,\StmtStack) \mid \StmtStack;\stmt$ \\
-$T \in \mathit{Thread}$ &::= &$(\varsTL, (P, \varsL, \StmtStack))$ \\
-$\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{Stmt} \mid \StmtCtxt;\stmt$ \\
-$\StmtStackCtxt \in \mathit{StmtStackCtxt}$ &::= & $(P, []_{\Local}, \StmtCtxt) \mid (P, L,\StmtStackCtxt) \mid$ \\ 
- & &$\StmtStackCtxt;\stmt$ \\
-$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, (P, []_{\Local}, \StmtCtxt)) \mid$ \\
- & &$([]_{\ThreadLocal}, (P, \varsL, \StmtStackCtxt))$ \\
+$\Frame \in \mathit{Frame}$ &::= & $(P, \varsL, \stmt)$ \\
+$T \in \mathit{Thread}$ &::= &$(\varsTL, \Frames)$ \\
+$\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{\Stmt} \mid \StmtCtxt;\stmt$ \\
+$\FrameCtxt \in \mathit{FrameCtxt}$ &::= & $(P, []_{\Local}, \StmtCtxt)$ \\
+$\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\ThreadLocal}, \FrameCtxt\cdot\Frames)$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\Global}, \TS \cdot \ThreadCtxt \cdot \TS)$ \\
 $\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \vspace{6pt} \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
@@ -103,7 +101,7 @@ $
 $
 \inferrule
 {
-T = (\varsTL, (P,\varsL,\skipstmt)) 
+T = (\varsTL, \epsilon) 
 }
 {(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot \Vector{T'})}
 \;(\textsc{End})
@@ -115,9 +113,10 @@ $
 {
 \procs(P) = (\phi, \mods, \psi,\stmt) \\
 \ProcLins(P) = (\lins, \lins') \\
-\StmtStack = \yield{\phi,\lins};\stmt;\yield{\psi,\lins'}
+T = (\varsTL, (P', \varsL, \StmtCtxt[\call{P}]) \cdot \Frames) \\
+T' = (\varsTL, (P, \varsL, \yield{\phi,\lins};\stmt) \cdot (P', \varsL, \StmtCtxt[\yield{\psi,\lins'}]) \cdot \Frames)
 }
-{\ProgCtxt[\varsG][\varsTL][\varsL][\call{P}] \trans \ProgCtxt[\varsG][\varsTL][\varsL][(P,\varsL,\StmtStack)]}
+{(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T' \cdot \Vector{T'})}
 \;{(\textsc{Call})}
 $
 \medskip
@@ -125,10 +124,10 @@ $
 $
 \inferrule
 {
-\\
+T = (\varsTL, (P,\varsL,\skipstmt) \cdot \Frames) \\ T' = (\varsTL, \Frames)
 }
-{\ProgCtxt[\varsG][\varsTL][\varsL][(P,\varsL',\skipstmt)] \trans \ProgCtxt[\varsG][\varsTL][\varsL][\skipstmt]}
-\;{(\textsc{Return})}
+{(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T' \cdot \Vector{T'})}
+\;(\textsc{Return})
 $
 %%%%%%%%%%%%%%%%%%%%
 }
@@ -298,13 +297,10 @@ $\varsG$ is the global store of the program.
 \noindent
 {\bf Threads.}
 $\TS$ is a sequence of threads.
-Each thread $T$ in $\TS$ is a pair $(\varsTL, (P, \varsL, \StmtStack))$ where
-$\varsTL$ is the thread-local store and $(P, \varsL, \StmtStack)$ the continuation of $T$.  
-The continuation $(P, \varsL, \StmtStack)$ comprises a procedure $P$, its procedure-local store $\varsL$, and a statement stack $\StmtStack$.
-Informally, $\varsL$ is the local store at the top of the pending stack of computation $\StmtStack$ of the thread.
-A statement stack $\StmtStack$ is recursively defined to be either a statement $\stmt$ 
-or a continuation $(P,\varsL,\StmtStack)$ or the sequential composition $\stmt;\StmtStack$ of a statement $\stmt$ with 
-a statement stack $\StmtStack$.
+Each thread $T$ in $\TS$ is a pair $(\varsTL, \Frames)$ where
+$\varsTL$ is the thread-local store and $\Frames$ is a stack of frames comprising the continuation of $T$.  
+Each frame $(P, \varsL, \stmt)$ in $\Frames$ comprises a procedure $P$, its procedure-local store $\varsL$, 
+and a statement $\stmt$.
 
 \subsection{Operational semantics}
 \label{sec:operational-semantics}
@@ -316,11 +312,13 @@ A statement context $\StmtCtxt$ is either a context $[]_{\Stmt}$ or the sequenti
 statement context and a statement.
 Thus, each statement context has a unique context $[]_{\Stmt}$ inside it;
 this context encodes the current position of the program execution.
-The result of substituting a statement $\stmt$ inside the statement context $\StmtCtxt$ is another statement and is denoted by $\StmtCtxt[\stmt]$.
-Similarly, we define a statement stack context $\StmtStackCtxt$ with two contexts embedded inside it, $[]_{\Local}$ for substituting a procedure-local store
+The result of substituting a statement $\stmt$ inside the statement context $\StmtCtxt$ 
+is another statement and is denoted by $\StmtCtxt[\stmt]$.
+Similarly, we define a frame context $\FrameCtxt$ with two contexts embedded inside it, 
+$[]_{\Local}$ for substituting a procedure-local store
 and $[]_{\Stmt}$ for substituting a statement.
 The result of substituting a procedure-local store $\varsL$ and a statement $\stmt$ inside 
-$\StmtStackCtxt$ is a statement stack and is denoted by $\StmtStackCtxt[\varsL][\stmt]$;
+$\FrameCtxt$ is a frame and is denoted by $\FrameCtxt[\varsL][\stmt]$;
 here, $\varsL$ is the procedure-local store for the procedure containing the currently executed statement $\stmt$.
 A thread context $\ThreadCtxt$ has three contexts embedded inside it, $[]_{\ThreadLocal}$ for substituting a thread-local store, 
 $[]_{\Local}$ for substituting a procedure-local store, and $[]_{\Stmt}$ for substituting a statement.
@@ -382,7 +380,7 @@ $\YProgram$ and $\CProgram$ of $\Program$.
 A yielding thread in $\mathit{YieldingThread}$ is one that is waiting to execute at a yield statement.
 A program in $\YProgram$ is one in which all threads except at most one thread are yielding threads.
 A program in $\CProgram$ is one in which all threads are yielding threads.
-Let $\ytrans$ be the relation $\trans$ whose domain is restricted to $\YProgram$.
+Let $\ytrans$ be the relation $\trans$ whose domain and codomain are restricted to $\YProgram$.
 A $\ytrans$-execution from a program $\Prog \in \YProgram$ is defined similarly to a $\trans$-execution.
 In such an execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches 
 a yield statement and becomes a yielding thread.
