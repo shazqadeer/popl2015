@@ -24,7 +24,8 @@ $\lins$ & $\in$ & $\LinearVar = 2^{\Global \cup \ThreadLocal}$ \\
 $\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVar, \LinearVar)$ \\
 $\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
 $\Refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
-$\AvailableActions$ & $\in$ & $2^\ActionName$ \\
+$\HiddenVars$ & $\in$ & $2^\Global$ \\
+$\HiddenActions$ & $\in$ & $2^\ActionName$ \\
 $\Perm$ & $\in$ & $\Value \rightarrow 2^\Value$
 \end{tabular}
 \caption{Definitions}
