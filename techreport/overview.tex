@@ -1,0 +1,145 @@
+\section{Overview}
+\label{sec:overview}
+
+\begin{figure}
+\begin{verbatim}
+var Color:[int]int; // WHITE=1, GRAY=2, BLACK=3
+\end{verbatim}
+\begin{verbatim}
+procedure TopWB(linear tid:Tid, addr:int)
+  atomic [if (Color[addr] == WHITE) { 
+              Color[addr] := GRAY;  }];
+{
+  var cNoLock:int := GetColorNoLock();
+  call YieldColorsGetDarker(); 
+  if (cNoLock == WHITE) 
+    call MidWB(tid, addr);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure MidWB(linear tid:Tid, addr:int)
+atomic [if (Color[addr] == WHITE) {
+            Color[addr] := GRAY;  }];
+{
+  call AcquireLock(tid);
+  var cLock:int := GetColorLocked(tid);
+  if (cLock == WHITE) 
+    call SetColorLocked(tid, GRAY);
+  call ReleaseLock(tid);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure YieldColorsGetDarker()
+  ensures forall a:: Color[a] >= old(Color[a]);
+{
+  yield forall a:: Color[a] >= old(Color[a]);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure AcquireLock() right [...];
+procedure ReleaseLock() left [...];
+procedure SetColorLocked() atomic [...];
+procedure GetColorLocked() returns (cl:int)
+  both [...];
+\end{verbatim}
+\caption{Program 5}
+\label{fig:reft}
+\end{figure}
+
+{\bf Refinement.} 
+\civl supports the verification of refinement of atomic action specifications for procedures. 
+We illustrate this technique on Program 5 (Figure~\ref{fig:reft}),
+a simplified version of a programming pattern in our concurrent garbage collector (GC).
+Mutator threads entering a write barrier for an address \exC{addr} check
+if the global variable \exC{Color[addr]} is \exC{WHITE}
+and set it to \exC{GRAY}, indicating that the object at this address
+and objects reachable from it should not be garbage collected. 
+
+Procedure \exC{TopWB} implements the write barrier.
+To avoid the cost of locking for each address encountered, \exC{TopWB} reads \exC{Color[addr]} without holding a lock.
+If the color is {\tt WHITE}, it calls the more expensive procedure \exC{MidWB} 
+that re-examines and possibly updates \exC{Color[addr]} while holding the lock.
+\civl simplifies reasoning about \exC{TopWB} and \exC{MidWB} by allowing us to 
+compactly express their specification as the following atomic action:
+\begin{verbatim}
+[if (Color[addr] == WHITE) Color[addr] := GRAY;]
+\end{verbatim}
+This specification indicates that regardless of the different implementations of 
+\exC{TopWB} and \exC{MidWB} and regardless of how the environment interferes
+with their execution, to their respective callers it appears as if they atomically execute the above code.
+
+The correctness of \exC{topWB} is not obvious.
+Consider the following potential scenario. 
+\exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
+sets \exC{cNoLock} to \exC{GRAY} and then yields inside the call to
+\exC{YieldColorsGetDarker}. Another thread sets {\tt Color[addr]} to
+{\tt WHITE}. \exC{TopWB} resumes, but does nothing and exits,
+because the procedure-local variable \exC{cNoLock} is \exC{GRAY}. In this scenario, the atomic action
+specification of \exC{TopWB} would not be satisfied. However, in the GC this
+scenario is not possible. 
+The yield predicate in \exC{YieldColorsGetDarker} expresses the fact that
+other threads in the environment of the thread running \exC{TopWB} can
+only modify {\tt Color[addr]} to a higher (darker) value. 
+\civl then verifies that, for every control path through \exC{TopWB}
+procedure, exactly one {\tt yield}-to-{\tt yield} execution
+fragment implements the atomic action specification and that other fragments do not modify
+global state. 
+This proof requires both correct modeling of environment interference in \exC{YieldColorsGetDarker}
+and the atomic action specification for the called procedure \exC{MidWB}.
+
+There are two important benefits of atomic action specifications.
+First, an atomic action is often the most compact and precise way to express the specification a procedure.
+Second, an atomic action specification successfully hides from the caller of a procedure $P$
+the potentially numerous yields inside the body of $P$.
+This capability provides modularity akin to that provided by the frame rule for sequential programs.
+Without this capability, any postcondition $\phi$ needed by the caller of $P$ must be made explicit in the precondition 
+and yield predicates of $P$ and all procedures recursively called inside it.
+With this capability, the caller achieves the same effect by writing $\yield{\phi}$ before and after the call, 
+provided that $\phi$ is preserved by the atomic action specification of $P$.
+
+{\bf Yield elimination.} 
+We now turn our attention to the verification of \exC{MidWB} against
+its atomic action specification.
+Just as the verification of \exC{TopWB} builds on the specification of \exC{MidWB},
+the verification of \exC{MidWB} builds on other refinement proofs (not shown) 
+of the procedures called in \exC{MidWB};
+these called procedures are shown at the bottom of the figure. 
+Observe that in \exC{MidWB} there is no {\tt yield} between
+statements. Since threads explicitly yield control, the
+entire body of \exC{MidWB} is executed atomically. In
+a real execution, control can switch between threads at any point in
+the code. The absence of {\tt yield}s is justified by reasoning about
+mover types and reduction. The procedures called in
+\exC{MidWB} have the mover types claimed in their
+declarations and verified by \civl. 
+For example, the mover type of \exC{Acquirelock} is {\tt right} which indicates 
+that it commutes later in time against concurrently executing environment actions.
+\exC{ReleaseLock} has mover type {\tt left} and it commutes earlier in time;
+\exC{SetColorLocked} has mover type {\tt atomic} and it does not commute;
+\exC{GetColorLocked} has mover type {\tt both} and it commutes both earlier and later in time.
+Given the mover types of 
+atomic action specifications, the \civl verifier ensures
+that the absence of yields is justified using reduction~\cite{Lipton75}.  
+\civl then verifies that the body of \exC{MidWB}, without any yield statements, satisfies
+its atomic specification. Yield elimination is useful both for the
+user, since no yield predicates need to be provided, and for \civl,
+as no predicates need to be checked for sequential correctness and
+non-interference.
+
+{\bf Variable hiding.} The atomic action specification of \exC{MidWB}
+makes no reference to the lock variable, although its implementation
+involves a lock. When verifying refinement for \exC{MidWB}, the lock
+variable has been hidden. Hiding variables at refinement steps and
+providing different {\tt yield} predicates at different phases of a
+proof are important novel proof organization capabilities in \civl
+that facilitate proofs spanning large abstraction gaps.
+
+{\bf Putting it all together.} 
+Refinement reasoning requires powerful and
+flexible mechanisms for reasoning with invariants.  
+As illustrated in Program~5, refinement verification for \exC{TopWB} required 
+(1)~rely-guarantee reasoning using a yield predicate, and 
+(2)~verification of atomicity for \exC{MidWB}, which, in turn, required reduction. 
+The combination of features in \civl, such as assertion reasoning, linear variables, and yield elimination,
+is designed to support the goal of organizing a
+refinement proof in an efficient and natural way.
