@@ -46,7 +46,6 @@ procedure GetColorLocked() returns (cl:int)
 \label{fig:reft}
 \end{figure}
 
-{\bf Refinement.} 
 \civl supports the verification of refinement of atomic action specifications for procedures. 
 We illustrate this technique on Program 5 (Figure~\ref{fig:reft}),
 a simplified version of a programming pattern in our concurrent garbage collector (GC).
@@ -98,6 +97,9 @@ With this capability, the caller achieves the same effect by writing $\yield{\ph
 provided that $\phi$ is preserved by the atomic action specification of $P$.
 
 {\bf Yield elimination.} 
+
+Explain cooperative vs. preemptive semantics.
+
 We now turn our attention to the verification of \exC{MidWB} against
 its atomic action specification.
 Just as the verification of \exC{TopWB} builds on the specification of \exC{MidWB},
