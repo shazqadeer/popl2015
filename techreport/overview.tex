@@ -3,7 +3,8 @@
 
 \begin{figure}
 \begin{verbatim}
-var Color:[int]int; // WHITE=1, GRAY=2, BLACK=3
+var Color:[int]int; 
+// WHITE=1, GRAY=2, BLACK=3
 \end{verbatim}
 \begin{verbatim}
 procedure TopWB(linear tid:Tid, addr:int)
@@ -19,8 +20,8 @@ procedure TopWB(linear tid:Tid, addr:int)
 \end{verbatim}
 \begin{verbatim}
 procedure MidWB(linear tid:Tid, addr:int)
-atomic [if (Color[addr] == WHITE) {
-            Color[addr] := GRAY;  }];
+  atomic [if (Color[addr] == WHITE) {
+              Color[addr] := GRAY;  }];
 {
   var cLock:int;
   call AcquireLock(tid);
@@ -32,9 +33,11 @@ atomic [if (Color[addr] == WHITE) {
 \end{verbatim}
 \begin{verbatim}
 procedure YieldColorsGetDarker()
-  ensures forall a:: Color[a] >= old(Color[a]);
+  ensures forall a:: 
+          Color[a] >= old(Color[a]);
 {
-  yield forall a:: Color[a] >= old(Color[a]);
+  yield forall a:: 
+        Color[a] >= old(Color[a]);
 }
 \end{verbatim}
 \begin{verbatim}

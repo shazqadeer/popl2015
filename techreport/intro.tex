@@ -1,22 +1,22 @@
 \section{Introduction}
 \label{sec:introduction}
 
-A popular approach to software verification is based on the method of Floyd~\cite{Floyd} and Hoare~\cite{Hoare}.
+A popular approach to software verification is based on the method of Floyd~\cite{Floyd67} and Hoare~\cite{Hoare69}.
 In this method, the verification of a large software component is performed modularly by verifying each procedure in it separately.
 This modularity is enabled by the use of interface specifications (preconditions and postconditions) constraining the behavior of each procedure.
 It is well-known that the Floyd-Hoare method is inadequate for reasoning about concurrent shared-memory programs,
 primarily because the execution of a procedure may be interfered with by concurrently executing threads.
 Over the years, several attempts have been made to extend Floyd-Hoare reasoning to deal with concurrent interference, 
-including classical approaches such as location invariants~\cite{Ashcroft,OwickiGries} and rely-guarantee~\cite{Jones},
-and other more recent approaches~\cite{concurrent-separation-logic,deny-guarantee,hoare-type-theory}.
+including classical approaches such as location invariants~\cite{Ashcroft75,OwickiG76} and rely-guarantee~\cite{Jones83},
+and other more recent approaches~\cite{OHearn07,RGSep}.
 However, in spite of these efforts, scalable and automated reasoning about shared-memory concurrent programs remains difficult.
 This paper presents a new approach to this problem.
 
 Our approach to reasoning about shared-memory concurrency is inspired by stepwise refinement~\cite{Dijkstra}, 
 an approach in which a high-level description is systematically refined, 
 potentially via several intermediate descriptions, down to a detailed implementation.
-In the realm of sequential software, notable successes using the refinement approach include Abrial's work on blah-blah~\cite{Abrial}
-and the proof of full functional correctness of the seL4 microkernel~\cite{seL4}.
+In the realm of sequential software, notable successes using the refinement approach include the work of Abrial et al.~\cite{AbrialBHHMV10}
+and the proof of full functional correctness of the seL4 microkernel~\cite{Klein_AEMSKH_14}.
 Yet, compared to the Floyd-Hoare approach, 
 the refinement approach has received considerably less attention from researchers in software verification.
 
@@ -29,17 +29,51 @@ obtained by replacing the invocation of an atomic action by a call to the corres
 Several such steps may be performed one after another until all atomic actions in the final program are directly implementable primitives.
 This process may be carried out in a bottom-up rather than top-down fashion, in which case an atomic action 
 can be thought of as the specification of the procedure that implements it.
-Unlike classical program verifiers based on Floyd-Hoare reasoning that manipulate a program and annotations on it, 
-the \civl verifier manipulates multiple operational descriptions of a single program. 
+Unlike classical program verifiers based on Floyd-Hoare reasoning that manipulate a program and annotations, 
+the \civl verifier manipulates multiple operational descriptions of a program. 
 
-An important innovation in \civl is that refinement is proved not on cooperative not preemptive semantics.
+An important innovation in \civl is that while proving refinement between an atomic action and the procedure that implements it,
+reasoning is done on an operational semantics that is {\em cooperative\/} rather than {\em preemptive\/}.
+The preemptive semantics is the usual sequentially consistent semantics of shared-memory concurrency in which all threads are imagined
+to execute on a single processor and preemption, which causes a thread to be scheduled out and a nondeterministically chosen thread to 
+be scheduled in, may occur before any instruction.\footnote{In this paper, 
+we focus our attention on sequential consistency and leave consideration of weak memory models to future work.}
+The cooperative semantics is explicitly introduced by the programmer through the use of a new primitive {\em yield\/} statement;
+in this semantics a thread can be scheduled out only when it is about to execute a yield statement.
 
-Each refinement step requires invariants. 
-Explicit non-interference reasoning based on assertions and a linear type system for encoding permissions disjoint memory, 
-permissions, etc. logically.
+Given a program $Q$ and the program $P$ obtained by replacing each invocation of an atomic action in $P$ 
+with the procedure that refines it, the \civl verifier provides two guarantees.
+First, it guarantees that the safety of the cooperative semantics of $P$ implies the safety of the preemptive semantics of $P$.
+This verification is done by computing a automata-theoretic simulation check~\cite{HenzingerHK95} 
+on an abstraction of $P$ that interprets each atomic action invoked by $P$ 
+as a member of a finite set of mover types~\cite{FlanaganFLQ08}.
+Second, it guarantees that every cooperative execution of $P$ is simulated by a preemptive execution of $Q$.
+This check is performed by calculating logical verification conditions from the bodies of procedures in $P$ and 
+verifying them with an automated theorem prover~\cite{MouraB08}.
+These two checks together guarantee that the 
+safety of the preemptive semantics of $Q$ implies the safety of the preemptive semantics of $P$.
+
+The proof that an atomic action is refined by a procedure typically requires invariants about the program execution.
+The \civl verifier allows the programmer to specify location-specific invariants, attached either to a yield statement
+or as a precondition or a postcondition of a procedure.  
+It exploits explicit non-interference reasoning~\cite{OwickiGries76} to ensure that
+these invariants continue to hold in spite of potential interference from concurrently executing threads.
+To reduce the annotations required for logical non-interference checking, 
+the \civl verifier also provides a linear type system~\cite{Wadler90lineartypes} 
+that allows logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
+and disjoint memory~\cite{LahiriQW11}.
 
 We have implemented \civl as a conservative extension of the \boogie verifier.  
 We have used it to verify a collection of microbenchmarks and benchmarks from the literature such as
 the ticket algorithm~\cite{ticket}, Treiber stack~\cite{treiber}, work-stealing queue~\cite{wsq},
 device cache~\cite{device-cache}, and lock-protected increment~\cite{incr}.
 We have also verified a concurrent garbage collector algorithm (say something more here).
+
+We conclude this section by summarizing the novel features of the \civl verifier:
+\begin{itemize}
+\item Automated refinement checking of atomic action specifications against imperative code.
+\item A combination of automata-theoretic checking based on simulation relations and logical checking based on verification conditions.
+\item Powerful and flexible invariant reasoning based on location-specific invariants and linear variables.
+\end{itemize}
+The \civl verifier is the first to put these features together and use them to verify a collection of realistic and challenging shared-memory
+concurrent programs.
