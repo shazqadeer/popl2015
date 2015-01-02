@@ -1,32 +1,45 @@
 \section{Introduction}
 \label{sec:introduction}
 
-What is refinement?  What distinguishes refinement from other approaches to verification? 
-The big functional correctness proofs are all refinement proofs, e.g., Sel4 verification 
-assuming no concurrency inside the kernel. or the works in hardware verification.  sel4 verification in the first paragraph and hardware verification in the second paragraph.
+A popular approach to software verification is based on the method of Floyd~\cite{Floyd} and Hoare~\cite{Hoare}.
+In this method, the verification of a large software component is performed modularly by verifying each procedure in it separately.
+This modularity is enabled by the use of interface specifications (preconditions and postconditions) constraining the behavior of each procedure.
+It is well-known that the Floyd-Hoare method is inadequate for reasoning about concurrent shared-memory programs,
+primarily because the execution of a procedure may be interfered with by concurrently executing threads.
+Over the years, several attempts have been made to extend Floyd-Hoare reasoning to deal with concurrent interference, 
+including classical approaches such as location invariants~\cite{Ashcroft,OwickiGries} and rely-guarantee~\cite{Jones},
+and other more recent approaches~\cite{concurrent-separation-logic,deny-guarantee,hoare-type-theory}.
+However, in spite of these efforts, scalable and automated reasoning about shared-memory concurrent programs remains difficult.
+This paper presents a new approach to this problem.
 
-Hardware, although concurrent, is different from concurrent software.  
-Control structures are different.  Hence refinement verification techniques in hardware don't work.
-TLA+ drops down to logic but proofs are tedious, do not scale because of lack of software structuring.
+Our approach to reasoning about shared-memory concurrency is inspired by stepwise refinement~\cite{Dijkstra}, 
+an approach in which a high-level description is systematically refined, 
+potentially via several intermediate descriptions, down to a detailed implementation.
+In the realm of sequential software, notable successes using the refinement approach include Abrial's work on blah-blah~\cite{Abrial}
+and the proof of full functional correctness of the seL4 microkernel~\cite{seL4}.
+Yet, compared to the Floyd-Hoare approach, 
+the refinement approach has received considerably less attention from researchers in software verification.
 
-Hallmarks of our refinement approach:
-- Annotations respect the most important software abstraction of procedures; atomic actions are refined by procedures.
-We develop techniques to manipulate multiple representations of a single program just as classical program verifiers manipulate programs and annotations such as types.
+In this paper, we introduce the \civl approach to reasoning about a concurrent software component.
+In the \civl approach, such a component is described as a collection of procedures whose implementation 
+can use the standard features such as assignment, conditionals, loops, procedure calls, and thread creation. 
+In addition, each procedure can also access shared global variables but only through invocations of atomic actions.
+During a refinement step, a subset of the atomic actions may be refined by new procedures and a new program is 
+obtained by replacing the invocation of an atomic action by a call to the corresponding procedure refining the action.
+Several such steps may be performed one after another until all atomic actions in the final program are directly implementable primitives.
+This process may be carried out in a bottom-up rather than top-down fashion, in which case an atomic action 
+can be thought of as the specification of the procedure that implements it.
+Unlike classical program verifiers based on Floyd-Hoare reasoning that manipulate a program and annotations on it, 
+the \civl verifier manipulates multiple operational descriptions of a single program. 
 
+An important innovation in \civl is that refinement is proved not on cooperative not preemptive semantics.
 
-- Refinement supported by hiding to eliminate details due to data and reduction to eliminate details due to control.  
+Each refinement step requires invariants. 
+Explicit non-interference reasoning based on assertions and a linear type system for encoding permissions disjoint memory, 
+permissions, etc. logically.
 
-- Explicit non-interference reasoning based on assertions and a linear type system for encoding permissions disjoint memory, permissions, etc. logically.
-
-
-This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
-In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
-it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
-These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
-and coordination between the GC and mutator threads during root scanning; our use of linearity aids the proof of root scanning, 
-while our rely-guarantee encoding aids management of colors inside the write barrier.  
-Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
-from low-level memory operations all the way up to high-level specifications; 
-we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
-We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
-
+We have implemented \civl as a conservative extension of the \boogie verifier.  
+We have used it to verify a collection of microbenchmarks and benchmarks from the literature such as
+the ticket algorithm~\cite{ticket}, Treiber stack~\cite{treiber}, work-stealing queue~\cite{wsq},
+device cache~\cite{device-cache}, and lock-protected increment~\cite{incr}.
+We have also verified a concurrent garbage collector algorithm (say something more here).

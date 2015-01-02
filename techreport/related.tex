@@ -1,26 +1,45 @@
 \section{Related work}
 \label{sec:related}
 
-\civl draws inspiration from Calvin~\cite{FlanaganFQS05} for atomic action specifications
-and from QED~\cite{ElmasQT09} for the use of reduction for program simplification.
-However \civl has important advantages over these tools.
-First, \civl supports the specification and verification of invariants for each program location 
-and explicit non-interference verification including the use of linear variables. 
-Second, \civl is designed to support large proof steps orchestrating assertion reasoning, 
-refinement checking, and yield elimination.
-These novel aspects of \civl are key to the construction of proofs spanning a large abstraction gap
-between specification and implementation.
+In this section, we discuss related work on verification of concurrent systems.
+We first discuss approaches based on refinement and later approaches more directly inspired 
+by Floyd-Hoare reasoning.
 
-VCC~\cite{VCC} is a tool for verifying concurrent C programs using the Z3 SMT solver.  
+{\bf Refinement-oriented verification.}
+Atomic action specifications have been used by the Calvin~\cite{FlanaganFQS05} verifier previously.
+Unlike \civl which makes a distinction between preemptive and cooperative semantics,
+Calvin attempts to verify refinement directly on the preemptive semantics.
+The ability to reason on cooperative semantics lowers the complexity of annotations 
+required for the refinement proof; consequently, we believe that \civl is more usable.
+Calvin does not support location invariants and linear variables. 
+
+Reduction has been used for program simplification by the QED~\cite{ElmasQT09} verifier.
+A proof step in QED is a small rewrite in the concurrent program
+that must be justified by potentially expensive reduction and invariant reasoning;
+the number of these small proof steps directly affect both programmer and computer effort.
+On the other hand, \civl supports large proof steps, in each of which the bodies of several procedures
+are automatically replaced by atomic actions, thereby lowering the cost of both interaction and automation.
+The increased scalability and usability of \civl is key to the construction of proofs spanning a large abstraction gap
+between specification and implementation.
+QED does not support location invariants and linear variables. 
+
+This paragraph needs to be improved.
+TLA+~\cite{Lamport} has been used for performing refinement proofs between implementation and specification of protocols.
+TLA+ drops down to logic but proofs are tedious and do not scale because of lack of software structuring.
+
+We need a paragraph on refinement proofs in hardware, citing Asgeir's use of SMV to verify protocol processor and Mocha verification of VGI processor.
+
+{\bf Other approaches.}
+VCC~\cite{VCC} is a tool for verifying concurrent C programs.  
 Chalice~\cite{LM09} is a language and modular verification tool for concurrent programs. 
-\civl is designed to verify refinement for concurrent programs.  
-VCC does not support refinement and Chalice does so only for sequential programs. 
-Neither VCC nor Chalice support movers and reduction reasoning.
+VCC does not support refinement and Chalice does so only for sequential programs;
+unlike these tools, \civl is designed to verify refinement for concurrent programs.  
 VCC and Chalice base their invariant reasoning on objects, object ownership, and type invariants. 
 Invariant reasoning in \civl is more primitive and based on assertions in yield statements. 
 Although the approach in VCC and Chalice is more convenient when applicable, \civl's approach is more flexible. 
 VCC and Chalice can reason sequentially about objects exclusively owned by a thread;
 \civl accomplishes the same using linear variables.
+Neither VCC nor Chalice support movers and reduction reasoning.
 
 Concurrent separation logic~\cite{OHearn07} reasons about concurrency without 
 explicitly checking for non-interference between threads. 
@@ -28,27 +47,4 @@ Recently, tools based on this logic that blend in explicit non-interference reas
 \civl's combination of interference checking and linear variables is an extreme example of this trend,
 supplying very primitive abstractions and letting programmers mix and match these abstractions freely.
 
-Most work on mechanical verification of garbage collectors has focused on sequential collectors~\cite{mccr07,hawb09},
-with some support for incremental collection~\cite{mccr07},
-but without the fine-grained interleaving that makes concurrent collection so challenging.
-Gonthier~\cite{gont96} verified the invariants of a concurrent mark-sweep algorithm,
-although not down to the level of individual memory operations
-and without using refinement to prove simple atomic specifications.
-
-More recently,
-Jagannathan et al.~\cite{Jagannathan14} used a refinement-style Coq proof to verify the atomicity of various GC-related operations
-using weak consistency (TSO) rather than sequential consistency.
-However, they do not fully verify the collector,
-but rather assume invariants needed by the atomicity proofs.
-Nevertheless, combining their low-level TSO model with our complete,
-higher-level proof could produce a practical verified collector for modern hardware.
-
-\section{Conclusions}
-
-By combining a generalized implementation of interference checking, a powerful linear type checking system, 
-and a refinement verification system that supports reduction and abstraction, 
-\civl supports many forms of reasoning about concurrency without committing programmers to a particular methodology.
-Two-state rely-guarantee invariants arise naturally from procedures that encapsulate one-state yield statements,
-and disjoint thread identifiers arise naturally from the linear type system. 
-The combination of these techniques with reduction and abstraction supports refinement verification, 
-allowing users to formally relate representations of program described at different levels of abstraction and atomicity. 
+Is there any other POPL-style work that needs to be cited?

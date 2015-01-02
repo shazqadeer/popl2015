@@ -10,7 +10,8 @@ procedure TopWB(linear tid:Tid, addr:int)
   atomic [if (Color[addr] == WHITE) { 
               Color[addr] := GRAY;  }];
 {
-  var cNoLock:int := GetColorNoLock();
+  var cNoLock:int;
+  cNoLock := GetColorNoLock();
   call YieldColorsGetDarker(); 
   if (cNoLock == WHITE) 
     call MidWB(tid, addr);
@@ -21,8 +22,9 @@ procedure MidWB(linear tid:Tid, addr:int)
 atomic [if (Color[addr] == WHITE) {
             Color[addr] := GRAY;  }];
 {
+  var cLock:int;
   call AcquireLock(tid);
-  var cLock:int := GetColorLocked(tid);
+  cLock := GetColorLocked(tid);
   if (cLock == WHITE) 
     call SetColorLocked(tid, GRAY);
   call ReleaseLock(tid);
@@ -42,13 +44,13 @@ procedure SetColorLocked() atomic [...];
 procedure GetColorLocked() returns (cl:int)
   both [...];
 \end{verbatim}
-\caption{Program 5}
+\caption{Write barrier}
 \label{fig:reft}
 \end{figure}
 
 \civl supports the verification of refinement of atomic action specifications for procedures. 
-We illustrate this technique on Program 5 (Figure~\ref{fig:reft}),
-a simplified version of a programming pattern in our concurrent garbage collector (GC).
+We illustrate this technique on the proram in Figure~\ref{fig:reft},
+a simplified version of the write barrier in a concurrent garbage collector (GC).
 Mutator threads entering a write barrier for an address \exC{addr} check
 if the global variable \exC{Color[addr]} is \exC{WHITE}
 and set it to \exC{GRAY}, indicating that the object at this address
@@ -61,13 +63,13 @@ that re-examines and possibly updates \exC{Color[addr]} while holding the lock.
 \civl simplifies reasoning about \exC{TopWB} and \exC{MidWB} by allowing us to 
 compactly express their specification as the following atomic action:
 \begin{verbatim}
-[if (Color[addr] == WHITE) Color[addr] := GRAY;]
+[if (Color[addr]==WHITE) Color[addr]:=GRAY]
 \end{verbatim}
 This specification indicates that regardless of the different implementations of 
 \exC{TopWB} and \exC{MidWB} and regardless of how the environment interferes
 with their execution, to their respective callers it appears as if they atomically execute the above code.
 
-The correctness of \exC{topWB} is not obvious.
+The correctness of \exC{TopWB} is not obvious.
 Consider the following potential scenario. 
 \exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
 sets \exC{cNoLock} to \exC{GRAY} and then yields inside the call to

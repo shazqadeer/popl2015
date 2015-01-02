@@ -1,6 +1,7 @@
 \section{Examples}
 \label{sec:examples}
 
+\subsection{Verification conditions}
 \begin{figure}
 \begin{verbatim}
 var x:int;
@@ -140,7 +141,8 @@ procedure P(linear tid: Tid)
 \label{fig:ex5}
 \end{figure}
 
-{\bf Linear variables.}
+\subsection{Linear variables}
+
 Program~4 in Figure~\ref{fig:ex5} introduces linear variables, a feature of \civl 
 that is useful for encoding disjointness among values contained in 
 different variables.  
@@ -233,7 +235,7 @@ yielding procedure Yield()
 \label{fig:ex6}
 \end{figure}
 
-{\bf Encoding linear maps.}
+{\bf Linear maps.}
 Figure~\ref{fig:linear-maps} illustrates how linear maps~\cite{LahiriQW11} can be encoded in \civl.
 A linear map {\tt l} is a pair comprising {\tt map(l)}, an array of integers, 
 and {\tt dom(l)}, a set of integers representing the locations where it is legal to access {\tt map(l)}.
@@ -250,7 +252,6 @@ At the same time, as is evident from the specifications of the primitive operati
 linear maps can be encoded using classical logic and verification of programs using them can benefit 
 seamlessly from advances in first-order automated theorem proving.
 
-{\bf Using linear maps for programming with monitors.}
 Program~6 uses a linear map {\tt g} to represent two adjacent memory location starting at offset {\tt p}.
 The variable {\tt g} is protected by a lock encoded with a boolean variable {\tt b}.
 The procedure {\tt P} acquires the lock {\tt b} using atomic test-and-set, moves the content of {\tt g} into a local 
@@ -264,5 +265,17 @@ can be encoded easily in \civl.
 Figures~\ref{fig:linear-maps} and~\ref{fig:ex6} together show a use of linear variables completely different in spirit 
 from that in Program~5, thereby demonstrating the generality of our primitive.
 
+{\bf Permissions.}
 
-{\bf Implementing lock.}
+\subsection{Garbage collector}
+This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
+In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
+it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
+These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
+and coordination between the GC and mutator threads during root scanning; our use of linearity aids the proof of root scanning, 
+while our rely-guarantee encoding aids management of colors inside the write barrier.  
+Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
+from low-level memory operations all the way up to high-level specifications; 
+we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
+We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
+
