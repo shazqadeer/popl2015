@@ -126,6 +126,18 @@ that it commutes later in time against concurrently executing environment action
 \exC{GetColorLocked} has mover type {\tt both} and it commutes both earlier and later in time.
 These mover types are checked by constructing verification conditions from each pair of atomic actions.
 
+Note that \civl allows the programmer to avoid mover reasoning by eschewing
+the mover types {\tt right}, {\tt left}, and {\tt both}.
+In this case, the only mover type is {\tt atomic} which does not require any verification.
+The tradeoff is that a yield statement accompanied with an appropriate assertion
+must be inserted before every invocation of an atomic action.
+We have observed that in many concurrent programs, this tradeoff is inappropriate for two reasons.
+First, the annotation burden goes up because sophisticated ghost variables may need to be introduced in the 
+program semantics.\footnote{Well-scoped location invariants that cannot refer to the state of other threads are known to be incomplete, 
+both in theory and in practice.}
+Second, the cost of the pairwise mover reasoning is replaced by the cost of pairwise non-interference checks between yield assertions 
+and concurrently executing atomic actions.
+
 \begin{figure*}
 \begin{center}
 \includegraphics[scale=0.35]{MidWB.pdf}
@@ -154,27 +166,15 @@ The \civl verifier checks that this automaton is simulated by the {\em Yield Suf
 using an existing algorithm for computing simulation relation~\cite{HenzingerHK95}.
 The $\YSA$ automaton encodes all sequences of atomic actions and yields for which safety of cooperative semantics is sufficient 
 for safety of preemptive semantics.
-This automaton has two states---$\RM$ and $\LM$---
+This automaton has two states, $\RM$ and $\LM$,
 and allows traces in which {\em transactions\/} are separated by yields.
 Each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
 In the middle, it can have at most one non mover.
 
-Why is the distinction between preemptive and cooperative semantics so important?
-Yield elimination is useful both for the user, since no yield predicates need to be provided, and for \civl,
-as no predicates need to be checked for sequential correctness and
-non-interference.
-
 The atomic action specification of \exC{MidWB} makes no reference to the lock variable, 
 although its implementation involves a lock. 
 When verifying refinement for \exC{MidWB}, the lock variable has been hidden. 
-The ability to hide variables and write yield predicates specific to each refinement step in 
-an overall proof is an important and novel capability in \civl that facilitate proofs spanning large abstraction gaps.
-
-%% Refinement reasoning requires powerful and
-%% flexible mechanisms for reasoning with invariants.  
-%% As illustrated in our running example, refinement verification for \exC{TopWB} required 
-%% (1)~rely-guarantee reasoning using a yield predicate, and 
-%% (2)~verification of atomicity for \exC{MidWB}, which, in turn, required reduction. 
-%% The combination of features in \civl, such as assertion reasoning, linear variables, and yield elimination,
-%% is designed to support the goal of organizing a
-%% refinement proof in an efficient and natural way.
+\civl allows the programmer to both introduce and hide variables in each refinement step,
+thereby providing the capability to perform data refinement.
+The ability to introduce and hide variables and write yield predicates specific to each refinement step 
+facilitates proofs spanning large abstraction gaps between the specification and implementation.
