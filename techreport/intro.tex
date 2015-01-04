@@ -46,7 +46,7 @@ with the procedure that refines it, the \civl verifier provides two guarantees.
 First, it guarantees that the safety of the cooperative semantics of $P$ implies the safety of the preemptive semantics of $P$.
 This verification is done by computing a automata-theoretic simulation check~\cite{HenzingerHK95} 
 on an abstraction of $P$ that interprets each atomic action invoked by $P$ 
-as a member of a finite set of mover types~\cite{FlanaganFLQ08}.
+as a member of a finite set of mover types~\cite{Lipton75,FlanaganFLQ08}.
 Second, it guarantees that every cooperative execution of $P$ is simulated by a preemptive execution of $Q$.
 This check is performed by calculating logical verification conditions from the bodies of procedures in $P$ and 
 verifying them with an automated theorem prover~\cite{MouraB08}.

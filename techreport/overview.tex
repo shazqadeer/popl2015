@@ -3,25 +3,22 @@
 
 \begin{figure}
 \begin{verbatim}
-var Color:[int]int; 
-// WHITE=1, GRAY=2, BLACK=3
+var Color: int; // WHITE=1, GRAY=2, BLACK=3
 \end{verbatim}
 \begin{verbatim}
-procedure TopWB(linear tid:Tid, addr:int)
-  atomic [if (Color[addr] == WHITE) { 
-              Color[addr] := GRAY;  }];
+procedure TopWB(linear tid:Tid)
+atomic [if (Color == WHITE) Color := GRAY];
 {
   var cNoLock:int;
-  cNoLock := GetColorNoLock();
+  cNoLock := GetColorNoLock(tid);
   call YieldColorsGetDarker(); 
   if (cNoLock == WHITE) 
-    call MidWB(tid, addr);
+    call MidWB(tid);
 }
 \end{verbatim}
 \begin{verbatim}
-procedure MidWB(linear tid:Tid, addr:int)
-  atomic [if (Color[addr] == WHITE) {
-              Color[addr] := GRAY;  }];
+procedure MidWB(linear tid:Tid)
+atomic [if (Color == WHITE) Color := GRAY];
 {
   var cLock:int;
   call AcquireLock(tid);
@@ -33,19 +30,22 @@ procedure MidWB(linear tid:Tid, addr:int)
 \end{verbatim}
 \begin{verbatim}
 procedure YieldColorsGetDarker()
-  ensures forall a:: 
-          Color[a] >= old(Color[a]);
+ensures Color >= old(Color);
 {
-  yield forall a:: 
-        Color[a] >= old(Color[a]);
+  yield Color >= old(Color);
 }
 \end{verbatim}
 \begin{verbatim}
-procedure AcquireLock() right [...];
-procedure ReleaseLock() left [...];
-procedure SetColorLocked() atomic [...];
-procedure GetColorLocked() returns (cl:int)
-  both [...];
+procedure GetColorNoLock(linear tid:Tid) 
+  returns (cl:int) atomic [...];
+procedure AcquireLock(linear tid:Tid) 
+  right [...];
+procedure ReleaseLock(linear tid:Tid) 
+  left [...];
+procedure GetColorLocked(linear tid:Tid) 
+  returns (cl:int) both [...];
+procedure SetColorLocked(linear tid:Tid, 
+  cl: int) atomic [...];
 \end{verbatim}
 \caption{Write barrier}
 \label{fig:reft}
@@ -54,19 +54,23 @@ procedure GetColorLocked() returns (cl:int)
 \civl supports the verification of refinement of atomic action specifications for procedures. 
 We illustrate this technique on the proram in Figure~\ref{fig:reft},
 a simplified version of the write barrier in a concurrent garbage collector (GC).
-Mutator threads entering a write barrier for an address \exC{addr} check
-if the global variable \exC{Color[addr]} is \exC{WHITE}
-and set it to \exC{GRAY}, indicating that the object at this address
+In a concurrent GC, a color (either \exC{WHITE}, \exC{GRAY}, or \exC{BLACK})
+is associated with each object on the heap.  
+Before writing to an address \exC{addr}, a mutator thread checks 
+if color associated with \exC{addr} is \exC{WHITE}
+and sets it to \exC{GRAY}, indicating that the object at this address
 and objects reachable from it should not be garbage collected. 
 
 Procedure \exC{TopWB} implements the write barrier.
-To avoid the cost of locking for each address encountered, \exC{TopWB} reads \exC{Color[addr]} without holding a lock.
+To simplify the exposition, 
+we consider only a single object whose color is stored in the shared variable \exC{Color}.
+To avoid the cost of locking for each address encountered, \exC{TopWB} reads \exC{Color} without holding a lock.
 If the color is {\tt WHITE}, it calls the more expensive procedure \exC{MidWB} 
-that re-examines and possibly updates \exC{Color[addr]} while holding the lock.
+that re-examines and possibly updates \exC{Color} while holding the lock.
 \civl simplifies reasoning about \exC{TopWB} and \exC{MidWB} by allowing us to 
 compactly express their specification as the following atomic action:
 \begin{verbatim}
-[if (Color[addr]==WHITE) Color[addr]:=GRAY]
+[if (Color == WHITE) Color := GRAY]
 \end{verbatim}
 This specification indicates that regardless of the different implementations of 
 \exC{TopWB} and \exC{MidWB} and regardless of how the environment interferes
@@ -74,22 +78,28 @@ with their execution, to their respective callers it appears as if they atomical
 
 The correctness of \exC{TopWB} is not obvious.
 Consider the following potential scenario. 
-\exC{TopWB}, not holding a lock, reads {\tt Color[addr]} and
+\exC{TopWB}, not holding a lock, reads {\tt Color} and
 sets \exC{cNoLock} to \exC{GRAY} and then yields inside the call to
-\exC{YieldColorsGetDarker}. Another thread sets {\tt Color[addr]} to
+\exC{YieldColorsGetDarker}. Another thread sets {\tt Color} to
 {\tt WHITE}. \exC{TopWB} resumes, but does nothing and exits,
 because the procedure-local variable \exC{cNoLock} is \exC{GRAY}. In this scenario, the atomic action
 specification of \exC{TopWB} would not be satisfied. However, in the GC this
 scenario is not possible. 
 The yield predicate in \exC{YieldColorsGetDarker} expresses the fact that
 other threads in the environment of the thread running \exC{TopWB} can
-only modify {\tt Color[addr]} to a higher (darker) value. 
+only modify {\tt Color} to a higher (darker) value. 
 \civl then verifies that, for every control path through \exC{TopWB}
 procedure, exactly one {\tt yield}-to-{\tt yield} execution
 fragment implements the atomic action specification and that other fragments do not modify
 global state. 
 This proof requires both correct modeling of environment interference in \exC{YieldColorsGetDarker}
 and the atomic action specification for the called procedure \exC{MidWB}.
+The \civl verifier automatically computes a logical verification condition capturing
+this proof obligation from the body and specification of \exC{TopWB}.
+Just as the verification of \exC{TopWB} builds on the specification of \exC{MidWB},
+the verification of \exC{MidWB} builds on other refinement proofs (not shown) 
+of the procedures called in \exC{MidWB};
+these called procedures are shown at the bottom of the figure. 
 
 There are two important benefits of atomic action specifications.
 First, an atomic action is often the most compact and precise way to express the specification a procedure.
@@ -101,52 +111,70 @@ and yield predicates of $P$ and all procedures recursively called inside it.
 With this capability, the caller achieves the same effect by writing $\yield{\phi}$ before and after the call, 
 provided that $\phi$ is preserved by the atomic action specification of $P$.
 
-{\bf Yield elimination.} 
+As explained above, the refinement checking is performed on cooperative semantics in which a 
+{\tt yield}-to-{\tt yield} execution fragment of code is executed atomically.
+However, in a real execution, control can switch between threads at any point in the code. 
+A naive modeling of a real execution would put a yield statement before every instruction in the code.
+The absence of a yield statement before every instruction is justified by reasoning about mover types~\cite{FlanaganFLQ08}. 
 
-Explain cooperative vs. preemptive semantics.
-
-We now turn our attention to the verification of \exC{MidWB} against
-its atomic action specification.
-Just as the verification of \exC{TopWB} builds on the specification of \exC{MidWB},
-the verification of \exC{MidWB} builds on other refinement proofs (not shown) 
-of the procedures called in \exC{MidWB};
-these called procedures are shown at the bottom of the figure. 
-Observe that in \exC{MidWB} there is no {\tt yield} between
-statements. Since threads explicitly yield control, the
-entire body of \exC{MidWB} is executed atomically. In
-a real execution, control can switch between threads at any point in
-the code. The absence of {\tt yield}s is justified by reasoning about
-mover types and reduction. The procedures called in
-\exC{MidWB} have the mover types claimed in their
+The procedures called in \exC{MidWB} have the mover types claimed in their
 declarations and verified by \civl. 
 For example, the mover type of \exC{Acquirelock} is {\tt right} which indicates 
 that it commutes later in time against concurrently executing environment actions.
 \exC{ReleaseLock} has mover type {\tt left} and it commutes earlier in time;
 \exC{SetColorLocked} has mover type {\tt atomic} and it does not commute;
 \exC{GetColorLocked} has mover type {\tt both} and it commutes both earlier and later in time.
-Given the mover types of 
-atomic action specifications, the \civl verifier ensures
-that the absence of yields is justified using reduction~\cite{Lipton75}.  
-\civl then verifies that the body of \exC{MidWB}, without any yield statements, satisfies
-its atomic specification. Yield elimination is useful both for the
-user, since no yield predicates need to be provided, and for \civl,
+These mover types are checked by constructing verification conditions from each pair of atomic actions.
+
+\begin{figure*}
+\begin{center}
+\includegraphics[scale=0.35]{MidWB.pdf}
+\end{center}
+\caption{Abstraction of \exC{MidWB}}
+\label{fig:midwb}
+\end{figure*}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
+\end{center}
+\caption{Yield sufficiency automaton ($YSA$)}
+\label{fig:ysa}
+\end{figure}
+
+Finally, given the mover types of atomic action specifications, the \civl verifier ensures
+that the absence of yields is justified by constructing an abstraction of \exC{MidWB} 
+that interprets each atomic action invoked by \exC{MidWB} according to its mover type.
+This abstraction is shown in Figure~\ref{fig:midwb}.
+The edge labels belong to the set $\{B,R,L,A,Y\}$, where $B$ (both), $R$ (right), $L$ (left), and $A$ (atomic) 
+represent the various kinds of atomic actions described earlier, and $Y$ represents a yield statement.
+Note that there are implicit yield statements at the beginning and end of the body of each procedure.
+
+The \civl verifier checks that this automaton is simulated by the {\em Yield Sufficiency Automaton\/} ($\YSA$ in Figure~\ref{fig:ysa})
+using an existing algorithm for computing simulation relation~\cite{HenzingerHK95}.
+The $\YSA$ automaton encodes all sequences of atomic actions and yields for which safety of cooperative semantics is sufficient 
+for safety of preemptive semantics.
+This automaton has two states---$\RM$ and $\LM$---
+and allows traces in which {\em transactions\/} are separated by yields.
+Each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
+In the middle, it can have at most one non mover.
+
+Why is the distinction between preemptive and cooperative semantics so important?
+Yield elimination is useful both for the user, since no yield predicates need to be provided, and for \civl,
 as no predicates need to be checked for sequential correctness and
 non-interference.
 
-{\bf Variable hiding.} The atomic action specification of \exC{MidWB}
-makes no reference to the lock variable, although its implementation
-involves a lock. When verifying refinement for \exC{MidWB}, the lock
-variable has been hidden. Hiding variables at refinement steps and
-providing different {\tt yield} predicates at different phases of a
-proof are important novel proof organization capabilities in \civl
-that facilitate proofs spanning large abstraction gaps.
+The atomic action specification of \exC{MidWB} makes no reference to the lock variable, 
+although its implementation involves a lock. 
+When verifying refinement for \exC{MidWB}, the lock variable has been hidden. 
+The ability to hide variables and write yield predicates specific to each refinement step in 
+an overall proof is an important and novel capability in \civl that facilitate proofs spanning large abstraction gaps.
 
-{\bf Putting it all together.} 
-Refinement reasoning requires powerful and
-flexible mechanisms for reasoning with invariants.  
-As illustrated in Program~5, refinement verification for \exC{TopWB} required 
-(1)~rely-guarantee reasoning using a yield predicate, and 
-(2)~verification of atomicity for \exC{MidWB}, which, in turn, required reduction. 
-The combination of features in \civl, such as assertion reasoning, linear variables, and yield elimination,
-is designed to support the goal of organizing a
-refinement proof in an efficient and natural way.
+%% Refinement reasoning requires powerful and
+%% flexible mechanisms for reasoning with invariants.  
+%% As illustrated in our running example, refinement verification for \exC{TopWB} required 
+%% (1)~rely-guarantee reasoning using a yield predicate, and 
+%% (2)~verification of atomicity for \exC{MidWB}, which, in turn, required reduction. 
+%% The combination of features in \civl, such as assertion reasoning, linear variables, and yield elimination,
+%% is designed to support the goal of organizing a
+%% refinement proof in an efficient and natural way.

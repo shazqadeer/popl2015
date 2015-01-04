@@ -861,19 +861,9 @@ $
 In transforming a refined program $\Prog$ to an abstract program $\Prog'$, a number of atomic actions 
 are introduced simultaneously.
 Thus, we may need to eliminate a collection of yields at the same time.
-To achieve this, we introduce the {\em Yield Sufficiency Automaton\/} ($\YSA$) that encodes 
+To achieve this, we use the {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} that encodes 
 all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
-\begin{center}
-\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
-\end{center}
-The automaton has two states---$\RM$ and $\LM$.
-The edge labels belong to the set $\{B,R,L,N,Y\}$, where $B$, $R$, $L$, and $N$ represent the various kinds 
-of atomic actions described earlier, $A$ represents an atomic block, and $Y$ represents a yield.
-The judgment $\actions \jy \Prog$ checks that all the code in $\Prog$, except procedures in $\dom(\Refines)$,
-can be simulated by traces of this automaton.
-This automaton allows traces in which {\em transactions\/} are separated by yields;
-each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
-In the middle, it can have at most one non mover.
+The judgment $\actions \jy \Prog$ checks that the code of each procedure in $\Prog$ can be simulated by traces of $\YSA$.
 
 The essence of the rules in Figure~\ref{fig:yield-sufficiency}
 is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\LM\}$;
