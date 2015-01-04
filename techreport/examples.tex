@@ -267,15 +267,4 @@ from that in Program~5, thereby demonstrating the generality of our primitive.
 
 {\bf Permissions.}
 
-\subsection{Garbage collector}
-This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
-In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
-it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
-These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
-and coordination between the GC and mutator threads during root scanning; our use of linearity aids the proof of root scanning, 
-while our rely-guarantee encoding aids management of colors inside the write barrier.  
-Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
-from low-level memory operations all the way up to high-level specifications; 
-we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
-We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
 
