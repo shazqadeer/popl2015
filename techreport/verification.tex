@@ -1130,6 +1130,20 @@ $
 $
 \srule
 {
+\actions(A) = (\rho, \alpha, m) \\
+\mods \subseteq \ThreadLocal \cup \Local \\
+(\phi \wedge \rho) \circ \alpha \subseteq \Havoc(\Global \cup \mods) \\\\
+P \in \HiddenProcs \Rightarrow \phi \subseteq \rho \\ 
+\cod((\phi \wedge \rho) \circ \alpha) \subseteq \psi  \\
+}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b,\phi}{\call{A}}{b,\psi};\mods}
+{\textsc{Atomic}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
 P \not \in \dom(\Refines)
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b,e};\{\}}
@@ -1144,20 +1158,6 @@ P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, m)
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b, e \wedge (\rho \vee b)};\{\}}
 {\textsc{Yield2}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions(A) = (\rho, \alpha, m) \\\\ 
-\mods \subseteq \ThreadLocal \\
-\alpha \subseteq \Havoc(\Global \cup \mods \cup \Local) \\\\
-P \in \HiddenProcs \Rightarrow \phi \subseteq \rho \\ 
-\cod((\phi \wedge \rho) \circ \alpha) \subseteq \psi  \\
-}
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b,\phi}{\call{A}}{b,\psi};\mods}
-{\textsc{Atomic}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1208,14 +1208,14 @@ $
 $
 \srule
 {
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\\\
-\actions \vdash \stmt \preceq \ga{e}{\elim{\Local}.\ \alpha} \\\\
+P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\
+\actions \vdash \stmt \preceq \ga{e}{\elim{\Local}.\ \alpha} \\
 \Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{\false, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\true, \phi_2};\mods}
 {\textsc{Ablock3}}
 $
-\medskip
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \srule
@@ -1258,12 +1258,12 @@ $
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi}{\stmt}{b',\psi};\mods}
 {\textsc{Weaken}}
 $
-\medskip
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi}{\stmt}{b', \psi};\mods \\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi}{\stmt}{b', \psi};\mods \\\\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \rho \wedge \phi}{\stmt}{b', \rho \wedge \psi};\mods}
 {\textsc{Frame1}}
@@ -1273,7 +1273,7 @@ $
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{F}{b', \psi};\mods \\\\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{F}{b', \psi};\mods \\\\ \accessVars(\rho) \cap (\Global \cup \Local \cup \mods) = \{\}
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \rho \wedge \phi}{F}{b', \rho \wedge \psi};\mods}
 {\textsc{Frame2}}
@@ -1285,8 +1285,7 @@ $
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
-\mods' \subseteq \mods \\
-\mods \subseteq \ThreadLocal \\\\
+\mods' \cap \ThreadLocal \subseteq \mods \\\\
 \Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{P \not \in \dom(\Refines), \phi}{\stmt}{\true, \psi};\mods'
 }
 {
@@ -1303,7 +1302,7 @@ $
 \forall \varsG,\varsTL,\varsL'.\ \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
 }
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{(P,\varsL,\stmt)}{b', \psi};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{(P,\varsL,\stmt)}{b', \psi};\mods \cap \ThreadLocal
 }
 {\textsc{StackFrame}}
 $
