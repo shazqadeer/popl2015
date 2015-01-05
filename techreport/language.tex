@@ -415,6 +415,14 @@ We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \
 \label{sec:definitions}
 We conclude this section by presenting a few definitions of concepts that are used in Section~\ref{sec:verification} to formalize
 our verification method.
+
+A predicate $\rho$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma \in \Store$
+and $v \in \Value$, if $\sigma \in \rho$ then $\sigma[x \rightarrow v] \in \rho$.
+A transition relation $\alpha$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma,\sigma' \in \Store$
+and $v,v' \in \Value$, if $(\sigma,\sigma') \in \alpha$ then $(\sigma[x \rightarrow v], \sigma(x \rightarrow v')) \in \alpha$.
+We define $\accessVars(\rho)$ to be the smallest set $X \subseteq \Var$ such that $\rho$
+is independent of $x$ for all $x \in \Var \setminus X$.
+We also define $\accessVars(\alpha)$ similarly.
 For any transition relation $\alpha$, let $\elim{\Local}.\ \alpha$ be the transition relation
 \[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
 For any $X \subseteq \Var$, let $\Havoc(X)$, be the transition relation 
@@ -432,5 +440,3 @@ Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restrictin
 We also sometimes use $\false$ to represent the empty set of states or the empty set of transitions.
 
 Given a relation $R$ (over a pair of sets), we denote the domain of $R$ by $\dom(R)$ and the codomain of $R$ by $\cod(R)$.
-
-

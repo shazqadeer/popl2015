@@ -6,223 +6,223 @@
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
-{\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \skipstmt \leadsto \skipstmt}
-\;(\textsc{Skip})
+{\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \skipstmt \leadsto \skipstmt}
+{\textsc{Skip}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
-{\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \yield{e,\lins} \leadsto \yield{e',\lins'}}
-\;(\textsc{Yield})
+{\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \yield{e,\lins} \leadsto \yield{e',\lins'}}
+{\textsc{Yield}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 A \not \in \HiddenActions
 }
-{\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \call{A} \leadsto \call{A}}
-\;(\textsc{Atomic})
+{\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \call{A} \leadsto \call{A}}
+{\textsc{Atomic}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash s \leadsto s'
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s \leadsto s'
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \ablock{e,\lins}{s} \leadsto s'
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \ablock{e,\lins}{s} \leadsto s'
 }
-\;(\textsc{Ablock1})
+{\textsc{Ablock1}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash s \leadsto s'
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s \leadsto s'
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash s \leadsto \ablock{e,\lins}{s'}
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s \leadsto \ablock{e,\lins}{s'}
 }
-\;(\textsc{Ablock2})
+{\textsc{Ablock2}}
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+P \not\in \HiddenProcs
+}
+{
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \call{P} \leadsto \call{P}
+}
+{\textsc{Call1}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
+{
+P \in \HiddenProcs \setminus \dom(\Refines)
+}
+{
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \call{P} \leadsto \skipstmt
+}
+{\textsc{Call2}}
+$
+%%%%%%%%%%%%%%%%%%%%
+\medskip
+$
+\srule
 {
 P \in \dom(\Refines)
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \call{P} \leadsto \call{\Refines(P)}
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \call{P} \leadsto \call{\Refines(P)}
 }
-\;(\textsc{Call1})
+{\textsc{Call3}}
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+P \not\in \HiddenProcs
+}
+{
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \async{P} \leadsto \async{P}
+}
+{\textsc{Async1}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \in \SkipProcs
+P \in \HiddenProcs \setminus \dom(\Refines)
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \call{P} \leadsto \skipstmt
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \async{P} \leadsto \skipstmt
 }
-\;(\textsc{Call2})
+{\textsc{Async2}}
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s_1 \leadsto s_1' \\\\
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s_2 \leadsto s_2'
+}
+{
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
+}
+{\textsc{Ite}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \not\in \dom(\Refines) \cup \SkipProcs
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s \leadsto s'
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \call{P} \leadsto \call{P}
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e',\alpha'}{\locExpr}{s'}
 }
-\;(\textsc{Call3})
+{\textsc{While}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \in \SkipProcs
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_1 \leadsto \stmt'_1 \\\\
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_2 \leadsto \stmt'_2
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \async{P} \leadsto \skipstmt
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_1;\stmt_2 \leadsto \stmt'_1;\stmt'_2
 }
-\;(\textsc{Async1})
+{\textsc{Seq}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \not\in \dom(\Refines) \cup \SkipProcs
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt \leadsto \stmt'
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \async{P} \leadsto \async{P}
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
 }
-\;(\textsc{Async2})
-$\\
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash s_1 \leadsto s_1' \\
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash s_2 \leadsto s_2'
-}
-{
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \ite{\locExpr}{s_1}{s_2} \leadsto \ite{\locExpr}{s_1'}{s_2'}
-}
-\;(\textsc{Ite})
+{\textsc{Procedure}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash s \leadsto s'
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt \leadsto \stmt'
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e',\alpha'}{\locExpr}{s'}
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash (P,\varsL,\stmt) \leadsto (P,\varsL,\stmt')
 }
-\;(\textsc{While})
+{\textsc{StackFrame}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \stmt_1 \leadsto \stmt'_1 \\
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \stmt_2 \leadsto \stmt'_2
+\forall 1 \le j \le n.\ F_j = (P_j, \varsL_j, \stmt_j) \\
+\forall 1 \le j \le n.\ P_j \in \HiddenProcs \Leftrightarrow j \le i \\
+\forall i < j \le n.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash F_j \leadsto F'_j
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \stmt_1;\stmt_2 \leadsto \stmt'_1;\stmt'_2
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\true \vdash (\varsTL, F_1 \ldots F_{i+1} \ldots F_n) \leadsto (\varsTL, F'_{i+1} \ldots F'_n)
 }
-\;(\textsc{Seq})
+{\textsc{Thread1}}
 $
-\medskip
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
-{
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \stmt \leadsto \stmt'
-}
-{
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash (\phi,\mods,\psi,\stmt) \leadsto (\phi',\mods',\psi',\stmt')
-}
-\;(\textsc{Procedure})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \stmt \leadsto \stmt'
-}
-{
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash (P,\varsL,\stmt) \leadsto (P,\varsL,\stmt')
-}
-\;(\textsc{StackFrame})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\forall 1 \le j \le n.\ F_j = (P_j, \varsL_j, \stmt_j) \\\\
-\forall 1 \le j \le n.\ P_j \in \dom(\Refines) \cup \SkipProcs \Leftrightarrow j \le i \\\\
-\forall i < j \le n.\ \Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash F_j \leadsto F'_j
-}
-{
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions;\true \vdash (\varsTL, F_1 \ldots F_{i+1} \ldots F_n) \leadsto (\varsTL, F'_{i+1} \ldots F'_n)
-}
-\;(\textsc{Thread1})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
+\srule
 {
 P' \in \dom(\Refines) \\
-\forall 1 \le j \le i.\ \Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash F_j \leadsto F'_j
+\forall 1 \le j \le i.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash F_j \leadsto F'_j
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions;\false \vdash (\varsTL, \Frames \cdot (P', \varsL', \stmt') \cdot (P, \varsL, \stmt) \cdot F_1 \ldots F_i) \leadsto (\varsTL, (P, \varsL, \yield{e,\lins}; \call{\Refines(P')};\stmt) \cdot F'_1 \ldots F'_i)
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\false \vdash (\varsTL, \Frames \cdot (P', \varsL', \stmt') \cdot (P, \varsL, \stmt) \cdot F_1 \ldots F_i) \leadsto (\varsTL, (P, \varsL, \yield{e,\lins}; \call{\Refines(P')};\stmt) \cdot F'_1 \ldots F'_i)
 }
-\;(\textsc{Thread2})
+{\textsc{Thread2}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\dom(\Refines) \cap \SkipProcs = \{ \} \\
-\cod(\Refines) \cap \HiddenActions = \{ \} \\
-\forall A \in \ActionName \setminus \HiddenActions.\ \actions(A) = \actions'(A) \\\\
-\forall (\rho,\alpha,m) \in \cod(\ActionName\setminus\HiddenActions \circ \actions).\ (\accessVars(\rho) \cup \accessVars(\alpha)) \cap \HiddenVars = \emptyset \\
+\forall A \in \ActionName \setminus \HiddenActions.\ \actions(A) = \actions'(A) \\
+\dom(\Refines) \subseteq \HiddenProcs \\
+\cod(\Refines) \cap \HiddenActions = \{ \} \\\\
+\forall (\rho,\alpha,m) \in \cod((\ActionName\setminus\HiddenActions) \circ \actions).\ (\accessVars(\rho) \cup \accessVars(\alpha)) \cap \HiddenVars = \emptyset \\
+\forall g \in \Global\setminus\HiddenVars.\ \varsG(g) = \varsG'(g) \\\\
 \forall (\rho,\alpha,m) \in \cod(\Refines \circ \actions).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
-T'_1 \ldots T'_n \equiv \overrightarrow{T'} \\
-\forall 1 \le i \le n.\ \Refines;\SkipProcs;\HiddenVars;\HiddenActions;b_i \vdash T_i \leadsto T_i' \\
-\forall P \not\in \dom(\Refines) \cup \SkipProcs.\ \Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \procs(P) \leadsto \procs'(P) \\
-\forall g \in \Global\setminus\HiddenVars.\ \varsG(g) = \varsG'(g)
+\forall 1 \le i \le n.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions;b_i \vdash T_i \leadsto T_i' \\
+T'_1 \ldots T'_n \leadsto \overrightarrow{T'} \\
+\forall P \not\in \HiddenProcs.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \procs(P) \leadsto \procs'(P) \\
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\HiddenActions;b_1;\ldots;b_n \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG', \overrightarrow{T'})
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;b_1;\ldots;b_n \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG', \overrightarrow{T'})
 }
-\;(\textsc{Program})
+{\textsc{Program}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -231,6 +231,39 @@ $
 \label{fig:program-transformation}
 \end{figure*}
 
+\begin{figure}
+\scriptsize{
+$
+\inferrule
+{
+}
+{
+\epsilon \leadsto \epsilon
+}
+$
+\hspace*{2mm}
+$
+\inferrule
+{
+\overrightarrow{T} \leadsto \overrightarrow{T'}
+}
+{
+\overrightarrow{T}\cdot(\varsTL,\epsilon) \leadsto \overrightarrow{T'}
+}
+$
+\hspace*{2mm}
+$
+\inferrule
+{
+\Frames \neq \epsilon \\
+\overrightarrow{T} \leadsto \overrightarrow{T'}
+}
+{
+\overrightarrow{T}\cdot(\varsTL,\Frames) \leadsto \overrightarrow{T'}\cdot(\varsTL,\Frames)
+}
+$
+}
+\end{figure}
 
 Suppose a program $\Prog'$ has been proved to be safe.
 However, it is implemented using atomic actions that are too coarse to be directly implementable.  
@@ -243,7 +276,7 @@ program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so
 safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
 
 We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
-$\Refines;\SkipProcs;\HiddenVars;\HiddenActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
 In this judgment,
 $\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
 and $\HiddenActions \in 2^{\ActionName}$ is a set of action names.
@@ -295,7 +328,7 @@ invocations of atomic actions.
 We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
 to perform yield elimination soundly.
 
-Finally, we have two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\SkipProcs \jr \Prog$,
+Finally, we have two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\HiddenProcs \jr \Prog$,
 described in Section~\ref{sec:refinement},
 that together establish that all program annotations are consistent and that 
 each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
@@ -303,22 +336,22 @@ for all $P \in \dom(\Refines)$.
 The rules for these judgments generalize the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
 The judgment $\InterferenceSafe(\Prog)$ checks that each thread preserves the
 yield predicate of every other thread.
-The judgment $\Refines;\SkipProcs \jr \Prog$ checks sequential correctness of each computation
+The judgment $\Refines;\HiddenProcs \jr \Prog$ checks sequential correctness of each computation
 and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
 
 \begin{theorem}
 \label{thm:correctness}
 Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
-Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, 
+Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, 
 $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that the following conditions hold:
 \begin{enumerate}
 \item
-$\Refines;\SkipProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
 \item
 $\jy \Prog$ and $\CommutativitySafe(\Prog)$.
 \item
-$\Refines;\SkipProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 \end{enumerate}
 If $\Cooperative^*(\Prog)$ and $\Safe^*(\Prog')$, then $\Safe^*(\Prog)$.
 \end{theorem}
@@ -338,54 +371,67 @@ unconstrained to allow as much flexibility in verification as possible.
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {
 \lins \jl \skipstmt : \lins
 }
-\;(\textsc{Skip})
+{\textsc{Skip}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \lins_y \subseteq \lins
 }
 {
 \lins \jl \yield{e,\lins_y} : \lins
 }
-\;(\textsc{Yield})
+{\textsc{Yield}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \ProcLins(A) = (\lins,\lins')
 }
 {
 \lins \jl \call{A} : \lins'
 }
-\;(\textsc{Atomic})
+{\textsc{Atomic}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
+{
+\lins \jl \stmt : \lins' \\
+\lins_a \subseteq \lins
+}
+{
+\lins \jl \ablock{e,\lins_a}{\stmt} : \lins'
+}
+{\textsc{Ablock}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
 {
 \ProcLins(P) = (\lins,\lins') \\
 }
 {
 \lins \jl \call{P} : \lins'
 }
-\;(\textsc{Call})
+{\textsc{Call}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \lins_G \subseteq \Global \\
 \lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocal \\
@@ -394,25 +440,12 @@ $
 {
 \lins_G,\lins,\lins_P \jl \async{P} : \lins_G,\lins
 }
-\;(\textsc{Async})
+{\textsc{Async}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
-{
-\lins \jl \stmt : \lins' \\
-\lins_a \subseteq \lins
-}
-{
-\lins \jl \ablock{e,\lins_a}{\stmt} : \lins'
-}
-\;(\textsc{Ablock})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
+\srule
 {
 \lins \jl \stmt_1 : \lins' \\
 \lins' \jl \stmt_2 : \lins''
@@ -420,12 +453,12 @@ $
 {
 \lins \jl \stmt_1;\stmt_2 : \lins''
 }
-\;(\textsc{Seq})
+{\textsc{Seq}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \lins \jl \stmt_1 : \lins' \\
 \lins \jl \stmt_2 : \lins'
@@ -433,38 +466,38 @@ $
 {
 \lins \jl \ite{\locExpr}{\stmt_1}{\stmt_2} : \lins'
 }
-\;(\textsc{Ite})
+{\textsc{Ite}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \lins \jl \stmt : \lins
 }
 {
 \lins \jl \while{e,\alpha}{\locExpr}{\stmt} : \lins
 }
-\;(\textsc{While})
+{\textsc{While}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \ProcLins(P) = (\lins,\lins') \\
-\procs(P) = (\phi, \mods, \psi, \stmt) \\\\
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
 \lins \jl \stmt : \lins'
 }
 {
 \jl P
 }
-\;(\textsc{Procedure})
+{\textsc{Procedure}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \ProcLins(A) = (\lins,\lins') \\
 \lins \cap \Global = \lins' \cap \Global \\
@@ -475,36 +508,36 @@ $
 {
 \jl A
 }
-\;(\textsc{Action})
+{\textsc{Action}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \lins \jl \stmt : \lins'
 }
 {
 \lins \jl (P, \varsL, \stmt) : \lins'
 }
-\;(\textsc{StackFrame})
+{\textsc{StackFrame}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \forall 1 \le i \le n.\ \lins_i \jl F_i : \lins_{i+1}
 }
 {
 \lins_1 \jl (\varsTL, F_1 \ldots F_n)
 }
-\;(\textsc{Thread})
+{\textsc{Thread}}
 $
 \medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \forall P \in \ProcName.\ \jl P \\
 \forall A \in \ActionName.\ \jl A \\
@@ -517,7 +550,7 @@ $
 {
 \jl (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
-\;(\textsc{Program})
+{\textsc{Program}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -688,123 +721,123 @@ $\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \jy \skipstmt : (x, x)}
-\;(\textsc{Skip})
+{\textsc{Skip}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \jy \yield{e,\lins} : (x, \RM)}
-\;(\textsc{Yield})
+{\textsc{Yield}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \jy \call{P} : (x, \RM)}
-\;(\textsc{Call})
+{\textsc{Call}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \jy \async{P} : (x, \LM)}
-\;(\textsc{Async})
+{\textsc{Async}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions(A) = (\rho, \alpha, B)
 }
 {\actions \jy \call{A} : (x, x)}
-\;(\textsc{Both})
+{\textsc{Both}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions(A) = (\rho, \alpha, R)
 }
 {\actions \jy \call{A} : (\RM, \RM)}
-\;(\textsc{Right})
+{\textsc{Right}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions(A) = (\rho, \alpha, L)
 }
 {\actions \jy \call{A} : (x, \LM)}
-\;(\textsc{Left})
+{\textsc{Left}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions(A) = (\rho, \alpha, N)
 }
 {\actions \jy \call{A} : (\RM, \LM)}
-\;(\textsc{Non})
+{\textsc{Non}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \jy \stmt : (x, y)
 }
 {\actions \jy \ablock{e,\lins}{\stmt} : (x, y)}
-\;(\textsc{Ablock})
+{\textsc{Ablock}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \jy \stmt_1 : (x, y) \\ \actions \jy \stmt_2 : (y, z)
 }
 {\actions \jy \stmt_1;\stmt_2 : (x, z)}
-\;(\textsc{Seq})
+{\textsc{Seq}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \jy \stmt_1 : (x, y) \\ \actions \jy \stmt_2 : (x, y)
 }
 {\actions \jy \ite{\locExpr}{\stmt_1}{\stmt_2} : (x, y)}
-\;(\textsc{Ite})
+{\textsc{Ite}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \jy \stmt : (x, x)
 }
 {\actions \jy \while{e,\alpha}{\locExpr}{\stmt} : (x, x)}
-\;(\textsc{While})
+{\textsc{While}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
 \actions \jy \stmt : (x, y)
@@ -812,36 +845,36 @@ $
 {
 \actions \jy P
 }
-\;(\textsc{Procedure})
+{\textsc{Procedure}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \jy \stmt : (x,y)
 }
 {
 \actions \jy (P, \varsL, \stmt) : (x,y)
 }
-\;(\textsc{StackFrame})
+{\textsc{StackFrame}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \forall 1 \le i \le n.\ \actions \jy F_i : (x_i, x_{i+1})
 }
 {
 \actions \jy (\varsTL, F_1 \ldots F_n)
 }
-\;(\textsc{Thread})
+{\textsc{Thread}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \forall P \in \ProcName.\ \actions \jy P \\
 \forall 1 \le i \le n.\ \actions \jy T_i
@@ -849,7 +882,7 @@ $
 {
 \jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
-\;(\textsc{Program})
+{\textsc{Program}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -944,98 +977,98 @@ If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \vdash \skipstmt \preceq \Havoc(\{\})}
-\;(\textsc{Skip})
+{\textsc{Skip}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \vdash \yield{e,\lins} \preceq \false}
-\;(\textsc{Yield})
+{\textsc{Yield}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions(A) = (\rho, \alpha, m) 
 }
 {\actions \vdash \call{A} \preceq \rho \circ \alpha}
-\;(\textsc{Atomic})
+{\textsc{Atomic}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \vdash \call{P} \preceq \false}
-\;(\textsc{Call})
+{\textsc{Call}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
 {\actions \vdash \async{P} \preceq \Havoc(\{\})}
-\;(\textsc{Async})
+{\textsc{Async}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 s \preceq \alpha
 }
 {\actions \vdash \ablock{e,\lins}{s} \preceq \alpha}
-\;(\textsc{Ablock})
+{\textsc{Ablock}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \vdash \stmt_1 \preceq \alpha_1 \\\\ \actions \vdash \stmt_2 \preceq \alpha_2
 }
 {\actions \vdash \stmt_1;\stmt_2 \preceq \alpha_1 \circ \alpha_2}
-\;(\textsc{Seq})
+{\textsc{Seq}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\ \actions \vdash \stmt_2 \preceq \ga{\neg\locExpr}{\alpha_2}
+\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\\\ \actions \vdash \stmt_2 \preceq \ga{\neg\locExpr}{\alpha_2}
 }
 {\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \vee \alpha_2}
-\;(\textsc{Ite})
+{\textsc{Ite}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \vdash \stmt \preceq \beta \\ \Havoc(\{\}) \subseteq \alpha \\ \beta \circ \alpha \subseteq \alpha 
 }
 {\actions \vdash \while{e,\alpha}{\locExpr}{\stmt} \preceq e \circ \alpha \circ \neg \locExpr}
-\;(\textsc{While})
+{\textsc{While}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions \vdash \stmt \preceq \alpha \\ \alpha \subseteq \alpha'
 }
 {\actions \vdash \stmt \preceq \alpha'}
-\;(\textsc{Weaken})
+{\textsc{Weaken}}
 $
 \medskip
 }
@@ -1043,8 +1076,8 @@ $
 \label{fig:statement-summarization}
 \end{figure}
 
-In this section, we formalize the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
-The rules for the judgment $\Refines;\SkipProcs \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
+In this section, we formalize the judgments $\Refines;\HiddenProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
+The rules for the judgment $\Refines;\HiddenProcs \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
 each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.  
 Suppose $P$ is a procedure in $\dom(\Refines)$, $A = \Refines(P)$, and $\actions(A) = (\rho, \alpha, m)$.
 Our strategy for $P$ is to check that along all paths in its body, there occurs exactly one atomic block 
@@ -1056,7 +1089,7 @@ are presented in Figure~\ref{fig:statement-summarization}.
 In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
 Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution or the invariants
 of the loop inside the atomic block may also be needed.
-Proving such predicates throughout the program is the job of the judgments $\Refines;\SkipProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
+Proving such predicates throughout the program is the job of the judgments $\Refines;\HiddenProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 The rules for the former are presented in Figure~\ref{fig:refinement} and the latter is formalized in text towards the end of this 
 subsection.
 
@@ -1086,220 +1119,220 @@ discussed later (Figure~\ref{fig:refinement}).
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi}{\skipstmt}{b,\phi};\{\}}
-\;(\textsc{Skip})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi}{\skipstmt}{b,\phi};\{\}}
+{\textsc{Skip}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \not \in \dom(\Refines) \vee P \in \SkipProcs
+P \not \in \dom(\Refines)
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b,e};\{\}}
-\;(\textsc{Yield1})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b,e};\{\}}
+{\textsc{Yield1}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, m)
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b, e \wedge (\rho \vee b)};\{\}}
-\;(\textsc{Yield2})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b, e \wedge (\rho \vee b)};\{\}}
+{\textsc{Yield2}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \actions(A) = (\rho, \alpha, m) \\\\ 
 \mods \subseteq \ThreadLocal \\
 \alpha \subseteq \Havoc(\Global \cup \mods \cup \Local) \\\\
-P \in \dom(\Refines) \cup \SkipProcs \Rightarrow \phi \subseteq \rho \\ 
+P \in \HiddenProcs \Rightarrow \phi \subseteq \rho \\ 
 \cod((\phi \wedge \rho) \circ \alpha) \subseteq \psi  \\
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b,\phi}{\call{A}}{b,\psi};\mods}
-\;(\textsc{Atomic})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b,\phi}{\call{A}}{b,\psi};\mods}
+{\textsc{Atomic}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \in \dom(\Refines) \cup \SkipProcs \Rightarrow P' \in \SkipProcs \\
+P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
 \procs(P') = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\call{P'}}{b,\psi};\mods}
-\;(\textsc{Call})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\call{P'}}{b,\psi};\mods}
+{\textsc{Call}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \in \dom(\Refines) \cup \SkipProcs \Rightarrow P' \in \SkipProcs \\
+P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
 \procs(P') = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\async{P'}}{b,\phi};\{\}}
-\;(\textsc{Async})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\async{P'}}{b,\phi};\{\}}
+{\textsc{Async}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \not \in \dom(\Refines) \cup \SkipProcs \\\\
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b,\phi_2};\mods
+P \not \in \HiddenProcs \\\\
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b,\phi_2};\mods
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
-\;(\textsc{Ablock1})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
+{\textsc{Ablock1}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-P \in \dom(\Refines) \cup \SkipProcs \\ \actions \vdash \stmt \preceq \ga{e}{\Havoc(\HiddenVars \cup \Local)} \\\\
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
+P \in \HiddenProcs \\ \actions \vdash \stmt \preceq \ga{e}{\Havoc(\HiddenVars \cup \Local)} \\\\
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
-\;(\textsc{Ablock2})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
+{\textsc{Ablock2}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\\\
 \actions \vdash \stmt \preceq \ga{e}{\elim{\Local}.\ \alpha} \\\\
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{\false, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\true, \phi_2};\mods}
-\;(\textsc{Ablock3})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{\false, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\true, \phi_2};\mods}
+{\textsc{Ablock3}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_1, \phi_1}{\stmt_1}{b_2, \phi_2};\mods_1 \\\\ 
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_2, \phi_2}{\stmt_2}{b_3, \phi_3};\mods_2
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_1, \phi_1}{\stmt_1}{b_2, \phi_2};\mods_1 \\\\ 
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_2, \phi_2}{\stmt_2}{b_3, \phi_3};\mods_2
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_1, \phi_1}{\stmt_1;\stmt_2}{b_3, \phi_3};\mods_1 \cup \mods_2}
-\;(\textsc{Seq})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_1, \phi_1}{\stmt_1;\stmt_2}{b_3, \phi_3};\mods_1 \cup \mods_2}
+{\textsc{Seq}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \locExpr \wedge \phi_1}{s_1}{b', \phi_2};\mods_1 \\\\
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \neg \locExpr \wedge \phi_1}{s_2}{b', \phi_2};\mods_2
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \locExpr \wedge \phi_1}{s_1}{b', \phi_2};\mods_1 \\\\
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \neg \locExpr \wedge \phi_1}{s_2}{b', \phi_2};\mods_2
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi_1}{\ite{\locExpr}{s_1}{s_2}}{b', \phi_2};\mods_1 \cup \mods_2}
-\;(\textsc{Ite})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi_1}{\ite{\locExpr}{s_1}{s_2}}{b', \phi_2};\mods_1 \cup \mods_2}
+{\textsc{Ite}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, e \wedge \locExpr}{s}{b, e};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, e \wedge \locExpr}{s}{b, e};\mods
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, e}{\while{e,\alpha}{\locExpr}{s}}{b, e \wedge \neg \locExpr};\mods}
-\;(\textsc{While})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, e}{\while{e,\alpha}{\locExpr}{s}}{b, e \wedge \neg \locExpr};\mods}
+{\textsc{While}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \phi \subseteq \phi' \\ \psi' \subseteq \psi \\\\
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi'}{\stmt}{b',\psi'};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi'}{\stmt}{b',\psi'};\mods
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi}{\stmt}{b',\psi};\mods}
-\;(\textsc{Weaken})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi}{\stmt}{b',\psi};\mods}
+{\textsc{Weaken}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi}{\stmt}{b', \psi};\mods \\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi}{\stmt}{b', \psi};\mods \\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \rho \wedge \phi}{\stmt}{b', \rho \wedge \psi};\mods}
-\;(\textsc{Frame1})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \rho \wedge \phi}{\stmt}{b', \rho \wedge \psi};\mods}
+{\textsc{Frame1}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{F}{b', \psi};\mods \\\\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{F}{b', \psi};\mods \\\\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions \jr \FH{b, \rho \wedge \phi}{F}{b', \rho \wedge \psi};\mods}
-\;(\textsc{Frame2})
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \rho \wedge \phi}{F}{b', \rho \wedge \psi};\mods}
+{\textsc{Frame2}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
 \mods' \subseteq \mods \\
 \mods \subseteq \ThreadLocal \\\\
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{P \not \in \dom(\Refines), \phi}{\stmt}{\true, \psi};\mods'
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{P \not \in \dom(\Refines), \phi}{\stmt}{\true, \psi};\mods'
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions \jr P
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr P
 }
-\;(\textsc{Procedure})
+{\textsc{Procedure}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi'}{\stmt}{b', \psi};\mods \\\\
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi'}{\stmt}{b', \psi};\mods \\\\
 \forall \varsG,\varsTL,\varsL'.\ \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{(P,\varsL,\stmt)}{b', \psi};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b, \phi}{(P,\varsL,\stmt)}{b', \psi};\mods
 }
-\;(\textsc{StackFrame})
+{\textsc{StackFrame}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
 \forall 1 \le i \le n.\ \accessVars(\phi_i) \cap \Local = \{\} \\
 \forall \varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi_1 \\\\
-\forall 1 \le i \le n.\ \Refines;\SkipProcs;\HiddenVars;\procs;\actions \jr \FH{b_i, \phi_i}{F_i}{b_{i+1}, \phi_{i+1}};\mods_i
+\forall 1 \le i \le n.\ \Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b_i, \phi_i}{F_i}{b_{i+1}, \phi_{i+1}};\mods_i
 }
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;\varsG;b_1 \jr (\varsTL, F_1 \ldots F_n)
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\varsG;b_1 \jr (\varsTL, F_1 \ldots F_n)
 }
-\;(\textsc{Thread})
+{\textsc{Thread}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
-\inferrule
+\srule
 {
-\forall P \in \ProcName.\ \Refines;\SkipProcs;\HiddenVars;\procs;\actions \jr P \\\\
-\forall 1 \le i \le n.\ \Refines;\SkipProcs;\HiddenVars;\procs;\actions;\varsG;b_i \jr T_i
+\forall P \in \ProcName.\ \Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr P \\\\
+\forall 1 \le i \le n.\ \Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\varsG;b_i \jr T_i
 }
 {
-\Refines;\SkipProcs;\HiddenVars;b_1;\ldots;b_n \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+\Refines;\HiddenProcs;\HiddenVars;b_1;\ldots;b_n \jr (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
 }
-\;(\textsc{Program})
+{\textsc{Program}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1313,7 +1346,7 @@ These rules are a generalization of the sequential correctness rules in the Owic
 In addition to checking that annotations such preconditions, postconditions, loop invariants, 
 and predicates labeling yield and atomic block statements are correct, it also checks that the bodies
 of each procedure $P \in \dom(\Refines)$ is abstracted by the atomic action $\Refines(P)$.
-The crux of these rules is the judgment $\Refines;\SkipProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{\phi}{\stmt}{\psi} : b'$.
+The crux of these rules is the judgment $\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{\phi}{\stmt}{\psi} : b'$.
 In this judgment, $P$ is the procedure being checked.
 The set $\mods$ contains thread-local variables that are potentially modified by $\stmt$.
 The $\mathit{Boolean}$ values $b$ and $b'$ track whether that atomic action to be refined has already occurred;
@@ -1416,22 +1449,22 @@ $\actions \vdash \stmt \preceq \alpha$ and
 
 \begin{lemma}
 Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
-Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
+Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that 
-$\Refines;\SkipProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\SkipProcs;\HiddenVars;\bs{b} \jr \Prog$, and
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, and
 $\InterferenceSafe(\Prog)$.
 If $\Safe^*(\Prog')$, then $\CSafe(\Prog)$.
 \end{lemma}
 
 \begin{lemma}
 Let $\Prog_1,\Prog_2 \in \CProgram$ be such that $\jl \Prog_1$ and $\Prog_1 \ctrans \Prog_2$.
-Let $\Prog'_1 \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\SkipProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
+Let $\Prog'_1 \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
 and $\bs{b_1} \in \overrightarrow{\mathit{Boolean}}$ be such that 
-$\Refines;\SkipProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, $\Refines;\SkipProcs;\HiddenVars;\bs{b} \jr \Prog_1$, and
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog_1$, and
 $\InterferenceSafe(\Prog_1)$.
 If $\Safe^*(\Prog'_1)$, then there exists $\Prog'_2 \in \CProgram$ and $\bs{b_2} \in \overrightarrow{\mathit{Boolean}}$ such that 
-$\Prog'_1 \trans^* \Prog'_2$, $\Refines;\SkipProcs;\HiddenVars;\HiddenActions;\bs{b_2} \vdash \Prog_2 \leadsto \Prog'_2$, 
-$\Refines;\SkipProcs;\HiddenVars;\bs{b_2} \jr \Prog_2$, and $\InterferenceSafe(\Prog_2)$.
+$\Prog'_1 \trans^* \Prog'_2$, $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_2} \vdash \Prog_2 \leadsto \Prog'_2$, 
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b_2} \jr \Prog_2$, and $\InterferenceSafe(\Prog_2)$.
 \end{lemma}
 
 {\bf Proving cooperation.}
@@ -1445,13 +1478,13 @@ as follows:
 \scriptsize{
 \inferrule
 {
-\Refines;\SkipProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
 \rho = \{ \sigma \mid \sigma(f) \geq 0 \} \\
 e \wedge \locExpr \subseteq \rho \\\\
 \alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\
 \actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
 }
-{\Refines;\SkipProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
 }
 \]
 
