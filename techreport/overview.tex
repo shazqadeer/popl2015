@@ -1,11 +1,9 @@
 \section{Overview}
 \label{sec:overview}
 
-\begin{figure}
+\begin{figure} 
 \begin{verbatim}
 var Color: int; // WHITE=1, GRAY=2, BLACK=3
-\end{verbatim}
-\begin{verbatim}
 procedure TopWB(linear tid:Tid)
 atomic [if (Color == WHITE) Color := GRAY];
 {
@@ -16,8 +14,6 @@ atomic [if (Color == WHITE) Color := GRAY];
   if (cNoLock == WHITE) 
     call MidWB(tid);
 }
-\end{verbatim}
-\begin{verbatim}
 procedure MidWB(linear tid:Tid)
 atomic [if (Color == WHITE) Color := GRAY];
 {
@@ -28,8 +24,6 @@ atomic [if (Color == WHITE) Color := GRAY];
     call SetColorLocked(tid, GRAY);
   call ReleaseLock(tid);
 }
-\end{verbatim}
-\begin{verbatim}
 procedure GetColorNoLock(linear tid:Tid) 
   returns (cl:int) atomic [...];
 procedure AcquireLock(linear tid:Tid) 
@@ -43,6 +37,22 @@ procedure SetColorLocked(linear tid:Tid,
 \end{verbatim}
 \caption{Write barrier}
 \label{fig:reft}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.35]{MidWB.pdf}
+\end{center}
+\caption{Abstraction of \exC{MidWB}}
+\label{fig:midwb}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
+\end{center}
+\caption{Yield sufficiency automaton ($YSA$)}
+\label{fig:ysa}
 \end{figure}
 
 \civl supports the verification of refinement of atomic action specifications for procedures. 
@@ -130,22 +140,6 @@ program semantics.\footnote{Well-scoped location invariants that cannot refer to
 both in theory and in practice.}
 Second, the cost of the pairwise mover reasoning is replaced by the cost of pairwise non-interference checks between yield assertions 
 and concurrently executing atomic actions.
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.35]{MidWB.pdf}
-\end{center}
-\caption{Abstraction of \exC{MidWB}}
-\label{fig:midwb}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
-\end{center}
-\caption{Yield sufficiency automaton ($YSA$)}
-\label{fig:ysa}
-\end{figure}
 
 Finally, given the mover types of atomic action specifications, the \civl verifier ensures
 that the absence of yields is justified by constructing an abstraction of \exC{MidWB} 

@@ -627,111 +627,6 @@ Then, we have $\jl \Prog_2$.
 \subsection{From preemptive to cooperative semantics}
 \label{sec:yield-sufficiency}
 
-Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program.
-In this section, we outline the verification required for justifying that it suffices to reason about
-the cooperative semantics of $\Prog$.
-The map $\actions$ maps each atomic action to a triple $(\rho, \alpha, m)$, the last component of which 
-denotes type of atomic action---$B$ for {\em both mover}, $R$ for {\em right mover}, $L$ for {\em left mover},
-and $N$ for {\em non mover}.
-Informally, an action labeled $N$ does not commute with other concurrent actions,
-an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
-an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
-and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
-The ability to commute past actions in the environment provides the capability to eliminate yields.
-For example, a yield after a right mover or a yield before a left mover is unncessary.
-Formally, the program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
-if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
-$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
-then all of the following conditions are satisfied:
-\begin{itemize}
-\item {\bf Commutativity.}
-If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
-\[
-\scriptsize{
-\begin{array}{l}
-\forall \varsG^-,\varsG,\varsG^+,\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2,\varsTL'_2,\varsL'_2.\ \exists \varsG'. \\
-\mathit{let}\ \Lambda =
-\begin{array}[t]{ll}
-\cup & \Collect(\varsG^-, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
-\end{array} \\
-\mathit{in} \\
-\begin{array}{ll}
-\wedge & \IsSet(\Lambda) \\
-\wedge & \MakeStore{\varsG^-}{\varsTL_1}{\varsL_1} \in \rho_1 \\
-\wedge & \MakeStore{\varsG^-}{\varsTL_2}{\varsL_2} \in \rho_2 \\
-\wedge & (\MakeStore{\varsG^-}{\varsTL_1}{\varsL_1},\MakeStore{\varsG}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\wedge & (\MakeStore{\varsG}{\varsTL_2}{\varsL_2},\MakeStore{\varsG^+}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
-\end{array} \\
-\Rightarrow \\
-\begin{array}{ll}
-\wedge & (\MakeStore{\varsG^-}{\varsTL_2}{\varsL_2},\MakeStore{\varsG'}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
-\wedge & (\MakeStore{\varsG'}{\varsTL_1}{\varsL_1},\MakeStore{\varsG^+}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\end{array}
-\end{array}
-}
-\]
-
-\item {\bf Forward preservation.}
-If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
-\[
-\scriptsize{
-\begin{array}{l}
-\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
-\mathit{let}\ \Lambda =
-\begin{array}[t]{ll}
-\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
-\end{array} \\
-\mathit{in} \\
-\begin{array}{ll}
-\wedge & \IsSet(\Lambda) \\
-\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
-\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\wedge & \MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 \\
-\end{array} 
-\Rightarrow 
-\begin{array}{l}
-\MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 
-\end{array}
-\end{array}
-}
-\]
-
-\item {\bf Backward preservation.}
-If $m_1 \in \{B,L\}$, then 
-\[
-\scriptsize{
-\begin{array}{l}
-\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
-\mathit{let}\ \Lambda =
-\begin{array}[t]{ll}
-\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
-\end{array} \\
-\mathit{in} \\
-\begin{array}{ll}
-\wedge & \IsSet(\Lambda) \\
-\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
-\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\wedge & \MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 \\
-\end{array} 
-\Rightarrow 
-\begin{array}{l}
-\MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 
-\end{array}
-\end{array}
-}
-\]
-
-\item {\bf Nonblocking.}
-If $m_1 \in \{B, L\}$, then
-$\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
-\end{itemize}
-
 \begin{figure*}
 \scriptsize{
 \medskip
@@ -907,34 +802,39 @@ $
 \label{fig:yield-sufficiency}
 \end{figure*}
 
-In transforming a refined program $\Prog$ to an abstract program $\Prog'$, a number of atomic actions 
-are introduced simultaneously.
-Thus, we may need to eliminate a collection of yields at the same time.
-To achieve this, we use the {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} that encodes 
+Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program.
+In this section, we outline the verification required for justifying that it suffices to reason about
+the cooperative semantics of $\Prog$.
+The map $\actions$ maps each atomic action to a triple $(\rho, \alpha, m)$, the last component of which 
+denotes type of atomic action---$B$ for {\em both mover}, $R$ for {\em right mover}, $L$ for {\em left mover},
+and $N$ for {\em non mover}.
+Informally, an action labeled $N$ does not commute with other concurrent actions,
+an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
+an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
+and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
+The ability to commute past actions in the environment provides the capability to eliminate yields.
+For example, a yield after a right mover or a yield before a left mover is unncessary.
+The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} that encodes 
 all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
-The judgment $\actions \jy \Prog$ checks that the code of each procedure in $\Prog$ can be simulated by traces of $\YSA$.
+The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by traces of $\YSA$.
 
 The essence of the rules in Figure~\ref{fig:yield-sufficiency}
 is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\LM\}$;
 the meaning is that to simulate the computation the automaton moves from state $x$ to state $y$.
-Rule \textsc{Program} performs checking for all threads and for all procedures not in $\dom(\Refines)$ since these are the 
-only procedures that remain in the abstract program.
-Rules \textsc{Thread}, \textsc{Stack}, and \textsc{Procedure} are straightforward.
+Rule \textsc{Program} performs checking for all threads and for all procedures.
+Rules \textsc{Thread}, \textsc{StackFrame}, and \textsc{Procedure} are straightforward.
 Rule \textsc{While} checks that the body of the loop leaves the state of the automaton unchanged.
 Rule \textsc{Ite} checks that the effect both branches is the same.
 Rule \textsc{Seq} composes the effect of $\stmt_1$ with the effect of $\stmt_2$.
-Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, \textsc{Non}, and \textsc{Ablock} essentially 
-examine the available edges in the automaton to validate the statement and calculate its effect.
 Rule \textsc{Async} is interesting because it treats an asynchronous call as a left mover.
 Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
+Rule \textsc{Ablock} calculates the effect of the body of the block.
+Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, and \textsc{Non} essentially 
+examine the available edges in the automaton to validate the statement and calculate its effect.
 Rule \textsc{Skip} leave the state of the automaton unchanged.
 
-The judgment $\actions \jy \Prog$ is not quite enough to eliminate yields soundly.
-Consider the following program with a global variable {\tt x}, two threads, procedure {\tt IncrAndBlock},
-and actions {\tt Nop} and {\tt Block}.
-
-{\small
-\begin{tabular}{l}
+The judgment $\jy \Prog$ is not quite enough to check the sufficiency of yields soundly.
+Consider the following program with a global variable {\tt x} and two threads.
 \begin{tabular}{l@{}l@{}l}
 \begin{tabular}[t]{l}
 {\tt [ x := 0 ];} \\
@@ -944,42 +844,117 @@ and actions {\tt Nop} and {\tt Block}.
 {\tt ||}
 &
 \begin{tabular}[t]{l}
-{\tt call IncrAndBlock;} \\
-\end{tabular} 
-\end{tabular} \\
-~\\
-\begin{tabular}[t]{l}
-{\tt procedure IncrAndBlock} \\
-{\tt ~~refines Block} \\
-{\tt \{} \\
 {\tt ~~[ x := x + 1 ];} \\
-{\tt ~~while (true)} \\
-{\tt ~~~~call Nop;} \\
-{\tt \}}
-\end{tabular} \\
-~\\
-\begin{tabular}{l}
-{\tt action Nop} \\
-{\tt ~~both [ ]}
-\end{tabular} \\
-~\\
-\begin{tabular}{l}
-{\tt action Block} \\
-{\tt ~~atomic [ assume false ]}
+{\tt ~~while (true) ;} \\
+\end{tabular} 
 \end{tabular}
-\end{tabular}
-}
-
 This program violates the assertion in it.
-The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0]} and yields;
-the second thread changes {\tt x} to $1$ and yields;
-the first thread fails the assert {\tt x == 0}. 
-However, after {\tt call IncrAndBlock} is replaced with the {\tt call Block}, the program does not fail,
-even though the code of {\tt IncrAndBlock} satisfies the yield sufficiency check described earlier and refines the action {\tt Block}.
-To address this soundness problem in the presence of left and both movers, we require additionally 
-that the abstract program is responsive, that is, it yields infinitely often in any infinite execution.
-The abstract program in the example above is not responsive.
+The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0]};
+the second thread preempts the first thread and changes {\tt x} to $1$;
+the first thread preempts the second thread and fails the assert {\tt x == 0}. 
+However, the program does not fail if the second thread is executed without preemption,
+even though the code of the second thread satisfies the yield sufficiency check described earlier.
+To address this problem, we require additionally 
+that the program is cooperative, that is, it yields infinitely often in any infinite execution.
+The program in the example above is not cooperative.
 
+Of course, the judgment $\jy \Prog$ depends on the mover annotations on the atomic actions being correct.
+We capture this requirement in the judgmen $\CommutativitySafe(\Prog)$.
+Formally, the program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
+if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
+then all of the following conditions are satisfied:
+\begin{itemize}
+\item {\bf Commutativity.}
+If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG^-,\varsG,\varsG^+,\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2,\varsTL'_2,\varsL'_2.\ \exists \varsG'. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG^-, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in} \\
+\begin{array}{ll}
+\wedge & \IsSet(\Lambda) \\
+\wedge & \MakeStore{\varsG^-}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & \MakeStore{\varsG^-}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\wedge & (\MakeStore{\varsG^-}{\varsTL_1}{\varsL_1},\MakeStore{\varsG}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_2}{\varsL_2},\MakeStore{\varsG^+}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
+\end{array} \\
+\Rightarrow \\
+\begin{array}{ll}
+\wedge & (\MakeStore{\varsG^-}{\varsTL_2}{\varsL_2},\MakeStore{\varsG'}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
+\wedge & (\MakeStore{\varsG'}{\varsTL_1}{\varsL_1},\MakeStore{\varsG^+}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\end{array}
+\end{array}
+}
+\]
+
+\item {\bf Forward preservation.}
+If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in} \\
+\begin{array}{ll}
+\wedge & \IsSet(\Lambda) \\
+\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & \MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\end{array} 
+\Rightarrow 
+\begin{array}{l}
+\MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 
+\end{array}
+\end{array}
+}
+\]
+
+\item {\bf Backward preservation.}
+If $m_1 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in} \\
+\begin{array}{ll}
+\wedge & \IsSet(\Lambda) \\
+\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & \MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\end{array} 
+\Rightarrow 
+\begin{array}{l}
+\MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 
+\end{array}
+\end{array}
+}
+\]
+
+\item {\bf Nonblocking.}
+If $m_1 \in \{B, L\}$, then
+$\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
+\end{itemize}
+
+Finally, we summarize the results of this section in the following lemma connecting the safety
+of preemptive and cooperative semantics of $\Prog$.
 \begin{lemma}
 Let $\Prog \in \CProgram$ be such that $\jl \Prog$, $\CommutativitySafe(\Prog)$, and $\jy \Prog$.
 If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
