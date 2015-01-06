@@ -11,6 +11,7 @@ atomic [if (Color == WHITE) Color := GRAY];
 {
   var cNoLock:int;
   cNoLock := GetColorNoLock(tid);
+  yield Color >= cNoLock;
   call YieldColorsGetDarker(); 
   if (cNoLock == WHITE) 
     call MidWB(tid);
@@ -26,13 +27,6 @@ atomic [if (Color == WHITE) Color := GRAY];
   if (cLock == WHITE) 
     call SetColorLocked(tid, GRAY);
   call ReleaseLock(tid);
-}
-\end{verbatim}
-\begin{verbatim}
-procedure YieldColorsGetDarker()
-ensures Color >= old(Color);
-{
-  yield Color >= old(Color);
 }
 \end{verbatim}
 \begin{verbatim}
@@ -79,20 +73,19 @@ with their execution, to their respective callers it appears as if they atomical
 The correctness of \exC{TopWB} is not obvious.
 Consider the following potential scenario. 
 \exC{TopWB}, not holding a lock, reads {\tt Color} and
-sets \exC{cNoLock} to \exC{GRAY} and then yields inside the call to
-\exC{YieldColorsGetDarker}. Another thread sets {\tt Color} to
+sets \exC{cNoLock} to \exC{GRAY} and then yields. Another thread sets {\tt Color} to
 {\tt WHITE}. \exC{TopWB} resumes, but does nothing and exits,
 because the procedure-local variable \exC{cNoLock} is \exC{GRAY}. In this scenario, the atomic action
 specification of \exC{TopWB} would not be satisfied. However, in the GC this
 scenario is not possible. 
-The yield predicate in \exC{YieldColorsGetDarker} expresses the fact that
+The yield predicate expresses the fact that
 other threads in the environment of the thread running \exC{TopWB} can
 only modify {\tt Color} to a higher (darker) value. 
 \civl then verifies that, for every control path through \exC{TopWB}
 procedure, exactly one {\tt yield}-to-{\tt yield} execution
 fragment implements the atomic action specification and that other fragments do not modify
 global state. 
-This proof requires both correct modeling of environment interference in \exC{YieldColorsGetDarker}
+This proof requires both correct modeling of environment interference in the yield predicate
 and the atomic action specification for the called procedure \exC{MidWB}.
 The \civl verifier automatically computes a logical verification condition capturing
 this proof obligation from the body and specification of \exC{TopWB}.
