@@ -17,19 +17,19 @@ $
 $
 \srule
 {
+A \not \in \HiddenActions
 }
-{\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \yield{e,\lins} \leadsto \yield{e',\lins'}}
-{\textsc{Yield}}
+{\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \call{A} \leadsto \call{A}}
+{\textsc{Atomic}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \srule
 {
-A \not \in \HiddenActions
 }
-{\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \call{A} \leadsto \call{A}}
-{\textsc{Atomic}}
+{\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \yield{e,\lins} \leadsto \yield{e',\lins'}}
+{\textsc{Yield}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -120,7 +120,20 @@ $
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s_1 \leadsto s_1' \\\\
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_1 \leadsto \stmt'_1 \\
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_2 \leadsto \stmt'_2
+}
+{
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_1;\stmt_2 \leadsto \stmt'_1;\stmt'_2
+}
+{\textsc{Seq}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s_1 \leadsto s_1' \\
 \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash s_2 \leadsto s_2'
 }
 {
@@ -139,19 +152,6 @@ $
 \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \while{e,\alpha}{\locExpr}{s} \leadsto \while{e',\alpha'}{\locExpr}{s'}
 }
 {\textsc{While}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_1 \leadsto \stmt'_1 \\\\
-\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_2 \leadsto \stmt'_2
-}
-{
-\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_1;\stmt_2 \leadsto \stmt'_1;\stmt'_2
-}
-{\textsc{Seq}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -177,7 +177,7 @@ $
 }
 {\textsc{StackFrame}}
 $
-\medskip
+\medskip\\
 %%%%%%%%%%%%%%%%%%%%
 $
 \srule
@@ -209,15 +209,15 @@ $
 $
 \srule
 {
-\forall A \in \ActionName \setminus \HiddenActions.\ \actions(A) = \actions'(A) \\
 \dom(\Refines) \subseteq \HiddenProcs \\
-\cod(\Refines) \cap \HiddenActions = \{ \} \\\\
-\forall (\rho,\alpha,m) \in \cod((\ActionName\setminus\HiddenActions) \circ \actions).\ (\accessVars(\rho) \cup \accessVars(\alpha)) \cap \HiddenVars = \emptyset \\
+\cod(\Refines) \cap \HiddenActions = \{ \} \\
+\forall (\rho,\alpha,m) \in \cod((\ActionName\setminus\HiddenActions) \circ \actions).\ (\accessVars(\rho) \cup \accessVars(\alpha)) \cap \HiddenVars = \emptyset \\\\
+\forall A \in \ActionName \setminus \HiddenActions.\ \actions(A) = \actions'(A) \\
+\forall P \not\in \HiddenProcs.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \procs(P) \leadsto \procs'(P) \\
 \forall g \in \Global\setminus\HiddenVars.\ \varsG(g) = \varsG'(g) \\\\
 \forall (\rho,\alpha,m) \in \cod(\Refines \circ \actions).\ (\accessVars(\rho) \cap \Local = \emptyset) \wedge (\alpha = ((\elim{\Local}.\ \alpha) \wedge \Same(\Local))) \\
 \forall 1 \le i \le n.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions;b_i \vdash T_i \leadsto T_i' \\
 T'_1 \ldots T'_n \leadsto \overrightarrow{T'} \\
-\forall P \not\in \HiddenProcs.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \procs(P) \leadsto \procs'(P) \\
 }
 {
 \Refines;\HiddenProcs;\HiddenVars;\HiddenActions;b_1;\ldots;b_n \vdash (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n) \leadsto (\procs', \actions', \ProcLins', \varsG', \overrightarrow{T'})
@@ -231,8 +231,52 @@ $
 \label{fig:program-transformation}
 \end{figure*}
 
-\begin{figure}
-\scriptsize{
+Suppose a program $\Prog'$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
+invocation $\call{P}$ of a procedure that is implemented using low-level actions.
+The main contribution of this paper is a verification method that allows us to safely refine
+program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
+safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
+
+We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
+In this judgment,
+$\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names,
+$\HiddenProcs \in 2^{\ProcName}$ is a procedure names,
+$\HiddenVars \in 2^\Global$ is a set of global variables,
+and $\HiddenActions \in 2^{\ActionName}$ is a set of action names.
+The map $\Refines$ indicates for a procedure $P \in \dom(\Refines)$ the action $\Refines(P)$ 
+that abstracts it;
+in the abstract program, every occurrence of $\call{P}$ is replaced by $\call{\Refines(P)}$.
+The set $\HiddenProcs$ contains all procedures that are hidden as a result of the abstraction.
+This set must includde $\dom(\Refines)$ but can also contain other procedures whose invocations 
+are replaced by $\skipstmt$ in the abstract program.
+Finally, the set of $\HiddenVars$ and $\HiddenActions$ are the global variables and atomic actions, 
+respectively, that are hidden in the abstract program.\footnote{In our formalization, 
+hiding a procedure, global variable, or action simply means that the abstract program is forbidden from using it.
+Technically, these hidden entities continue to exist since the sets $\ProcName$, $\Global$, and $\ActionName$ do not change.}
+
+Rule \textsc{Program} first checks sanity conditions involving $\Refines$, $\HiddenProcs$, $\HiddenVars$, 
+and $\HiddenActions$.  These include checks that $\dom(\Refines)$ is a subset of $\HiddenProcs$,
+$\cod(\Refines)$ is disjoint from $\HiddenActions$, and the atomic actions that are 
+available in the abstract program do not access any hidden variable in $\HiddenVars$.
+Next, it connects actions, procedure bodies, and global state in the concrete and the abstract program.
+Note that hidden procedures, global variables, and actions are unconstrained in the abstract program since they will not be used.
+Next, it checks that every action in $\cod(\Refines)$ has a gate 
+that is independent of procedure-local variables and a transition relation that leaves 
+procedure-local variables unchanged.  
+This check is meaningful because the action $\Refines(P)$ is written from the 
+perspective of the caller of $P$.
+Since the procedure-local variables of the caller of $P$ are distinct from those of $P$,
+these variables are quantified out from the transition relation of $\Refines(P)$ when 
+the body of $P$ is being checked (see Section~\ref{sec:refinement}).
+Finally, this rule rewrites the code of each thread in the program using the auxiliary judgment 
+$\overrightarrow{T} \leadsto \overrightarrow{T'}$ that rewrites $\overrightarrow{T}$ by removing all empty threads from it.
+
+{\scriptsize
 $
 \inferrule
 {
@@ -263,49 +307,26 @@ $
 }
 $
 }
-\end{figure}
 
-Suppose a program $\Prog'$ has been proved to be safe.
-However, it is implemented using atomic actions that are too coarse to be directly implementable.  
-To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
-these coarse atomic actions must be refined down to lower-level actions.
-During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
-invocation $\call{P}$ of a procedure that is implemented using low-level actions.
-The main contribution of this paper is a verification method that allows us to safely refine
-program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
-safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
+Rules \textsc{Thread1} and \textsc{Thread2} together rewrite a thread.
+*** Write more ***
 
-We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
-$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \Prog \leadsto \Prog'$ (see rules in Figure~\ref{fig:program-transformation}).
-In this judgment,
-$\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names
-and $\HiddenActions \in 2^{\ActionName}$ is a set of action names.
-This judgment expresses the intention that $\Prog$ is abstracted by replacing
-occurrences of $\call{P}$ with $\call{\Refines(P)}$ for all $P \in \dom(\Refines)$ such that 
-the resulting program $\Prog'$ uses only actions in $\HiddenActions$.
-Consequently, the procedures in $\dom(\Refines)$ are not used in $\Prog'$.
-
-Rule \textsc{Program} checks that $\cod(\Refines) \subseteq \HiddenActions$,
-which ensures that $\Prog'$ only uses actions in $\HiddenActions$.
-It also checks that every action in $\cod(\Refines)$ has a gate 
-that is independent of procedure-local variables and a transition relation that leaves 
-procedure-local variables unchanged.  
-This check is meaningful because the action $\Refines(P)$ is written from the 
-perspective of the caller of $P$.
-Since the procedure-local variables of the caller of $P$ are distinct from those of $P$,
-these variables are quantified out from the transition relation of $\Refines(P)$ when 
-the body of $P$ is being checked (see Section~\ref{sec:refinement}).
-Finally, this rule constrains actions in $\HiddenActions$ to be identical in $\Prog$ and $\Prog'$ and then rewrites all threads
-and all procedures that are still used in $\Prog'$.
-
-If $P \in \dom(\Refines)$, rule \textsc{Call1} rewrites $\call{P}$ to $\call{\Refines(P)}$;
-otherwise, rule \textsc{Call2} leaves $\call{P}$ unchanged.
-Rule \textsc{Async} leaves the call unchanged but checks that $P \not \in \dom(\Refines)$.
-Rule \textsc{Ablock2} breaks up atomic blocks that contain calls
-to atomic actions that are being refined to procedures.
-Rule \textsc{Ablock1} allows smaller atomic blocks to be created in the refined program.
-Rule \textsc{Atomic} checks that $A \in \HiddenActions$ before leaving $\call{A}$ unchanged;
-this rule ensures that the abstract program only uses actions in $\HiddenActions$.
+Rule \textsc{Atomic} ensures that the abstract program only uses actions not in $\HiddenActions$ 
+but otherwise leaves $\call{A}$ unchanged.
+Rule \textsc{Yield} allows the annotations associated with the yield statement to be rewritten arbitrarily.
+Rules \textsc{Ablock1} and \textsc{Ablock2} together allow atomic blocks in the concrete program to be eliminated
+and new atomic blocks in the abstract programs to be created.
+Rules \textsc{Call1}, \textsc{Call2}, and \textsc{Call3} together handle $\call{P}$,
+leaving the statement unchanged if $P \not in \HiddenProcs$, 
+rewriting to $\skipstmt$ if $P \in \HiddenProcs \setminus \dom(\Refines)$,
+and rewriting to $\call{\Refines(P)}$ if $P \in \dom(\Refines)$.
+Rules \textsc{Async1} and \textsc{Async2} together handle $\async{P}$ and are similar 
+to rules \textsc{Call1} and \textsc{Async2} respectively.
+Rules \textsc{Seq}, \textsc{Ite}, and \textsc{While} rewrite the statement recursively;
+the loop annotation in \textsc{While} may be rewritten arbitrarily.
+Rule \textsc{Procedure} rewrits the body of a procedure recursively and allows the procedure
+specifications to be rewritten arbitrarily.
+Rules \textsc{StackFrame} rewrites only the statement in the stack frame and leaves other components unchanged.
 
 The program transformation $\Prog \leadsto \Prog'$ is clearly not sound by itself.
 To justify the transformation, a collection of auxiliary judgments need to be proved.
@@ -314,30 +335,22 @@ The judgment $\jl \Prog$, described in Section~\ref{sec:linearity},
 checks that $\Prog$ uses linear variables appropriately and that the statement
 inside any atomic block does not contain any yield.
 The former is important because appropriate use of linear variables gives our verifier access to free disjointness
-assumptions that are important for commutativity reasoning (Section~\ref{sec:yield-elimination})
+assumptions that are important for commutativity reasoning (Section~\ref{sec:yield-sufficiency})
 and precise non-interference (Section~\ref{sec:refinement}).
 The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
 in one thread is preserved by each atomic block in a different thread.
 
-Next, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$, collectively 
-referred to as {\em yield elimination\/} and described in Section~\ref{sec:yield-elimination}.
+Next, we have two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$ described in Section~\ref{sec:yield-sufficiency}.
 These judgments allow us to reduce the complexity of annotations and invariants 
 required for proving the correctness of the concrete program $\Prog$
-by justifying the absence of (implicit) yields between some of the 
+by justifying the absence of yields between some of the 
 invocations of atomic actions.
-We use commutativity reasoning on definitions of atomic actions and their declared mover types~\cite{FlanaganFLQ08,ElmasQT09}
-to perform yield elimination soundly.
 
 Finally, we have two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\HiddenProcs \jr \Prog$,
 described in Section~\ref{sec:refinement},
-that together establish that all program annotations are consistent and that 
-each occurrence of $\call{P}$ in $\Prog$ behaves like $\call{\Refines(P)}$ 
-for all $P \in \dom(\Refines)$.
+which together establish that program rewrite relation $\leadsto$ is in fact a simulation relation between 
+the cooperative semantics of $\Prog$ and a preemptive semantics of $\Prog'$.
 The rules for these judgments generalize the method of Owicki and Gries~\cite{OwickiG76} for reasoning about concurrent programs.
-The judgment $\InterferenceSafe(\Prog)$ checks that each thread preserves the
-yield predicate of every other thread.
-The judgment $\Refines;\HiddenProcs \jr \Prog$ checks sequential correctness of each computation
-and that the code of procedure $P$ behaves like the atomic action $\Refines(P)$ for all $P\in\dom(\Refines)$.
 
 \begin{theorem}
 \label{thm:correctness}
@@ -384,24 +397,24 @@ $
 $
 \srule
 {
-\lins_y \subseteq \lins
-}
-{
-\lins \jl \yield{e,\lins_y} : \lins
-}
-{\textsc{Yield}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
 \ProcLins(A) = (\lins,\lins')
 }
 {
 \lins \jl \call{A} : \lins'
 }
 {\textsc{Atomic}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins_y \subseteq \lins
+}
+{
+\lins \jl \yield{e,\lins_y} : \lins
+}
+{\textsc{Yield}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -601,8 +614,8 @@ Let $Prog_1, \Prog_2 \in \Program$ such that $\jl \Prog_1$ and $\Prog_1 \trans \
 Then, we have $\jl \Prog_2$.
 \end{lemma}
 
-\subsection{Yield elimination}
-\label{sec:yield-elimination}
+\subsection{From preemptive to cooperative semantics}
+\label{sec:yield-sufficiency}
 
 Section~\ref{sec:refinement} showed how we can replace a call to a procedure with 
 a call to an atomic action.
@@ -732,33 +745,6 @@ $
 $
 \srule
 {
-}
-{\actions \jy \yield{e,\lins} : (x, \RM)}
-{\textsc{Yield}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \jy \call{P} : (x, \RM)}
-{\textsc{Call}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \jy \async{P} : (x, \LM)}
-{\textsc{Async}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
 \actions(A) = (\rho, \alpha, B)
 }
 {\actions \jy \call{A} : (x, x)}
@@ -799,10 +785,37 @@ $
 $
 \srule
 {
+}
+{\actions \jy \yield{e,\lins} : (x, \RM)}
+{\textsc{Yield}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
 \actions \jy \stmt : (x, y)
 }
 {\actions \jy \ablock{e,\lins}{\stmt} : (x, y)}
 {\textsc{Ablock}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+}
+{\actions \jy \call{P} : (x, \RM)}
+{\textsc{Call}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+}
+{\actions \jy \async{P} : (x, \LM)}
+{\textsc{Async}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -959,7 +972,7 @@ The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0
 the second thread changes {\tt x} to $1$ and yields;
 the first thread fails the assert {\tt x == 0}. 
 However, after {\tt call IncrAndBlock} is replaced with the {\tt call Block}, the program does not fail,
-even though the code of {\tt IncrAndBlock} satisfies the yield elimination check described earlier and refines the action {\tt Block}.
+even though the code of {\tt IncrAndBlock} satisfies the yield sufficiency check described earlier and refines the action {\tt Block}.
 To address this soundness problem in the presence of left and both movers, we require additionally 
 that the abstract program is responsive, that is, it yields infinitely often in any infinite execution.
 The abstract program in the example above is not responsive.
@@ -988,6 +1001,16 @@ $
 $
 \srule
 {
+\actions(A) = (\rho, \alpha, m) 
+}
+{\actions \vdash \call{A} \preceq \rho \circ \alpha}
+{\textsc{Atomic}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
 }
 {\actions \vdash \yield{e,\lins} \preceq \false}
 {\textsc{Yield}}
@@ -997,10 +1020,10 @@ $
 $
 \srule
 {
-\actions(A) = (\rho, \alpha, m) 
+s \preceq \alpha
 }
-{\actions \vdash \call{A} \preceq \rho \circ \alpha}
-{\textsc{Atomic}}
+{\actions \vdash \ablock{e,\lins}{s} \preceq \alpha}
+{\textsc{Ablock}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1019,16 +1042,6 @@ $
 }
 {\actions \vdash \async{P} \preceq \Havoc(\{\})}
 {\textsc{Async}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-s \preceq \alpha
-}
-{\actions \vdash \ablock{e,\lins}{s} \preceq \alpha}
-{\textsc{Ablock}}
 $
 \medskip
 %%%%%%%%%%%%%%%%%%%%
@@ -1096,7 +1109,7 @@ subsection.
 We first examine the rules for the judgment $\actions \vdash \stmt \preceq \alpha$ in Figure~\ref{fig:statement-summarization}.
 The intention of this judgment is to summarize all yield-free and failure-free executions of any statement $\stmt$ by the transition relation $\alpha$.
 Since there are no yield and assert statements inside atomic blocks, this judgment is clearly enough for summarizing them;
-the extra generality turns out to be useful later in Section~\ref{sec:yield-elimination}.
+the extra generality turns out to be useful later in Section~\ref{sec:yield-sufficiency}.
 The rules \textsc{Skip} and \textsc{Async} are similar;
 each statement is simulated by the transition relation $\Havoc(\{\})$ which leaves all variables unchanged.
 The rules \textsc{Yield} and \textsc{Call} are similar;
@@ -1164,28 +1177,6 @@ $
 $
 \srule
 {
-P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
-\procs(P') = (\phi, \mods, \psi, \stmt)
-}
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\call{P'}}{b,\psi};\mods}
-{\textsc{Call}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
-\procs(P') = (\phi, \mods, \psi, \stmt)
-}
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\async{P'}}{b,\phi};\{\}}
-{\textsc{Async}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
 P \not \in \HiddenProcs \\\\
 \Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b,\phi_2};\mods
 }
@@ -1216,6 +1207,28 @@ P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\
 {\textsc{Ablock3}}
 $
 \medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
+\procs(P') = (\phi, \mods, \psi, \stmt)
+}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\call{P'}}{b,\psi};\mods}
+{\textsc{Call}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
+\procs(P') = (\phi, \mods, \psi, \stmt)
+}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\async{P'}}{b,\phi};\{\}}
+{\textsc{Async}}
+$
+\medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \srule
