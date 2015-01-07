@@ -1,7 +1,9 @@
 \section{Examples}
 \label{sec:examples}
 
-\subsection{Verification conditions}
+In this section, we present a collection of examples that illustrate
+specification and verification features supported by the \civl verifier.
+\subsection{Reasoning about interference}
 \begin{figure}
 \begin{verbatim}
 var x:int;
@@ -15,9 +17,7 @@ procedure p()
   yield x >= 6;  x := x + 1;
   yield x >= 7;  x := x + 1;
 }
-\end{verbatim}
-\begin{verbatim}
-procedure q() modifies x; { x := x + 3; }
+procedure q() { x := x + 3; }
 \end{verbatim}
 \caption{Program~1}
 \label{fig:ex1}
@@ -41,17 +41,12 @@ For example, in Program~1 each yield predicate in {\tt p} must be checked agains
 
 \begin{figure}
 \begin{verbatim}
-var x:int;
-\end{verbatim}
-\begin{verbatim}
 procedure yield_x(n:int)
   requires x >= n;
   ensures  x >= n;
 {
   yield x >= n;
 }
-\end{verbatim}
-\begin{verbatim}
 procedure p()
   requires x >= 5;
   ensures  x >= 8;
@@ -80,8 +75,6 @@ procedure yield_x()
 {
   yield x >= old(x);
 }
-\end{verbatim}
-\begin{verbatim}
 procedure p()
   requires x >= 5;
   ensures  x >= 8;
@@ -108,16 +101,13 @@ entered.
 \begin{figure}
 \begin{verbatim}
 type Tid;
-var linear alloc:[Tid]bool;
 const nil: Tid;
-procedure Allocate() returns (linear tid:Tid);
-  modifies alloc;
+procedure Allocate() 
+  returns (linear tid:Tid);
   ensures tid != nil;
-\end{verbatim}
-\begin{verbatim}
+
 var a:[Tid]int;
-\end{verbatim}
-\begin{verbatim}
+
 procedure main()
 {
   while (true) {
@@ -126,8 +116,6 @@ procedure main()
     yield true;
   }
 }
-\end{verbatim}
-\begin{verbatim}
 procedure P(linear tid: Tid)
   requires tid != nil;
   ensures a[tid] == old(a)[tid] + 1;
@@ -208,7 +196,7 @@ var linear g: lmap;
 var b: bool;
 \end{verbatim}
 \begin{verbatim}
-yielding procedure P()
+procedure P()
 {
   var t: int;
   var linear l: lmap;
@@ -225,7 +213,7 @@ yielding procedure P()
 }
 \end{verbatim}
 \begin{verbatim}
-yielding procedure Yield() 
+procedure Yield() 
 {
   yield b || (dom(g) == {p,p+4} && 
               map(g)[p] == map(g)[p+4]);
@@ -261,9 +249,6 @@ it amounts to a simple global invariant asserting that whenever the lock {\tt b}
 contain the two adjacent address {\tt p} and {\tt p+4} and the values stored in these addresses are identical.
 This program captures the essence of programming with monitors~\cite{Hoare74} and demonstrates that this reasoning 
 can be encoded easily in \civl.
-
-Figures~\ref{fig:linear-maps} and~\ref{fig:ex6} together show a use of linear variables completely different in spirit 
-from that in Program~5, thereby demonstrating the generality of our primitive.
 
 {\bf Permissions.}
 

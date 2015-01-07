@@ -963,110 +963,6 @@ If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
 \subsection{Refinement}
 \label{sec:refinement}
 
-\begin{figure}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \vdash \skipstmt \preceq \Havoc(\{\})}
-{\textsc{Skip}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions(A) = (\rho, \alpha, m) 
-}
-{\actions \vdash \call{A} \preceq \rho \circ \alpha}
-{\textsc{Atomic}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \vdash \yield{e,\lins} \preceq \false}
-{\textsc{Yield}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-s \preceq \alpha
-}
-{\actions \vdash \ablock{e,\lins}{s} \preceq \alpha}
-{\textsc{Ablock}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \vdash \call{P} \preceq \false}
-{\textsc{Call}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \vdash \async{P} \preceq \Havoc(\{\})}
-{\textsc{Async}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \vdash \stmt_1 \preceq \alpha_1 \\\\ \actions \vdash \stmt_2 \preceq \alpha_2
-}
-{\actions \vdash \stmt_1;\stmt_2 \preceq \alpha_1 \circ \alpha_2}
-{\textsc{Seq}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \vdash \stmt_1 \preceq \ga{\locExpr}{\alpha_1} \\\\ \actions \vdash \stmt_2 \preceq \ga{\neg\locExpr}{\alpha_2}
-}
-{\actions \vdash \ite{\locExpr}{\stmt_1}{\stmt_2} \preceq \alpha_1 \vee \alpha_2}
-{\textsc{Ite}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \vdash \stmt \preceq \beta \\ \Havoc(\{\}) \subseteq \alpha \\ \beta \circ \alpha \subseteq \alpha 
-}
-{\actions \vdash \while{e,\alpha}{\locExpr}{\stmt} \preceq e \circ \alpha \circ \neg \locExpr}
-{\textsc{While}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \vdash \stmt \preceq \alpha \\ \alpha \subseteq \alpha'
-}
-{\actions \vdash \stmt \preceq \alpha'}
-{\textsc{Weaken}}
-$
-\medskip
-}
-\caption{Statement summarization}
-\label{fig:statement-summarization}
-\end{figure}
-
 The judgment $\jl \Prog$ also checks that 
 (1)~each atomic block does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it, and
 (2)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block.
@@ -1086,35 +982,12 @@ Our strategy for $P$ is to check that along all paths in its body, there occurs 
 $\ablock{e,\lins}{\stmt}$ that is simulated by the transition relation $\alpha$.
 All other atomic blocks before or after this unique block are simulated by the transition relation $\Havoc(\Local)$ 
 which allows procedure-local variables to be modified arbitrarily but requires that global and thread-local variables are not modified.
-The judgment for simulating a code block with a transition relation is $\actions \vdash \stmt \preceq \alpha$; the rules for this judgment 
-are presented in Figure~\ref{fig:statement-summarization}.
 In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
 Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution or the invariants
 of the loop inside the atomic block may also be needed.
 Proving such predicates throughout the program is the job of the judgments $\Refines;\HiddenProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 The rules for the former are presented in Figure~\ref{fig:refinement} and the latter is formalized in text towards the end of this 
 subsection.
-
-We first examine the rules for the judgment $\actions \vdash \stmt \preceq \alpha$ in Figure~\ref{fig:statement-summarization}.
-The intention of this judgment is to summarize all yield-free and failure-free executions of any statement $\stmt$ by the transition relation $\alpha$.
-Since there are no yield and assert statements inside atomic blocks, this judgment is clearly enough for summarizing them;
-the extra generality turns out to be useful later in Section~\ref{sec:yield-sufficiency}.
-The rules \textsc{Skip} and \textsc{Async} are similar;
-each statement is simulated by the transition relation $\Havoc(\{\})$ which leaves all variables unchanged.
-The rules \textsc{Yield} and \textsc{Call} are similar;
-each statement is simulated by $\false$ because our goal is to summarize only yield-free executions.
-Rule \textsc{Atomic} summarizes the call to an atomic action by the transition relation of the action.
-Rule \textsc{Ablock} simply summarizes the code block contained inside the atomic block.
-The rule \textsc{Seq} states that if $\stmt_1$ and $\stmt_2$ are simulated by $\alpha_1$ and $\alpha_2$ respectively, 
-then $\stmt_1;\stmt_2$ is simulated by the relational composition $\alpha_1 \circ \alpha_2$.
-The rule \textsc{Ite} states that if $\stmt_1$ is simulated by $\ga{\locExpr}{\alpha_1}$ and 
-$\stmt_2$ is simulated by $\ga{\neg \locExpr}{\alpha_2}$,
-then $\ite{\locExpr}{\stmt_1}{\stmt_2}$ is simulated by $\alpha_1 \vee \alpha_2$.
-The rule \textsc{While} summarizes the body of the while loop by the transition relation $\beta$ and checks that the 
-loop summary $\alpha$ provided by the programmer is inductive.
-These checks allow the rule to conclude that the loop is summarized by $e \circ \alpha \circ \neg \locExpr$.
-Note that the computed loop summary assumes the loop invariant $e$ since it is checked by the judgments 
-discussed later (Figure~\ref{fig:refinement}).
 
 \begin{figure*}
 \scriptsize{
@@ -1177,7 +1050,7 @@ $
 $
 \srule
 {
-P \in \HiddenProcs \\ \actions \vdash \stmt \preceq \ga{e}{\Havoc(\HiddenVars \cup \Local)} \\\\
+P \in \HiddenProcs \\ \trel{\stmt} \subseteq \ga{e}{\Havoc(\HiddenVars \cup \Local)} \\\\
 \Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
@@ -1189,7 +1062,7 @@ $
 \srule
 {
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\
-\actions \vdash \stmt \preceq \ga{e}{\elim{\Local}.\ \alpha} \\
+\trel{\stmt} \subseteq \ga{e}{\elim{\Local}.\ \alpha} \\
 \Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{\false, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\true, \phi_2};\mods}
@@ -1381,7 +1254,6 @@ Rule \textsc{Ablock1} considers the case when $P \not \in \dom(\Refines)$ and pe
 standard sequential correctness check.
 Rules \textsc{Ablock2} and \textsc{Ablock3} consider the two cases when $P \in \dom(\Refines)$ and handle
 the refinement of $\Havoc{Local}$ and the atomic action $\Refines(P)$, respectively.
-Both rules use the judgment $\actions \vdash \stmt \preceq \alpha$ from Figure~\ref{fig:statement-summarization}.
 
 Rules \textsc{Call1}, \textsc{Call2}, \textsc{Async1}, and \textsc{Async2} handle procedure calls.
 Rule \textsc{Call1} handles an ordinary call when $P \not \in \dom(\Refines)$ and is straightforward.
@@ -1424,8 +1296,7 @@ $\{(\psi,\lins') \mid P \in \ProcName \wedge \procs(P) = (\phi, \mods, \psi, \st
 Let $\Ablocks(\Prog)$ be the set of atomic blocks in $\Prog$.
 The program $\Prog$ is interference-free, denoted by $\InterferenceSafe(\Prog)$,
 if for each predicate ($\phi,\lins_y) \in \Yields(\Prog)$ and 
-for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, there exists $\alpha$ such that 
-$\actions \vdash \stmt \preceq \alpha$ and 
+for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, we have
 \[
 \scriptsize{
 \begin{array}{l}
@@ -1440,7 +1311,7 @@ $\actions \vdash \stmt \preceq \alpha$ and
 \begin{array}{ll}
 \wedge & \IsSet(\Lambda) \\
 \wedge & \MakeStore{\varsG}{\varsTL}{\varsL} \in e \\
-\wedge & (\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \in \alpha \\
+\wedge & (\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \in \trel{\stmt} \\
 \wedge & \MakeStore{\varsG}{\varsTL_y}{\varsL_y} \in \phi
 \end{array}
 \Rightarrow \MakeStore{\varsG'}{\varsTL_y}{\varsL_y} \in \phi.
@@ -1473,19 +1344,4 @@ Given a program $\Prog \in \CProgram$, proving $\Cooperative^*(\Prog)$
 is similar to proving termination of sequential program.
 The basic idea is to provide a loop with a measure function $f$ that decreases for each yield-free and failure-free 
 execution of the body of the loop.
-Thus, we can prove responsivenes by modifying only \textsc{While} rule in Figure~\ref{fig:refinement}
-as follows:
-\[
-\scriptsize{
-\inferrule
-{
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{e \wedge \locExpr}{s}{e};b \\\\
-\rho = \{ \sigma \mid \sigma(f) \geq 0 \} \\
-e \wedge \locExpr \subseteq \rho \\\\
-\alpha = \{(\sigma,\sigma') \mid \sigma(f) > \sigma'(f)\} \\
-\actions \vdash \stmt \preceq \ga{(e \wedge \locExpr)}{\alpha}
-}
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{e}{\while{e,\alpha,f}{\locExpr}{\stmt}}{e \wedge \neg \locExpr};b}
-}
-\]
 
