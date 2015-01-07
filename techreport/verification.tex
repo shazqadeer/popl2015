@@ -271,7 +271,7 @@ in one thread is preserved by each atomic block in a different thread.
 Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
 Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, 
 $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
-and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that the following conditions hold:
+and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following conditions hold:
 \begin{enumerate}
 \item
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
@@ -310,7 +310,7 @@ The sets $\HiddenVars$ and $\HiddenActions$ are the global variables and atomic 
 respectively, that are hidden in the abstract program.\footnote{In our formalization, 
 hiding a procedure, global variable, or action simply means that the abstract program is forbidden from using it.
 Technically, these hidden entities continue to exist since the sets $\ProcName$, $\Global$, and $\ActionName$ do not change.}
-The vector $\bs{b}$ contains a of Boolean value $b_i$ for each thread $T_i$ in $\Prog$.
+The vector $\bs{b}$ contains a $\Boolean$ value $b_i$ for each thread $T_i$ in $\Prog$.
 If $b_i$ is true, it indicates that there is a partially executed procedure on the stack of $T_i$ 
 such that $P \in \dom(\Refines)$ but the code inside $P$ that corresponds to the execution of the atomic action $\Refines(P)$
 has yet to be executed.
@@ -970,16 +970,15 @@ If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
 
 In this section, we formalize the judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 Together these judgments check that the body of each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.
-Suppose $P$ is a procedure in $\dom(\Refines)$.
 Our strategy for $P$ is to check that along all paths in its body, there occurs exactly one atomic block 
 $\ablock{e,\lins}{\stmt}$ that is simulated by the atomic action $\Refines(P)$.
 All other atomic blocks before or after this unique block are simulated by the transition relation $\Havoc(\HiddenVars \cup \Local)$ 
-which allows procedure-local variables to be modified arbitrarily but requires that global and thread-local variables are not modified.
+which allows procedure-local and hidden global variables to be modified arbitrarily but requires that other global variables and thread-local variables are not modified.
 In addition, these judgments also check that each atomic block inside a procedure in $\HiddenProcs \setminus \dom(\Refines)$ 
 is simulated by the transition relation $\Havoc(\HiddenVars \cup \Local)$.
-In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
+In general, the appropriate simulation check may not be provable by examining only the body $\stmt$ of the atomic block.
 Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution may also be required.
-These judgments leverage annotations such as preconditions and postconditions, loop invariants, and yield assertions to prove 
+Annotations such as preconditions and postconditions, loop invariants, and yield assertions are leveraged to prove 
 such predicates throughout the program.
 
 \begin{figure*}
@@ -1208,21 +1207,22 @@ $
 \label{fig:refinement}
 \end{figure*}
 
-We now examine the rules for the the judgment $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ in Figure~\ref{fig:refinement}.
-The crux of these rules is the judgment $\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \phi}{\stmt}{b', \psi};\mods$.
+The crux of the rules in Figure~\ref{fig:refinement} is the statement-level judgment 
+$\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \phi}{\stmt}{b', \psi};\mods$.
 In this judgment, $P$ is the procedure being checked.
 The argument $\ABlockAny$ is either
 $\ABlockOutside$ which indicates that $\stmt$ is outside any atomic block or
 $\ABlockInside$ which indicates that $\stmt$ is inside some atomic block.
 This information enables the verification rules to check two properties.
-First, each $\mathit{ablock}$ statement does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it.
-This check ensures that $\ablock{e,\lins}{\stmt'}$ can be summarized by a transition relation, which we will denote by $\trel{\stmt'}$.
-Second, any invocation of an atomic action (the only computation that can modify the store) must occur inside an $\mathit{ablock}$ statement.
+First, each atomic block must not contain any other atomic block, yield, or (ordinary and asynchronous) call statements inside it,
+ensuring that the computation of each $\ablock{e,\lins}{\stmt'}$ can be summarized by a transition relation, denoted by $\trel{\stmt'}$.
+Second, any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block.
 This check ensures that checking non-interference of a yield predicate against all atomic blocks concurrently executing 
 in the environment will preserve the yield predicate across the entire computation that happens in the environment during a context switch.
+
 On the right side of the judgment, we have a generalization of the Floyd-Hoare triple---$\FH{b,\phi}{\stmt}{b',\psi}$.
 It indicates that $\stmt$ is being verified assuming it executes from a state in $\phi$ and ensuring it ends in a state satisfying $\psi$.
-The $\mathit{Boolean}$ values $b$ and $b'$ are used to track refinement checking, which is performed only if $P \in \HiddenProcs$.
+The $\Boolean$ values $b$ and $b'$ are used to track refinement checking, which is performed only if $P \in \HiddenProcs$.
 If $b$ is $\true$, then each atomic block in $\stmt$ is expected to be simulated by $\Havoc(\HiddenVars \cup \Local)$ and $b'$ remains $\true$.
 A statement in which all atomic blocks refine $\Havoc(\HiddenVars \cup \Local)$ is said to {\em stutter}.
 If $b$ is $\false$, then it must be the case that $P \in \dom(\Refines)$, at most one atomic block in $\stmt$ is simulated by $\Refines(P)$
@@ -1230,50 +1230,61 @@ and all other blocks are simulated by $\Havoc(\HiddenVars \cup \Local)$.
 The value of $b'$ is allowed to be $\true$ if some atomic block in $\stmt$ is simulated by $\Refines(P)$.
 In the discussion below, we will refer to the pair $(b,\phi)$ as the precondition and $(b',\psi)$
 as the postcondition of $\stmt$, respectively.
-Finally, the set $\mods$ contains thread-local variables that are potentially modified by $\stmt$.
+Finally, the set $\mods$ contains thread-local and procedure-local variables that are potentially modified by $\stmt$;
+this information is useful in the frame rules, \textsc{Frame1} and \textsc{Frame2}, explained later.
 
-Starting from the bottom, rule \textsc{Program} checks each thread and each procedure separately.
-The rule \textsc{Thread} checks the body of the thread.
-The rule \textsc{StackFrame} eliminates the dependency on local variables from the precondition when a stack frame is popped.
+We now examine the rules for the the judgment $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ in Figure~\ref{fig:refinement},
+starting from the bottom.
+In this judgment, the vector $\bs{b}$ contains a $\Boolean$ value $b_i$ for each thread $T_i$.
+Rule \textsc{Program} checks each thread and each procedure separately.
+The value $b_i$ is passed to the judgment for checking a thread.
+The rule \textsc{Thread} checks each frame on the stack of a thread modularly using a sequence of $b_1,\ldots,b_{n+1}$ of 
+$\Boolean$ values and a sequence $\phi_1,\ldots,\phi_{n+1}$ of predicates that may not refer to procedure-local variables.
+The pair $(b_i,\phi_i)$ acts as the precondition to the $i$-the stack frame (from the top) of the thread.
+The rule \textsc{StackFrame} checks a stack frame $(P, L, \stmt)$ by checking $\stmt$ recursively.
+The precondition $\phi$ of the stack frame may be specialized to the local state $L$ to obtain the precondition for $\stmt$.
 The rule \textsc{Procedure} checks the body of the procedure $P$ with
 the precondition $(P \not\in \dom(\Refines),\phi)$ and postcondition $(\true,\psi)$,
 where $\phi$ and $\psi$ are the preconditin and postconditions of $P$ respectively.
 This check ensures that if $P$ has an atomic action specification, the body refines it appropriately.
-The rules \textsc{Weaken} and \textsc{Frame1} and \textsc{Frame2} are standard.
+The rule also checks that the body of $P$ modifies only those thread-local variables mentioned in the 
+specification of $P$ and that the precondition and postcondition of $P$ does not refer to procedure-local variables.
+
+The rules \textsc{Weaken}, \textsc{Frame1}, and \textsc{Frame2} are standard.
 The rule \textsc{While}, \textsc{Ite}, and \textsc{Seq} extend the analogous Floyd-Hoare rules with refinement checking.
 The rule \textsc{While} checks that the body of the loop stutters and concludes that the loop itself stutters.
 The rule \textsc{Ite} checks that both branches behave in the same way.
 The rule \textsc{Seq} for $\stmt_1;\stmt_2$ chains the refinement behavior of $\stmt_1$ with that of $\stmt_2$.
 
 Rules \textsc{Call} and \textsc{Async} handle procedure calls.
-This rule requires that if the procedure being checked is in $\dom(\Refines)$ 
-then the called procedure $P'$ must be a member of $\HiddenProcs \setminus \dom(\Refines)$.
-Thus, the set of procedures being introduced during refinement must be closed under the call relation.
-Furthermore, the atomic specification of the callee must be of the special form
-where the gate is unconstrained and the transition relation does not modify any variable.
-These constraints ensure that the execution inside the callee does not interfere with the caller's refinement checking 
-which can then be performed locally.
+Both rules require that if the procedure $P$ being checked is in $\dom(\Refines)$,
+then the called procedure $P'$ must be in $\HiddenProcs \setminus \dom(\Refines)$.
+Thus, the call relation over the set of procedures being introduced during refinement (or hidden during abstraction) 
+must be a subset of $\HiddenProcs \times (\HiddenProcs\setminus\dom(\Refines))$.
+This check is important for ensuring that $\call{P}$ can be rewritten either to $\call{\Refines(P)}$ if $P \in \dom(\Refines)$ 
+or to $\skipstmt$ if $P \in \HiddenProcs \setminus \dom(\Refines)$.
 
 Rules \textsc{Ablock1}, \textsc{Ablock2}, and \textsc{Ablock3} handle an atomic block $\ablock{e,\lins}{s}$.
-Rule \textsc{Ablock1} considers the case when $P \not \in \dom(\Refines)$ and performs only the 
+Rule \textsc{Ablock1} considers the case when $P \not \in \HiddenProcs$ and performs only the 
 standard sequential correctness check.
-Rules \textsc{Ablock2} and \textsc{Ablock3} consider the two cases when $P \in \dom(\Refines)$ and handle
-the refinement of $\Havoc{Local}$ and the atomic action $\Refines(P)$, respectively.
+Rules \textsc{Ablock2} and \textsc{Ablock3} consider the two cases when $P \in \HiddenProcs$ and handle
+the refinement of $\Havoc{\HiddenVars \cup Local}$ and the atomic action $\Refines(P)$, respectively.
 
 Rules \textsc{Yield1} and \textsc{Yield2} handle the yield statement.
 Rule \textsc{Yield1} considers the case when $P \not \in \dom(\Refines)$ and is straightforward;
 only the yield predicate is available in the postcondition of the statement.
 Rule \textsc{Yield2} considers the case when $P \in \dom(\Refines)$ and makes available in the postcondition, in 
 addition to the yield predicate, the gate of the action being refined.
-Again, this is safe because the gate remains as an assertion in the abstract program.
+This is safe because the simulation relation connecting the concrete program to the abstract program
+allows the abstract program to fail more often.
 
 Rule \textsc{Atomic} handles the call of an atomic action.
-It computes the set of thread-local variables possibly modified by the action in $\mods$.
-It checks that the gate of the action holds but only when the call occurs inside the body of a procedure 
-that is refining an atomic action.
-This is adequate for our soundness theorem (Theorem~\ref{thm:correctness}) which concludes the safety of the concrete 
-program from the safety of the abstract program.
-Thus, if an assertion (gate of an atomic action) remains in the abstract it is safe to leave it unverified.
+It computes in $\mods$ the set of thread-local and procedure-local variables possibly modified by the action.
+It checks that the gate of the action holds but only when the call occurs inside the body of a procedure in $\HiddenProcs$.
+In other words, a gate of an atomic action $A$, the only source of safety assertions in our operational semantics, is discharged 
+only when $A$ is invoked inside a procedure that is hidden as a result of abstraction.
+Since we are only interested in proving a simulation relation between the concrete and abstract semantics, 
+it is safe to leave unverified the gates at all other invocations of atomic actions which are present in both the concrete and abstract program.
 Finally, this rule verifies the postcondition $\psi$ from the precondition $\phi$ using the semantics of the atomic action.
 
 We now discuss the judgment $\InterferenceSafe(\Prog)$,
@@ -1317,7 +1328,7 @@ We summarize the contributions of the judgments discussed in this section in the
 \begin{lemma}
 Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
 Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
-and $\bs{b} \in \overrightarrow{\mathit{Boolean}}$ be such that 
+and $\bs{b} \in \overrightarrow{\Boolean}$ be such that 
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, and
 $\InterferenceSafe(\Prog)$.
 If $\Safe^*(\Prog')$, then $\CSafe(\Prog)$.
@@ -1326,10 +1337,10 @@ If $\Safe^*(\Prog')$, then $\CSafe(\Prog)$.
 \begin{lemma}
 Let $\Prog_1,\Prog_2 \in \CProgram$ be such that $\jl \Prog_1$ and $\Prog_1 \ctrans \Prog_2$.
 Let $\Prog'_1 \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
-and $\bs{b_1} \in \overrightarrow{\mathit{Boolean}}$ be such that 
+and $\bs{b_1} \in \overrightarrow{\Boolean}$ be such that 
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog_1$, and
 $\InterferenceSafe(\Prog_1)$.
-If $\Safe^*(\Prog'_1)$, then there exists $\Prog'_2 \in \CProgram$ and $\bs{b_2} \in \overrightarrow{\mathit{Boolean}}$ such that 
+If $\Safe^*(\Prog'_1)$, then there exists $\Prog'_2 \in \CProgram$ and $\bs{b_2} \in \overrightarrow{\Boolean}$ such that 
 $\Prog'_1 \trans^* \Prog'_2$, $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_2} \vdash \Prog_2 \leadsto \Prog'_2$, 
 $\Refines;\HiddenProcs;\HiddenVars;\bs{b_2} \jr \Prog_2$, and $\InterferenceSafe(\Prog_2)$.
 \end{lemma}
