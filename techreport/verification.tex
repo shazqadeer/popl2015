@@ -1234,16 +1234,25 @@ Finally, the set $\mods$ contains thread-local variables that are potentially mo
 
 Starting from the bottom, rule \textsc{Program} checks each thread and each procedure separately.
 The rule \textsc{Thread} checks the body of the thread.
+The rule \textsc{StackFrame} eliminates the dependency on local variables from the precondition when a stack frame is popped.
 The rule \textsc{Procedure} checks the body of the procedure $P$ with
-the precondition $(\false,\phi)$ and postcondition $(P \in \dom(\Refines),\psi)$,
+the precondition $(P \not\in \dom(\Refines),\phi)$ and postcondition $(\true,\psi)$,
 where $\phi$ and $\psi$ are the preconditin and postconditions of $P$ respectively.
 This check ensures that if $P$ has an atomic action specification, the body refines it appropriately.
-The rule \textsc{Stack} eliminates the dependency on local variables from the precondition when a stack frame is popped.
-The rules \textsc{Weaken} and \textsc{Frame} are standard.
+The rules \textsc{Weaken} and \textsc{Frame1} and \textsc{Frame2} are standard.
 The rule \textsc{While}, \textsc{Ite}, and \textsc{Seq} extend the analogous Floyd-Hoare rules with refinement checking.
 The rule \textsc{While} checks that the body of the loop stutters and concludes that the loop itself stutters.
 The rule \textsc{Ite} checks that both branches behave in the same way.
 The rule \textsc{Seq} for $\stmt_1;\stmt_2$ chains the refinement behavior of $\stmt_1$ with that of $\stmt_2$.
+
+Rules \textsc{Call} and \textsc{Async} handle procedure calls.
+This rule requires that if the procedure being checked is in $\dom(\Refines)$ 
+then the called procedure $P'$ must be a member of $\HiddenProcs \setminus \dom(\Refines)$.
+Thus, the set of procedures being introduced during refinement must be closed under the call relation.
+Furthermore, the atomic specification of the callee must be of the special form
+where the gate is unconstrained and the transition relation does not modify any variable.
+These constraints ensure that the execution inside the callee does not interfere with the caller's refinement checking 
+which can then be performed locally.
 
 Rules \textsc{Ablock1}, \textsc{Ablock2}, and \textsc{Ablock3} handle an atomic block $\ablock{e,\lins}{s}$.
 Rule \textsc{Ablock1} considers the case when $P \not \in \dom(\Refines)$ and performs only the 
@@ -1251,16 +1260,12 @@ standard sequential correctness check.
 Rules \textsc{Ablock2} and \textsc{Ablock3} consider the two cases when $P \in \dom(\Refines)$ and handle
 the refinement of $\Havoc{Local}$ and the atomic action $\Refines(P)$, respectively.
 
-Rules \textsc{Call1}, \textsc{Call2}, \textsc{Async1}, and \textsc{Async2} handle procedure calls.
-Rule \textsc{Call1} handles an ordinary call when $P \not \in \dom(\Refines)$ and is straightforward.
-Rule \textsc{Call2} handles an ordinary call when $P \in \dom(\Refines)$.
-This rule requires that the called procedure $P$ must also have an atomic specification;
-thus, the set of procedures being introduced during refinement must be closed under the call relation.
-Furthermore, the atomic specification of the callee must be of the special form
-where the gate is unconstrained and the transition relation does not modify any variable.
-These constraints ensure that the execution inside the callee does not interfere with the caller's refinement checking 
-which can then be performed locally.
-Rules \textsc{Async1} and \textsc{Async2} handle asynchronous calls and are similar to \textsc{Call1} and \textsc{Call2}, respectively.
+Rules \textsc{Yield1} and \textsc{Yield2} handle the yield statement.
+Rule \textsc{Yield1} considers the case when $P \not \in \dom(\Refines)$ and is straightforward;
+only the yield predicate is available in the postcondition of the statement.
+Rule \textsc{Yield2} considers the case when $P \in \dom(\Refines)$ and makes available in the postcondition, in 
+addition to the yield predicate, the gate of the action being refined.
+Again, this is safe because the gate remains as an assertion in the abstract program.
 
 Rule \textsc{Atomic} handles the call of an atomic action.
 It computes the set of thread-local variables possibly modified by the action in $\mods$.
@@ -1270,13 +1275,6 @@ This is adequate for our soundness theorem (Theorem~\ref{thm:correctness}) which
 program from the safety of the abstract program.
 Thus, if an assertion (gate of an atomic action) remains in the abstract it is safe to leave it unverified.
 Finally, this rule verifies the postcondition $\psi$ from the precondition $\phi$ using the semantics of the atomic action.
-
-Rules \textsc{Yield1} and \textsc{Yield2} handle the yield statement.
-Rule \textsc{Yield1} considers the case when $P \not \in \dom(\Refines)$ and is straightforward;
-only the yield predicate is available in the postcondition of the statement.
-Rule \textsc{Yield2} considers the case when $P \in \dom(\Refines)$ and makes available in the postcondition, in 
-addition to the yield predicate, the gate of the action being refined.
-Again, this is safe because the gate remains as an assertion in the abstract program.
 
 We now discuss the judgment $\InterferenceSafe(\Prog)$,
 where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
