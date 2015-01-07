@@ -858,6 +858,11 @@ To address this problem, we require additionally
 that the program is cooperative, that is, it yields infinitely often in any infinite execution.
 The program in the example above is not cooperative.
 
+Given a program $\Prog \in \CProgram$, proving $\Cooperative^*(\Prog)$ 
+is similar to proving termination of sequential program.
+The basic idea is to provide a loop with a measure function $f$ that decreases for each yield-free and failure-free 
+execution of the body of the loop.
+
 Of course, the judgment $\jy \Prog$ depends on the mover annotations on the atomic actions being correct.
 We capture this requirement in the judgmen $\CommutativitySafe(\Prog)$.
 Formally, the program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
@@ -963,31 +968,19 @@ If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
 \subsection{Refinement}
 \label{sec:refinement}
 
-The judgment $\jl \Prog$ also checks that 
-(1)~each atomic block does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it, and
-(2)~any invocation of an atomic action (the only computation that can modify the store) must occur inside an atomic block.
-To facilitate these checks, the judgments have a parameter containing one of two values,
-$\ABlockOutside$ stating that the current statement is outside any atomic block and
-$\ABlockInside$ stating that the current statement is inside some atomic block.
-These two requirements together provide two simplifications that we exploit in Section~\ref{sec:refinement}.
-First, an atomic block cannot fail and can therefore be summarized by a transition relation.
-Second, checking non-interference of a yield predicate against all atomic blocks concurrently executing 
-in the environment will preserve the yield predicate across the entire computation across a context switch by the environment.
-
-In this section, we formalize the judgments $\Refines;\HiddenProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
-The rules for the judgment $\Refines;\HiddenProcs \jr \Prog$, presented in Figure~\ref{fig:refinement}, check that the body of 
-each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.  
-Suppose $P$ is a procedure in $\dom(\Refines)$, $A = \Refines(P)$, and $\actions(A) = (\rho, \alpha, m)$.
+In this section, we formalize the judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
+Together these judgments check that the body of each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.
+Suppose $P$ is a procedure in $\dom(\Refines)$.
 Our strategy for $P$ is to check that along all paths in its body, there occurs exactly one atomic block 
-$\ablock{e,\lins}{\stmt}$ that is simulated by the transition relation $\alpha$.
-All other atomic blocks before or after this unique block are simulated by the transition relation $\Havoc(\Local)$ 
+$\ablock{e,\lins}{\stmt}$ that is simulated by the atomic action $\Refines(P)$.
+All other atomic blocks before or after this unique block are simulated by the transition relation $\Havoc(\HiddenVars \cup \Local)$ 
 which allows procedure-local variables to be modified arbitrarily but requires that global and thread-local variables are not modified.
+In addition, these judgments also check that each atomic block inside a procedure in $\HiddenProcs \setminus \dom(\Refines)$ 
+is simulated by the transition relation $\Havoc(\HiddenVars \cup \Local)$.
 In general, it may not be possible to prove that the body $\stmt$ of the atomic block is simulated by $\alpha$.
-Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution or the invariants
-of the loop inside the atomic block may also be needed.
-Proving such predicates throughout the program is the job of the judgments $\Refines;\HiddenProcs \jr \Prog$ and $\InterferenceSafe(\Prog)$.
-The rules for the former are presented in Figure~\ref{fig:refinement} and the latter is formalized in text towards the end of this 
-subsection.
+Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution may also be required.
+These judgments leverage annotations such as preconditions and postconditions, loop invariants, and yield assertions to prove 
+such predicates throughout the program.
 
 \begin{figure*}
 \scriptsize{
@@ -997,7 +990,7 @@ $
 \srule
 {
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi}{\skipstmt}{b,\phi};\{\}}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b,\phi}{\skipstmt}{b,\phi};\{\}}
 {\textsc{Skip}}
 $
 \medskip
@@ -1011,7 +1004,7 @@ $
 P \in \HiddenProcs \Rightarrow \phi \subseteq \rho \\ 
 \cod((\phi \wedge \rho) \circ \alpha) \subseteq \psi  \\
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b,\phi}{\call{A}}{b,\psi};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockInside \jr \FH{b,\phi}{\call{A}}{b,\psi};\mods}
 {\textsc{Atomic}}
 $
 \medskip
@@ -1021,7 +1014,7 @@ $
 {
 P \not \in \dom(\Refines)
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b,e};\{\}}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b,e}{\yield{e,\lins}}{b,e};\{\}}
 {\textsc{Yield1}}
 $
 \medskip
@@ -1031,7 +1024,7 @@ $
 {
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, m)
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,e}{\yield{e,\lins}}{b, e \wedge (\rho \vee b)};\{\}}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b,e}{\yield{e,\lins}}{b, e \wedge (\rho \vee b)};\{\}}
 {\textsc{Yield2}}
 $
 \medskip
@@ -1040,9 +1033,9 @@ $
 \srule
 {
 P \not \in \HiddenProcs \\\\
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b,\phi_2};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockInside \jr \FH{b, \phi_1 \wedge e}{\stmt}{b,\phi_2};\mods
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
 {\textsc{Ablock1}}
 $
 \medskip
@@ -1051,9 +1044,9 @@ $
 \srule
 {
 P \in \HiddenProcs \\ \trel{\stmt} \subseteq \ga{e}{\Havoc(\HiddenVars \cup \Local)} \\\\
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockInside \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{b, \phi_2};\mods}
 {\textsc{Ablock2}}
 $
 \medskip
@@ -1063,9 +1056,9 @@ $
 {
 P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho,\alpha,m) \\
 \trel{\stmt} \subseteq \ga{e}{\elim{\Local}.\ \alpha} \\
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockInside;P \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockInside \jr \FH{b, \phi_1 \wedge e}{\stmt}{b, \phi_2};\mods
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{\false, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\true, \phi_2};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{\false, \phi_1 \wedge e}{\ablock{e,\lins}{\stmt}}{\true, \phi_2};\mods}
 {\textsc{Ablock3}}
 $
 \medskip\\
@@ -1076,7 +1069,7 @@ $
 P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
 \procs(P') = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\call{P'}}{b,\psi};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b,\phi}{\call{P'}}{b,\psi};\mods}
 {\textsc{Call}}
 $
 \medskip
@@ -1087,7 +1080,7 @@ $
 P \in \HiddenProcs \Rightarrow P' \in \HiddenProcs \setminus \dom(\Refines) \\
 \procs(P') = (\phi, \mods, \psi, \stmt)
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b,\phi}{\async{P'}}{b,\phi};\{\}}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b,\phi}{\async{P'}}{b,\phi};\{\}}
 {\textsc{Async}}
 $
 \medskip
@@ -1095,10 +1088,10 @@ $
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_1, \phi_1}{\stmt_1}{b_2, \phi_2};\mods_1 \\\\ 
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_2, \phi_2}{\stmt_2}{b_3, \phi_3};\mods_2
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b_1, \phi_1}{\stmt_1}{b_2, \phi_2};\mods_1 \\\\ 
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b_2, \phi_2}{\stmt_2}{b_3, \phi_3};\mods_2
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b_1, \phi_1}{\stmt_1;\stmt_2}{b_3, \phi_3};\mods_1 \cup \mods_2}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b_1, \phi_1}{\stmt_1;\stmt_2}{b_3, \phi_3};\mods_1 \cup \mods_2}
 {\textsc{Seq}}
 $
 \medskip
@@ -1106,10 +1099,10 @@ $
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \locExpr \wedge \phi_1}{s_1}{b', \phi_2};\mods_1 \\\\
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \neg \locExpr \wedge \phi_1}{s_2}{b', \phi_2};\mods_2
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \locExpr \wedge \phi_1}{s_1}{b', \phi_2};\mods_1 \\\\
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \neg \locExpr \wedge \phi_1}{s_2}{b', \phi_2};\mods_2
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi_1}{\ite{\locExpr}{s_1}{s_2}}{b', \phi_2};\mods_1 \cup \mods_2}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \phi_1}{\ite{\locExpr}{s_1}{s_2}}{b', \phi_2};\mods_1 \cup \mods_2}
 {\textsc{Ite}}
 $
 \medskip
@@ -1117,9 +1110,9 @@ $
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, e \wedge \locExpr}{s}{b, e};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, e \wedge \locExpr}{s}{b, e};\mods
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, e}{\while{e,\alpha}{\locExpr}{s}}{b, e \wedge \neg \locExpr};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, e}{\while{e,\alpha}{\locExpr}{s}}{b, e \wedge \neg \locExpr};\mods}
 {\textsc{While}}
 $
 \medskip
@@ -1128,9 +1121,9 @@ $
 \srule
 {
 \phi \subseteq \phi' \\ \psi' \subseteq \psi \\\\
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi'}{\stmt}{b',\psi'};\mods
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b,\phi'}{\stmt}{b',\psi'};\mods
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b,\phi}{\stmt}{b',\psi};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b,\phi}{\stmt}{b',\psi};\mods}
 {\textsc{Weaken}}
 $
 \medskip\\
@@ -1138,9 +1131,9 @@ $
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \phi}{\stmt}{b', \psi};\mods \\\\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \phi}{\stmt}{b', \psi};\mods \\\\ \accessVars(\rho) \cap (\Global \cup \mods) = \{\}
 }
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockAny;P \jr \FH{b, \rho \wedge \phi}{\stmt}{b', \rho \wedge \psi};\mods}
+{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \rho \wedge \phi}{\stmt}{b', \rho \wedge \psi};\mods}
 {\textsc{Frame1}}
 $
 \medskip
@@ -1161,7 +1154,7 @@ $
 \procs(P) = (\phi, \mods, \psi, \stmt) \\
 (\accessVars(\phi) \cup \accessVars(\psi)) \cap \Local = \{\} \\\\
 \mods' \cap \ThreadLocal \subseteq \mods \\\\
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{P \not \in \dom(\Refines), \phi}{\stmt}{\true, \psi};\mods'
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{P \not \in \dom(\Refines), \phi}{\stmt}{\true, \psi};\mods'
 }
 {
 \Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr P
@@ -1173,7 +1166,7 @@ $
 $
 \srule
 {
-\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;\ABlockOutside;P \jr \FH{b, \phi'}{\stmt}{b', \psi};\mods \\\\
+\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b, \phi'}{\stmt}{b', \psi};\mods \\\\
 \forall \varsG,\varsTL,\varsL'.\ \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi \Rightarrow \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi'
 }
 {
@@ -1215,26 +1208,29 @@ $
 \label{fig:refinement}
 \end{figure*}
 
-Next we examine the rules for the the judgment $\Refines \jr \Prog$ in Figure~\ref{fig:refinement}.
-These rules are a generalization of the sequential correctness rules in the Owicki-Gries method.
-In addition to checking that annotations such preconditions, postconditions, loop invariants, 
-and predicates labeling yield and atomic block statements are correct, it also checks that the bodies
-of each procedure $P \in \dom(\Refines)$ is abstracted by the atomic action $\Refines(P)$.
-The crux of these rules is the judgment $\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\mods;b \jr \FH{\phi}{\stmt}{\psi} : b'$.
+We now examine the rules for the the judgment $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ in Figure~\ref{fig:refinement}.
+The crux of these rules is the judgment $\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockAny \jr \FH{b, \phi}{\stmt}{b', \psi};\mods$.
 In this judgment, $P$ is the procedure being checked.
-The set $\mods$ contains thread-local variables that are potentially modified by $\stmt$.
-The $\mathit{Boolean}$ values $b$ and $b'$ track whether that atomic action to be refined has already occurred;
-the refinement checking is performed only if $P \in \dom(\Refines)$.
-Suppose $\Refines(P) = A$ and $\actions(A) = (\rho, \alpha, m)$.
-If $b$ is $\true$, then an atomic block refining $A$ has already happened before $\stmt$ begins execution, 
-the judgment checks that all atomic blocks excuted by $\stmt$ refine $\Havoc(\Local)$, and $b'$ remains $\true$.
-A statement in which all atomic blocks refine $\Havoc(\Local)$ is said to {\em stutter}.
-If $b$ is $\false$, then all atomic blocks before $\stmt$ begins execution refine $\Havoc(\Local)$,
-and $b'$ evaluates to $\true$ if exactly one atomic block in $\stmt$ refines $A$.
-Finally, on the right side of the judgment we have the standard Floyd-Hoare triple $\FH{\phi}{\stmt}{\psi}$ 
-indicating that $\stmt$ is being verified assuming it executes from a state in $\phi$ and ensuring it ends in a state satisfying $\psi$.
-In the discussion below, we will informally refer to the pair $(b,\phi)$ as the precondition and $(b',\psi)$
+The argument $\ABlockAny$ is either
+$\ABlockOutside$ which indicates that $\stmt$ is outside any atomic block or
+$\ABlockInside$ which indicates that $\stmt$ is inside some atomic block.
+This information enables the verification rules to check two properties.
+First, each $\mathit{ablock}$ statement does not contain any $\mathit{ablock}$, $\mathit{yield}$, $\mathit{call}$, or $\mathit{async}$ statements inside it.
+This check ensures that $\ablock{e,\lins}{\stmt'}$ can be summarized by a transition relation, which we will denote by $\trel{\stmt'}$.
+Second, any invocation of an atomic action (the only computation that can modify the store) must occur inside an $\mathit{ablock}$ statement.
+This check ensures that checking non-interference of a yield predicate against all atomic blocks concurrently executing 
+in the environment will preserve the yield predicate across the entire computation that happens in the environment during a context switch.
+On the right side of the judgment, we have a generalization of the Floyd-Hoare triple---$\FH{b,\phi}{\stmt}{b',\psi}$.
+It indicates that $\stmt$ is being verified assuming it executes from a state in $\phi$ and ensuring it ends in a state satisfying $\psi$.
+The $\mathit{Boolean}$ values $b$ and $b'$ are used to track refinement checking, which is performed only if $P \in \HiddenProcs$.
+If $b$ is $\true$, then each atomic block in $\stmt$ is expected to be simulated by $\Havoc(\HiddenVars \cup \Local)$ and $b'$ remains $\true$.
+A statement in which all atomic blocks refine $\Havoc(\HiddenVars \cup \Local)$ is said to {\em stutter}.
+If $b$ is $\false$, then it must be the case that $P \in \dom(\Refines)$, at most one atomic block in $\stmt$ is simulated by $\Refines(P)$
+and all other blocks are simulated by $\Havoc(\HiddenVars \cup \Local)$.
+The value of $b'$ is allowed to be $\true$ if some atomic block in $\stmt$ is simulated by $\Refines(P)$.
+In the discussion below, we will refer to the pair $(b,\phi)$ as the precondition and $(b',\psi)$
 as the postcondition of $\stmt$, respectively.
+Finally, the set $\mods$ contains thread-local variables that are potentially modified by $\stmt$.
 
 Starting from the bottom, rule \textsc{Program} checks each thread and each procedure separately.
 The rule \textsc{Thread} checks the body of the thread.
@@ -1319,6 +1315,7 @@ for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, we have
 }
 \]
 
+We summarize the contributions of the judgments discussed in this section in the following two lemmas.
 \begin{lemma}
 Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
 Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
@@ -1339,9 +1336,4 @@ $\Prog'_1 \trans^* \Prog'_2$, $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;
 $\Refines;\HiddenProcs;\HiddenVars;\bs{b_2} \jr \Prog_2$, and $\InterferenceSafe(\Prog_2)$.
 \end{lemma}
 
-{\bf Proving cooperation.}
-Given a program $\Prog \in \CProgram$, proving $\Cooperative^*(\Prog)$ 
-is similar to proving termination of sequential program.
-The basic idea is to provide a loop with a measure function $f$ that decreases for each yield-free and failure-free 
-execution of the body of the loop.
 
