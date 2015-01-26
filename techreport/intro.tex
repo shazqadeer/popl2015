@@ -4,19 +4,11 @@
 We present a technique for verifying a refinement relation between two concurrent, shared-memory multithreaded programs. 
 Our work is inspired by stepwise refinement~\cite{Wirth1971}, an approach in which a high-level description is systematically refined, 
 potentially via several intermediate descriptions, down to a detailed implementation. 
-This gives rise to the refinement verification problem of checking that a lower-level description correctly implements the abstract one -- a classical problem in verification.
-For many systems, a natural way to write a full functional specification is to provide a description of the entire system at an abstract level. 
-Checking refinement in this context is a means for full functional verification. 
-Alternatively, a series of increasingly more abstract models of a system can be used to reduce the computational cost of verifying safety properties, since safety properties of higher-level models are preserved by lower-level models. 
-This use of refinement is complementary to other techniques that combat the difficulty of verification, such as Floyd-Hoare, rely-guarantee, separation logic for modularity. 
-The refinement problem has been investigated in many contexts ranging from checking correctness of implementations of cache-coherence protocols to verifying implementations of distributed algorithms. 
-In the realm of sequential software, notable successes using the refinement approach include the work of Abrial et al.~\cite{AbrialBHHMV10} and the proof of full functional correctness of the seL4 microkernel~\cite{KleinAEMSKH14}. 
-For shared-memory multithreaded software, there has only been limited, application-specific study of refinement. 
-Examples are approaches to checking linearizability of concurrent data structures and some manual proofs of garbage collectors. 
-A generic, widely-applicable approach to specifying and verifying refinement for shared-memory concurrent software is lacking. 
+This process gives rise to the refinement verification problem of checking that a lower-level description correctly implements the abstract one -- a classical problem in verification.
+The refinement problem has been investigated in many contexts including verifying implementations of cache-coherence protocols and distributed algorithms
+In the realm of sequential software, notable successes using the refinement approach include the work of Abrial et al.~\cite{AbrialBHHMV10} and the proof of full functional correctness of the seL4 microkernel~\cite{KleinAEMSKH14}. For shared-memory concurrent software, this paper presents the first generally-applicable tool-supported proof system for refinement verification of shared-memory software. 
 
-
-A key challenge in specifying and verifying multi-threaded software, differently from sequential software, is that procedures are not a clean factoring of a program into modules. 
+A key challenge in specifying and verifying multi-threaded software, differently from sequential software, is that procedures do not provide a clean factoring of a program into modules. 
 For sequential software, in the popular software verification approach based on the method of Floyd~\cite{Floyd67} and Hoare~\cite{Hoare69}, the verification of a large software component is performed modularly by verifying each procedure in it separately.
 This modularity is enabled by the use of interface specifications (preconditions and postconditions) constraining the behavior of each procedure.
 It is well-known that the Floyd-Hoare method is difficult to generalize to reasoning about concurrent shared-memory programs,
@@ -24,8 +16,8 @@ primarily because the execution of a procedure may be interfered with by concurr
 Several attempts have been made to extend Floyd-Hoare reasoning to deal with concurrent interference, 
 including classical approaches such as location invariants~\cite{Ashcroft75,OwickiG76} and rely-guarantee~\cite{Jones83},
 and other more recent approaches~\cite{OHearn07,RGSep}. 
-In this paper, our goal is orthogonal and complementary to these approaches; We provide a methodology in which the {\em refinement} problem can be stated in a modular way guided by the syntactic structure of the program as in the Floyd-Hoare method. 
-We further strive to make the verification of refinement as similar in spirit to the Floyd-Hoare approach as possible. 
+In this paper, our goal is orthogonal and complementary to these approaches to combatting the complexity of verifying safety properties; We provide a methodology in which the {\em refinement} problem can be stated in a modular way guided by the syntactic structure of the program as in the Floyd-Hoare method. 
+%We further strive to make the verification of refinement as similar in spirit to the Floyd-Hoare approach as possible. 
 We check refinement by reasoning about the code of a single procedure at a time, in fact, one interference-free step of the implementation at a time. 
 
 In this paper, we introduce the \civl approach to reasoning about concurrent shared-memory software.
@@ -41,15 +33,15 @@ Unlike classical program verifiers based on Floyd-Hoare reasoning that manipulat
 the \civl verifier manipulates multiple operational descriptions of a program, i.e., several levels of refinement are specified and verified at once. 
 
 In \civl, approximately speaking, a program refines another when there is a simulation relation connecting the two programs. 
-The existence of such a simulation relation is inferred from per-procedure checks that relate the atomic specification and the code implementing a procedure. 
-In this check, the abstract system (a two-state automaton) takes some stuttering steps, followed by the atomic action, followed by some more stuttering steps. 
-Interference on shared state is modeled by the procedure pre- and post-condition predicates during stuttering steps before and after the atomic action, respectively. 
-The verifier checks that, for each control path through the body of the implementation code, the program state sequences that this control path gives rise to are simulated by the specification automaton. 
+The existence of such a simulation relation is inferred from per-procedure checks that relate the atomic specification for a procedure and the code implementing it. 
+In a per-procedure check, the abstract system, expressed as a two-state automaton, takes some stuttering steps, followed by the atomic action, followed by some more stuttering steps. 
+Interference on shared state is modeled by procedure pre- and post-condition predicates.
+The verifier checks that, for each control path through the body of the implementation code, the program state sequences that this control path gives rise to are simulated by a sequence of transitions in the specification automaton. 
 More specifically, the control path is divided into ``steps'' (possibly consisting of more than one atomic action, explained below) where each step must map to a stuttering transition in the specification, except one, which maps to the atomic action specification.
-To be able to carry out syntactically-decomposed reasoning on the implementation code in this manner, formulating per path and per step checks guided by the syntactic structure, we needed to address the following issues. 
+To be able to carry out syntactically-decomposed reasoning on the implementation code in this manner, formulating per path and per step checks guided by the syntactic structure, we need to address the following issues. 
 \begin{itemize}
 \item We need to define ``steps''. This has consequences in terms of the number of checks that need to be performed, and the number of user annotations in the procedure body.
-\item The code for a ``step'' typically does not refine a stuttering action or the atomic action specification in a vacuum. A pre-condition for the step in terms of shared variables is needed. The per-step pre-conditions need to be correct, satisfied by the larger program.
+\item The code for a ``step'' typically does not refine a stuttering action or the atomic action specification in a vacuum. A pre-condition for the step in terms of shared variables needs to be manually supplied. The per-step pre-conditions need to be correct, satisfied by the larger program -- a fact that must be mechanically checked. 
 \end{itemize}
 We now discuss these issues. 
 
@@ -62,32 +54,29 @@ we focus our attention on sequential consistency and leave consideration of weak
 The cooperative semantics is explicitly introduced by the programmer through the use of a new primitive {\em yield\/} statement;
 in this semantics a thread can be scheduled out only when it is about to execute a yield statement.
 
-Given a program $Q$ and the program $P$ obtained by replacing each invocation of an atomic action in $P$ 
-with the procedure that refines it, the \civl verifier provides two guarantees.
-First, it guarantees that the safety of the cooperative semantics of $P$ implies the safety of the preemptive semantics of $P$.
-This verification is done by computing a automata-theoretic simulation check~\cite{HenzingerHK95} 
-on an abstraction of $P$ that interprets each atomic action invoked by $P$ 
-as a member of a finite set of mover types~\cite{Lipton75,FlanaganFLQ08}.
-Second, it guarantees that every cooperative execution of $P$ is simulated by a preemptive execution of $Q$.
+Given a program $Q$ and the program $P$ obtained by replacing each invocation of an atomic action in $Q$ 
+with the procedure that refines it, the \civl verifier checks ``yield sufficiency'', i.e., it verifies that the safety of the cooperative semantics of $P$ implies the safety of the preemptive semantics of $P$.
+This verification is done by computing an automata-theoretic simulation check~\cite{HenzingerHK95} 
+on an abstraction of $P$ in which each atomic action of $P$ is represented by only its mover type~\cite{Lipton75,FlanaganFLQ08}. 
+Given yield sufficiency, the per-procedure refinement check is carried out by checking that every cooperative execution of $P$ is simulated by a preemptive execution of $Q$.
 This check is performed in a syntactically-decomposed manner as referred to above, by calculating logical verification conditions from the bodies of procedures in $P$ and 
 verifying them with an automated theorem prover~\cite{MouraB08}.
-These two checks together guarantee that the 
-safety of the preemptive semantics of $Q$ implies the safety of the preemptive semantics of $P$.
+The yield sufficiency and per-procedure simulation checks together imply that safety of the preemptive semantics of $Q$ implies the safety of the preemptive semantics of $P$.
 
 \civl's solution to the second issue, the fact that per ``step'' refinement verification typically requires invariants about the program execution, is to allow the programmer to specify location-specific invariants, attached either to a yield statement
 or as a precondition or a postcondition of a procedure. 
 The collection of such location invariants, placed as annotations in all refined procedures, must be correct as a whole and each  annotation must continue to hold in spite of potential interference from concurrently executing threads.
-The problem of formulating the correctness of such a collection of annotations happens to be dealt in the work of Owicki and Gries~\cite{OwickiG76}. Differently, here we do not need the annotations to be strong enough to prove program correctness, but only strong enough to provide the context for per-procedure refinement checking. 
-To reduce the annotations required for logical non-interference checking, 
+The formulation of the correctness of such a collection of annotations happens to be the same problem as in the work of Owicki and Gries~\cite{OwickiG76}. Differently, here we do not need the annotations to be strong enough to prove program correctness, but only strong enough to provide the context for per-procedure, per-step refinement checking. 
+To reduce the amount of annotations required for logical non-interference checking, 
 the \civl verifier also provides a linear type system~\cite{Wadler90lineartypes} 
 that allows logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
 and disjoint memory~\cite{LahiriQW11}.
 
 We have implemented \civl as a conservative extension of the \boogie verifier.  
-We have used it to verify a collection of microbenchmarks and benchmarks from the literature such as
-the ticket algorithm~\cite{ticket}, Treiber stack~\cite{treiber}, work-stealing queue~\cite{wsq},
-device cache~\cite{device-cache}, and lock-protected increment~\cite{incr}.
-We have also verified a concurrent garbage collector algorithm (say something more here).
+We have used it to verify a collection of microbenchmarks and benchmarks from the literature such as the ticket algorithm~\cite{ticket}, Treiber stack~\cite{treiber}, work-stealing queue~\cite{wsq},
+device cache~\cite{device-cache}, and lock-protected increment~\cite{incr}. 
+The most challenging case study with \civl was carried out concurrently with \civl's development and served as a design driver. 
+We verified a concurrent garbage collector, through six levels of refinement, down to atomic actions corresponding to individual memory accesses. The level of granularity of the lowest-level implementation distinguishes this garbage collector verification effort, detailed in a technical report~\cite{gc-techreport}, from previous ones in the literature. 
 
 We conclude this section by summarizing the novel features of the \civl verifier:
 \begin{itemize}
