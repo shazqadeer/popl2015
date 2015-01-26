@@ -32,6 +32,8 @@ can be thought of as the specification of the procedure that implements it.
 Unlike classical program verifiers based on Floyd-Hoare reasoning that manipulate a program and annotations, 
 the \civl verifier manipulates multiple operational descriptions of a program, i.e., several levels of refinement are specified and verified at once. 
 
+
+
 In \civl, approximately speaking, a program refines another when there is a simulation relation connecting the two programs. 
 The existence of such a simulation relation is inferred from per-procedure checks that relate the atomic specification for a procedure and the code implementing it. 
 In a per-procedure check, the abstract system, expressed as a two-state automaton, takes some stuttering steps, followed by the atomic action, followed by some more stuttering steps. 
@@ -66,10 +68,12 @@ The yield sufficiency and per-procedure simulation checks together imply that sa
 \civl's solution to the second issue, the fact that per ``step'' refinement verification typically requires invariants about the program execution, is to allow the programmer to specify location-specific invariants, attached either to a yield statement
 or as a precondition or a postcondition of a procedure. 
 The collection of such location invariants, placed as annotations in all refined procedures, must be correct as a whole and each  annotation must continue to hold in spite of potential interference from concurrently executing threads.
-The formulation of the correctness of such a collection of annotations happens to be the same problem as in the work of Owicki and Gries~\cite{OwickiG76}. Differently, here we do not need the annotations to be strong enough to prove program correctness, but only strong enough to provide the context for per-procedure, per-step refinement checking. 
-To reduce the amount of annotations required for logical non-interference checking, 
-the \civl verifier also provides a linear type system~\cite{Wadler90lineartypes} 
-that allows logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
+The formulation of the correctness of such a collection of annotations happens to be the same problem as in the work of Owicki and Gries~\cite{OwickiG76}. 
+There are two key differences between our use of the Owicki-Gries formulation for correctness of yield annotations and carrying out the entire verification effort only using location invariants. 
+First, we do not need the annotations to be strong enough to prove program correctness, but only strong enough to provide the context for per-procedure, per-step refinement checking. Second, to establish a post-condition of a procedure, we do not need to propagate a pre-condition through all the yield annotations in the procedure body. The correctness of an atomic action specification gives us a simple frame rule: The pre-condition only needs to be propagated across the atomic action specification. 
+\civl allows further simplification of manual annotations required for logical non-interference checking, 
+by providing a linear type system~\cite{Wadler90lineartypes} 
+that enables logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
 and disjoint memory~\cite{LahiriQW11}.
 
 We have implemented \civl as a conservative extension of the \boogie verifier.  
