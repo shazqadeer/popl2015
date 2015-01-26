@@ -49,3 +49,18 @@ Recently, tools based on this logic that blend in explicit non-interference reas
 supplying very primitive abstractions and letting programmers mix and match these abstractions freely.
 
 Is there any other POPL-style work that needs to be cited?
+
+
+%% A key challenge in specifying and verifying multi-threaded software, differently from sequential software, is that procedures do not provide a clean factoring of a program into modules. 
+%% For sequential software, in the popular software verification approach based on the method of Floyd~\cite{Floyd67} and Hoare~\cite{Hoare69}, 
+%% the verification of a large software component is performed modularly by verifying each procedure in it separately.
+%% This modularity is enabled by the use of interface specifications (preconditions and postconditions) constraining the behavior of each procedure.
+%% It is well-known that the Floyd-Hoare method is difficult to generalize to reasoning about concurrent shared-memory programs,
+%% primarily because the execution of a procedure may be interfered with by concurrently executing threads.
+%% Several attempts have been made to extend Floyd-Hoare reasoning to deal with concurrent interference, 
+%% including classical approaches such as location invariants~\cite{Ashcroft75,OwickiG76} and rely-guarantee~\cite{Jones83},
+%% and other more recent approaches~\cite{OHearn07,RGSep}. 
+%% In this paper, our goal is orthogonal and complementary to these approaches to combating the complexity of verifying safety properties.
+%% We provide a methodology in which the {\em refinement} problem can be stated in a modular way guided by the syntactic structure of the program as in the Floyd-Hoare method. 
+%% We check refinement by reasoning about the code of a single procedure at a time, in fact, one interference-free step of the implementation at a time. 
+
