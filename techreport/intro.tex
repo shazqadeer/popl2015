@@ -14,13 +14,12 @@ We present our verification approach in the context of \civl, an idealized concu
 In \civl, a program is described as a collection of procedures whose implementation 
 can use the standard features such as assignment, conditionals, loops, procedure calls, and thread creation. 
 Each procedure accesses shared global variables only through invocations of atomic actions.
-During a refinement step, a subset of the atomic actions may be refined by new procedures and a new program is 
+A subset of the atomic actions may be refined by new procedures and a new program is 
 obtained by replacing the invocation of an atomic action by a call to the corresponding procedure refining the action.
-Several such steps may be performed one after another until all atomic actions in the final program are directly implementable primitives.
-%This process may be carried out in a bottom-up rather than top-down fashion, in which case an atomic action 
-%can be thought of as the specification of the procedure that implements it.
+Several layers of refinement may be performed until all atomic actions in the final program are directly implementable primitives.
 Unlike classical program verifiers based on Floyd-Hoare reasoning~\cite{Floyd67,Hoare69} that manipulate a program and annotations, 
-the \civl verifier manipulates multiple operational descriptions of a program, i.e., several levels of refinement are specified and verified at once. 
+the \civl verifier manipulates multiple operational descriptions of a program, i.e., 
+several layers of refinement are specified and verified at once. 
 
 In \civl, a program refines another when there is a simulation relation connecting the two programs. 
 The existence of such a simulation relation is inferred from per-procedure checks that relate the atomic specification for a procedure to the code implementing it. 
@@ -30,7 +29,7 @@ To carry out this reasoning, the \civl verifier needs to address two problems.
 Firt, the notion of a ``step'' in the implementation must be defined.
 The definition of a step can deeply affect the number of checks that need to be performed and the number of user annotations.
 Second, it is typically not possible to show the correctness of a step from an arbitrary state.
-A pre-condition for the step in terms of shared variables must be supplied by the programmer and mechanically checked by the verifier.
+A precondition for the step in terms of shared variables must be supplied by the programmer and mechanically checked by the verifier.
 
 To address the first problem, \civl lets the programmer define a cooperative operational semantics
 that is a subset of the usual preemptive semantics of a multithreaded program.
@@ -52,21 +51,19 @@ Each location invariant must be correct for all executions and must continue to 
 We build upon classical work~\cite{OwickiG76,Jones83} on reasoning about non-interference
 with two distinct innovations.
 First, we do not require the annotations to be strong enough to prove program correctness but only strong enough to provide the context for per-procedure, per-step refinement checking. 
-Program correctness is established as the culmination of a sequence of refinement steps leading to an abstract program that cannot fail.
-Second, to establish a post-condition of a procedure, we do not need to propagate a pre-condition through all the yield annotations in the procedure body. 
-The correctness of an atomic action specification gives us a simple frame rule---the pre-condition only needs to be propagated across the atomic action specification. 
+Program correctness is established via a sequence of refinement layers from an abstract program that cannot fail.
+Second, to establish a post-condition of a procedure, we do not need to propagate a precondition through all the yield annotations in the procedure body. 
+The correctness of an atomic action specification gives us a simple frame rule---the precondition only needs to be propagated across the atomic action specification. 
 \civl further simplifies the manual annotations required for logical non-interference checking
 by providing a linear type system~\cite{Wadler90lineartypes} that enables logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
 and disjoint memory~\cite{LahiriQW11}.
 
 We have implemented \civl as a conservative extension of the \boogie verifier.  
-We have used it to verify a collection of microbenchmarks and benchmarks from the literature such as 
-a multiset implementation~\cite{ElmasTQ05},
-the ticket algorithm~\cite{FarzanKP14}, 
-Treiber stack~\cite{Herlihy2008}, work-stealing queue~\cite{Blumofe1999},
-device cache~\cite{ElmasQT09}, and lock-protected increment~\cite{FlanaganQ03}. 
+We have used it to verify a collection of microbenchmarks and benchmarks from the 
+literature~\cite{Blumofe1999,ElmasQT09,ElmasTQ05,FarzanKP14,FlanaganQ03,Herlihy2008}. 
 The most challenging case study with \civl was carried out concurrently with \civl's development and served as a design driver. 
-We verified a concurrent garbage collector, through six levels of refinement, down to atomic actions corresponding to individual memory accesses. 
+We verified a concurrent garbage collector, through six levels of refinement, 
+down to atomic actions corresponding to individual memory accesses. 
 The level of granularity of the lowest-level implementation distinguishes this verification effort, 
 detailed in a technical report~\cite{gc-techreport}, from previous attempts in the literature. 
 

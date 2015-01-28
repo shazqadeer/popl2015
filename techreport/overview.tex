@@ -4,16 +4,16 @@
 \begin{figure} 
 \begin{verbatim}
 var Color: int; // WHITE=1, GRAY=2, BLACK=3
-procedure TopWB(linear tid:Tid)
+procedure WB(linear tid:Tid)
 atomic [if (Color == WHITE) Color := GRAY];
 {
   var cNoLock:int;
   cNoLock := GetColorNoLock(tid);
   yield Color >= cNoLock;
   if (cNoLock == WHITE) 
-    call MidWB(tid);
+    call WBSlow(tid);
 }
-procedure MidWB(linear tid:Tid)
+procedure WBSlow(linear tid:Tid)
 atomic [if (Color == WHITE) Color := GRAY];
 {
   var cLock:int;
@@ -40,9 +40,9 @@ procedure SetColorLocked(linear tid:Tid,
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.35]{MidWB.pdf}
+\includegraphics[scale=0.35]{WBSlow.pdf}
 \end{center}
-\caption{Abstraction of \exC{MidWB}}
+\caption{Abstraction of \exC{WBSlow}}
 \label{fig:midwb}
 \end{figure}
 
@@ -64,43 +64,43 @@ if color associated with \exC{addr} is \exC{WHITE}
 and sets it to \exC{GRAY}, indicating that the object at this address
 and objects reachable from it should not be garbage collected. 
 
-Procedure \exC{TopWB} implements the write barrier.
+Procedure \exC{WB} implements the write barrier.
 To simplify the exposition, 
 we consider only a single object whose color is stored in the shared variable \exC{Color}.
-To avoid the cost of locking for each address encountered, \exC{TopWB} reads \exC{Color} without holding a lock.
-If the color is {\tt WHITE}, it calls the more expensive procedure \exC{MidWB} 
+To avoid the cost of locking for each address encountered, \exC{WB} reads \exC{Color} without holding a lock.
+If the color is {\tt WHITE}, it calls the more expensive procedure \exC{WBSlow} 
 that re-examines and possibly updates \exC{Color} while holding the lock.
-\civl simplifies reasoning about \exC{TopWB} and \exC{MidWB} by allowing us to 
+\civl simplifies reasoning about \exC{WB} and \exC{WBSlow} by allowing us to 
 compactly express their specification as the following atomic action:
 \begin{verbatim}
 [if (Color == WHITE) Color := GRAY]
 \end{verbatim}
 This specification indicates that regardless of the different implementations of 
-\exC{TopWB} and \exC{MidWB} and regardless of how the environment interferes
+\exC{WB} and \exC{WBSlow} and regardless of how the environment interferes
 with their execution, to their respective callers it appears as if they atomically execute the above code.
 
-The correctness of \exC{TopWB} is not obvious.
+The correctness of \exC{WB} is not obvious.
 Consider the following potential scenario. 
-\exC{TopWB}, not holding a lock, reads {\tt Color} and
+\exC{WB}, not holding a lock, reads {\tt Color} and
 sets \exC{cNoLock} to \exC{GRAY} and then yields. Another thread sets {\tt Color} to
-{\tt WHITE}. \exC{TopWB} resumes, but does nothing and exits,
+{\tt WHITE}. \exC{WB} resumes, but does nothing and exits,
 because the procedure-local variable \exC{cNoLock} is \exC{GRAY}. In this scenario, the atomic action
-specification of \exC{TopWB} would not be satisfied. However, in the GC this
+specification of \exC{WB} would not be satisfied. However, in the GC this
 scenario is not possible. 
 The yield predicate expresses the fact that
-other threads in the environment of the thread running \exC{TopWB} can
+other threads in the environment of the thread running \exC{WB} can
 only modify {\tt Color} to a higher (darker) value. 
-\civl then verifies that, for every control path through \exC{TopWB}
+\civl then verifies that, for every control path through \exC{WB}
 procedure, exactly one {\tt yield}-to-{\tt yield} execution
 fragment implements the atomic action specification and that other fragments do not modify
 global state. 
 This proof requires both correct modeling of environment interference in the yield predicate
-and the atomic action specification for the called procedure \exC{MidWB}.
+and the atomic action specification for the called procedure \exC{WBSlow}.
 The \civl verifier automatically computes a logical verification condition capturing
-this proof obligation from the body and specification of \exC{TopWB}.
-Just as the verification of \exC{TopWB} builds on the specification of \exC{MidWB},
-the verification of \exC{MidWB} builds on other refinement proofs (not shown) 
-of the procedures called in \exC{MidWB};
+this proof obligation from the body and specification of \exC{WB}.
+Just as the verification of \exC{WB} builds on the specification of \exC{WBSlow},
+the verification of \exC{WBSlow} builds on other refinement proofs (not shown) 
+of the procedures called in \exC{WBSlow};
 these called procedures are shown at the bottom of the figure. 
 
 There are two important benefits of atomic action specifications.
@@ -119,7 +119,7 @@ However, in a real execution, control can switch between threads at any point in
 A naive modeling of a real execution would put a yield statement before every instruction in the code.
 The absence of a yield statement before every instruction is justified by reasoning about mover types~\cite{FlanaganFLQ08}. 
 
-The procedures called in \exC{MidWB} have the mover types claimed in their
+The procedures called in \exC{WBSlow} have the mover types claimed in their
 declarations and verified by \civl. 
 For example, the mover type of \exC{Acquirelock} is {\tt right} which indicates 
 that it commutes later in time against concurrently executing environment actions.
@@ -141,8 +141,8 @@ Second, the cost of the pairwise mover reasoning is replaced by the cost of pair
 and concurrently executing atomic actions.
 
 Finally, given the mover types of atomic action specifications, the \civl verifier ensures
-that the absence of yields is justified by constructing an abstraction of \exC{MidWB} 
-that interprets each atomic action invoked by \exC{MidWB} according to its mover type.
+that the absence of yields is justified by constructing an abstraction of \exC{WBSlow} 
+that interprets each atomic action invoked by \exC{WBSlow} according to its mover type.
 This abstraction is shown in Figure~\ref{fig:midwb}.
 The edge labels belong to the set $\{B,R,L,N,Y\}$, where $B$ (both mover), $R$ (right mover), $L$ (left mover), and $N$ (non mover) 
 represent the various kinds of atomic actions described earlier, and $Y$ represents a yield statement.
@@ -157,9 +157,9 @@ and allows traces in which {\em transactions\/} are separated by yields.
 Each transaction starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
 In the middle, it can have at most one non mover.
 
-The atomic action specification of \exC{MidWB} makes no reference to the lock variable, 
+The atomic action specification of \exC{WBSlow} makes no reference to the lock variable, 
 although its implementation involves a lock. 
-When verifying refinement for \exC{MidWB}, the lock variable has been hidden. 
+When verifying refinement for \exC{WBSlow}, the lock variable has been hidden. 
 \civl allows the programmer to both introduce and hide variables in each refinement step,
 thereby providing the capability to perform data refinement.
 The ability to introduce and hide variables and write yield predicates specific to each refinement step 
