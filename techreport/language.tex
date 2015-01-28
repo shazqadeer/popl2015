@@ -369,6 +369,7 @@ The predicates $\phi$ and $\psi$ are expected to be preserved by other threads i
 The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
 The statement $\ablock{e,\lins}{\stmt}$ is useful only for compactly encoding non-interference checks (Section~\ref{sec:refinement});
 the predicate $e$ is expected to hold and the permissions $\lins$ expected to be available at the beginning of $\stmt$.
+In \civl, yield predicates, preconditions, and postconditions are the three sources of location invariants~\cite{OwickiG76}.
 
 Finally, we have the standard primitives for sequencing, conditional execution, and looping.
 The statement $\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$.

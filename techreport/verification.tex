@@ -978,7 +978,7 @@ In addition, these judgments also check that each atomic block inside a procedur
 is simulated by the transition relation $\Havoc(\HiddenVars \cup \Local)$.
 In general, the appropriate simulation check may not be provable by examining only the body $\stmt$ of the atomic block.
 Contextual information such as the predicate $e$ that is expected to hold when the atomic block begins execution may also be required.
-Annotations such as preconditions and postconditions, loop invariants, and yield assertions are leveraged to prove 
+Annotations such as preconditions and postconditions, loop invariants, and yield predicates are leveraged to prove 
 such predicates throughout the program.
 
 \begin{figure*}

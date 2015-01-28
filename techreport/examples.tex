@@ -29,7 +29,7 @@ executing concurrently with another procedure {\tt q}.
 An execution of a \civl program is non-preemptive; a thread explicitly yields control to the
 scheduler via the {\tt yield} statement following which execution continues on a 
 nondeterministically chosen thread.
-The {\tt yield} statement has an assertion $\varphi$ attached to it.
+The {\tt yield} statement has a predicate $\varphi$ attached to it.
 The yielding thread must establish $\varphi$ when it yields and the execution of other threads 
 must preserve $\varphi$; these two requirements in Owicki-Gries-style
 reasoning~\cite{OwickiG76} are usually known as {\em sequential correctness}
@@ -141,7 +141,7 @@ representing the set of thread identifiers.
 A collection of threads are executing procedure {\tt P} concurrently.
 The identifier of the thread executing {\tt P} is passed in as the parameter {\tt tid}.
 A thread with identifier {\tt tid} owns {\tt a[tid]} and can increment it without danger of interference.
-The yield assertion {\tt t == a[tid]} in {\tt P} indicates this expectation, yet it is not possible to prove it 
+The yield predicate {\tt t == a[tid]} in {\tt P} indicates this expectation, yet it is not possible to prove it 
 unless the reasoning engine knows that the value of {\tt tid} in one thread is distinct 
 its value in a different thread.
 
@@ -244,7 +244,7 @@ Program~6 uses a linear map {\tt g} to represent two adjacent memory location st
 The variable {\tt g} is protected by a lock encoded with a boolean variable {\tt b}.
 The procedure {\tt P} acquires the lock {\tt b} using atomic test-and-set, moves the content of {\tt g} into a local 
 linear map {\tt l}, increments both memory locations in {\tt l}, and then moves {\tt l} back into {\tt g}.
-The yield assertion is encapsulated in the {\tt Yield} procedure; 
+The yield statement is encapsulated in the {\tt Yield} procedure; 
 it amounts to a simple global invariant asserting that whenever the lock {\tt b} is not held, the domain of {\tt g} must
 contain the two adjacent address {\tt p} and {\tt p+4} and the values stored in these addresses are identical.
 This program captures the essence of programming with monitors~\cite{Hoare74} and demonstrates that this reasoning 

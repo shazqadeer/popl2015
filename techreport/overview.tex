@@ -131,13 +131,13 @@ These mover types are checked by constructing verification conditions from each 
 Note that \civl allows the programmer to avoid mover reasoning by eschewing
 the mover types {\tt right}, {\tt left}, and {\tt both}.
 In this case, the only mover type is {\tt atomic} which does not require any verification.
-The tradeoff is that a yield statement accompanied with an appropriate assertion
+The tradeoff is that a yield statement accompanied with an appropriate predicate
 must be inserted before every invocation of an atomic action.
 We have observed that in many concurrent programs, this tradeoff is inappropriate for two reasons.
 First, the annotation burden goes up because sophisticated ghost variables may need to be introduced in the 
 program semantics.\footnote{Well-scoped location invariants that cannot refer to the state of other threads are known to be incomplete, 
 both in theory and in practice.}
-Second, the cost of the pairwise mover reasoning is replaced by the cost of pairwise non-interference checks between yield assertions 
+Second, the cost of the pairwise mover reasoning is replaced by the cost of pairwise non-interference checks between yield predicates 
 and concurrently executing atomic actions.
 
 Finally, given the mover types of atomic action specifications, the \civl verifier ensures
