@@ -25,3 +25,7 @@ from low-level memory operations all the way up to high-level specifications;
 we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
 We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
 
+The GC verification takes 60 seconds on the same 4-core Windows PC, generating and verifying 667 proof obligations. 
+Should we provide more statistics about these proof obligations, e.g., their breakdown into commutativity and refinement checks?
+Should we mention that verification time is dominated by the theorem prover; the time taken for the automata-theoretic simulation check is trivial.
+
