@@ -3,15 +3,15 @@
 
 The \civl verifier has been under development for around two years.  
 Over that period, we have developed a collection of 32 benchmarks, 
-ranging in size from 17 to 324 LOC, to illustrate various features of
+ranging in size from 17 to 539 LOC, to illustrate various features of
 \civl and for regression testing as we evolved the verifier.
 In addition to microbenchmarks, this collection also includes
 standard benchmarks from the literature such as a multiset implementation~\cite{ElmasTQ05}, 
 the ticket algorithm~\cite{FarzanKP14}, 
 Treiber stack~\cite{Herlihy2008}, work-stealing queue~\cite{Blumofe1999},
 device cache~\cite{ElmasQT09}, and lock-protected increment~\cite{FlanaganQ03}. 
-The \civl verifier is fast; the entire benchmark set verifies in 17 seconds on a standard Windows machine with no benchmark 
-requiring more than a couple of seconds.
+The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a standard 4-core Windows PC 
+with no benchmark requiring more than a few seconds.
 
 \subsection{Garbage collector}
 This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
