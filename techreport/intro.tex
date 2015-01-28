@@ -17,8 +17,8 @@ Each procedure accesses shared global variables only through invocations of atom
 During a refinement step, a subset of the atomic actions may be refined by new procedures and a new program is 
 obtained by replacing the invocation of an atomic action by a call to the corresponding procedure refining the action.
 Several such steps may be performed one after another until all atomic actions in the final program are directly implementable primitives.
-This process may be carried out in a bottom-up rather than top-down fashion, in which case an atomic action 
-can be thought of as the specification of the procedure that implements it.
+%This process may be carried out in a bottom-up rather than top-down fashion, in which case an atomic action 
+%can be thought of as the specification of the procedure that implements it.
 Unlike classical program verifiers based on Floyd-Hoare reasoning~\cite{Floyd67,Hoare69} that manipulate a program and annotations, 
 the \civl verifier manipulates multiple operational descriptions of a program, i.e., several levels of refinement are specified and verified at once. 
 
