@@ -60,9 +60,11 @@ by providing a linear type system~\cite{Wadler90lineartypes} that enables logica
 and disjoint memory~\cite{LahiriQW11}.
 
 We have implemented \civl as a conservative extension of the \boogie verifier.  
-We have used it to verify a collection of microbenchmarks and benchmarks from the literature such as the ticket algorithm~\cite{FarzanKP14}, 
+We have used it to verify a collection of microbenchmarks and benchmarks from the literature such as 
+a multiset implementation~\cite{ElmasTQ05},
+the ticket algorithm~\cite{FarzanKP14}, 
 Treiber stack~\cite{Herlihy2008}, work-stealing queue~\cite{Blumofe1999},
-device cache~\cite{ElmasQT09}, and lock-protected increment~\cite{ElmasQT09}. 
+device cache~\cite{ElmasQT09}, and lock-protected increment~\cite{FlanaganQ03}. 
 The most challenging case study with \civl was carried out concurrently with \civl's development and served as a design driver. 
 We verified a concurrent garbage collector, through six levels of refinement, down to atomic actions corresponding to individual memory accesses. 
 The level of granularity of the lowest-level implementation distinguishes this verification effort, 
