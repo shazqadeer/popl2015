@@ -10,7 +10,6 @@ atomic [if (Color == WHITE) Color := GRAY];
   var cNoLock:int;
   cNoLock := GetColorNoLock(tid);
   yield Color >= cNoLock;
-  call YieldColorsGetDarker(); 
   if (cNoLock == WHITE) 
     call MidWB(tid);
 }
