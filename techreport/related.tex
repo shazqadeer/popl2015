@@ -12,7 +12,60 @@ A generic, widely-applicable approach to specifying and verifying refinement for
 %Alternatively, a series of increasingly more abstract models of a system can be used to reduce the computational cost of verifying safety properties, since safety properties of higher-level models are preserved by lower-level models. 
 %This use of refinement is complementary to other techniques that combat the difficulty of verification, such as Floyd-Hoare, rely-guarantee, separation logic for modularity. 
 
-{\bf Refinement-oriented verification.}
+{\bf Refinement-oriented verification.}  
+There are several approaches
+to verifying refinement of atomic procedure specifications for
+shared-memory concurrent software in the literature.  
+These techniques
+and \civl all appear to address the same research problem.  
+However, being able to carry out a top-down refinement proof of a realistic
+program from a simple, idealized abstract specification down to an
+implementation described in terms of machine instructions poses some
+important challenges 
+only properly addressed and supported by the
+\civl theory and verification tool. 
+These challenges include keeping computational cost reasonable,
+structuring the proof so manual annotation burden is manageable, 
+and allowing different refinement proofs to build on top of each
+other. 
+We will use our garbage collector case study to compare and contrast
+\civl with existing techniques in literature. 
+
+Our garbage collector
+proof~\cite{techreport} spanning six levels of abstraction.
+Each of these six refinement proofs is made feasible by a different
+blend of the techniques in \civl. 
+While other refinement techniques have also used garbage collectors as
+case studies, they only handle one or two of the levels in 
+our refinement proof. 
+Accordingly, the techniques only target the refinement verification
+challenges apparent at those levels of the proof. 
+In the top few levels of the garbage collector proof, location
+invariants were the key tool we used, while reduction simplified our
+job some by enabling us to use coarser atomic actions and fewer
+location invariants.  
+In the lowest few levels of the garbage collector proof, where
+correctness of synchronization primitives were proven, we made
+relatively little use of location invariants, and made heavier use of
+reduction.
+For instance, when verifying the correctness of a
+lock-protected concurrently-accessed data structure, ownership
+arguments, separation logic, or QED-style atomicity may suffice. 
+But,
+at a higher level of abstraction, atomicity alone or ownership or
+separation logic arguments alone run into difficulty. 
+Rely-guarantee,
+or even better, location invariants and Owicki-Gries style reasoning
+are best suited to carry out the correctness arguments here. 
+All of these
+techniques are all aided significantly when reduction is available as
+a reasoning technique to enable reasoning about coarser atomic blocks
+and fewer interleaving locations. 
+\civl combines, in one tool and consistent theory, the ability to
+deploy and combine these techniques for a refinement proof spanning
+many different descriptions of a program at many different levels of
+abstraction. 
+
 Atomic action specifications have been explored by the
 Calvin~\cite{FlanaganFQS05} verifier previously. 
 Three design choices and features make \civl better suited for
