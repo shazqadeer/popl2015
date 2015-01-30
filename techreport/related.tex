@@ -25,16 +25,15 @@ We then put \civl and other techniques in context by contrasting them
 on \civl's design driver, our six-layer refinement proof of a
 concurrent mark-sweep garbage collector~\cite{gc-techreport}.
 
-
 Atomic action specifications have been explored by the
-Calvin~\cite{FlanaganFQS05} verifier previously. 
+\calvin~\cite{FlanaganFQS05,FreundQ04} verifier previously. 
 \civl makes a distinction between preemptive and cooperative
 semantics, and carries out refinement verification on a procedure body
 with cooperative semantics as enabled by movers types and reduction.
-Calvin attempts to verify refinement directly on the preemptive
+\calvin attempts to verify refinement directly on the preemptive
 semantics, making only limited use of movers at the lowest-level
 representation. 
-Calvin, unlike \civl, does not support location invariants and linear
+\calvin, unlike \civl, does not support location invariants and linear
 variables. 
 It instead requires that a two-state rely predicate modeling all possible
 interference on the shared state by other threads be supplied. 
@@ -44,36 +43,20 @@ using rely-guarantee reasoning can be significantly harder from a
 human interactive proof standpoint. We discuss this point further on
 the garbage collector below. 
 
-Like \civl and Calvin, the QED~\cite{ElmasQT09} tool and proof system
-can verify atomicity of procedures. 
-QED pioneered the approach of
-proving refinement between two full concurrent programs. 
-However, QED lacked the critical ability to reason about
-non-interference using invariant or rely-guarantee style reasoning.
-The only way to prove atomicity of a method is to transform its body
-into a single (yield-free) atomic action using abstraction and
-reduction. 
-\civl's
-support for verifying an atomic specification for a procedure subsumes
-QED's but is more general. 
-Most importantly, \civl is able to verify
-an atomic specification for a procedure body that is not atomic (has
-yields) and is able to leverage location invariants and linear
-variables for atomicity
-refinement verification as was illustrated in the write barrier
-example in Section~\ref{sec:overview}. 
-QED does not support location invariants and linear variables. 
-
-Another key distinction between \civl and QED is the fact that a proof step in QED is a small rewrite in the concurrent program
+\QED~\cite{ElmasQT09} is a simplifier for concurrent programs and is close in spirit to the 
+refinement-oriented approach of \civl.
+A key distinction between \civl and \QED is the fact that a proof step in \QED is a small rewrite in the concurrent program
 that must be justified by potentially expensive reduction and invariant reasoning.
-In QED, abstract versions of a program are obtained by transforming the initial
+In \QED, abstract versions of a program are obtained by transforming the initial
 version by applying a proof script. 
-This makes it difficult to organize a proof in QED by providing a
+This makes it difficult to organize a proof in \QED by providing a
 description of a program at several different levels of abstraction. 
 Further, the number of small proof steps directly affect both programmer
 and computer effort. 
 By contrast, \civl supports large proof steps, in each of which the bodies of several procedures
 are automatically replaced by atomic actions, thereby lowering the cost of both interaction and automation.
+The non-interference reasoning in \QED is even more limited than \calvin.
+\QED supports only global invariants and does not support rely-guarantee reasoning or linear variables.
 
 Liang et al.~\cite{LiangRGSim}) present a method for verifying that procedure
 bodies refine atomic specifications. 
@@ -152,7 +135,7 @@ relatively little use of location invariants, and made heavier use of
 reduction.
 For instance, when verifying the correctness of a
 lock-protected concurrently-accessed data structure, ownership
-arguments, separation logic, or QED-style atomicity may suffice. 
+arguments, separation logic, or \QED-style atomicity may suffice. 
 But,
 at a higher level of abstraction, atomicity alone or ownership or
 separation logic arguments alone run into difficulty. 
