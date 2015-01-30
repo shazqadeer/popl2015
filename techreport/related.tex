@@ -2,41 +2,144 @@
 \section{Related work}
 \label{sec:related}
 
-In this section, we discuss related work on verification of concurrent systems.
-We first discuss approaches based on refinement and later approaches more directly inspired 
-by Floyd-Hoare reasoning.
-
-A generic, widely-applicable approach to specifying and verifying refinement for shared-memory concurrent software is lacking. 
-%For many systems, a natural way to write a full functional specification is to provide a description of the entire system at an abstract level. 
-%Checking refinement in this context is a means for full functional verification. 
-%Alternatively, a series of increasingly more abstract models of a system can be used to reduce the computational cost of verifying safety properties, since safety properties of higher-level models are preserved by lower-level models. 
-%This use of refinement is complementary to other techniques that combat the difficulty of verification, such as Floyd-Hoare, rely-guarantee, separation logic for modularity. 
-
-{\bf Refinement-oriented verification.}  
-There are several approaches
-to verifying refinement of atomic procedure specifications for
-shared-memory concurrent software in the literature.  
-These techniques
-and \civl all appear to address the same research problem.  
-However, being able to carry out a top-down refinement proof of a realistic
-program from a simple, idealized abstract specification down to an
-implementation described in terms of machine instructions poses some
-important challenges 
-only properly addressed and supported by the
+The key design goal for \civl was to facilitate interactive, verified top-down refinement
+of a realistic system potentially via several intermediate
+descriptions, down to a detailed implementation.  
+This task poses some unique computational and human usability challenges. 
+\civl verifies that each description correctly refines the description
+at the level above, which requires a collection of correlated
+whole-program refinement proofs. 
+By contrast, existing work on atomicity refinement for concurrent software is
+targeted at a single refinement proof, and not between two whole
+programs, rather, between procedure implementations and
+specifications. 
+Enabling multiple ``stacked'' whole-program refinement proofs
+within a single unifying theory and automating this process with tool support is task tackled for the first time by the
 \civl theory and verification tool. 
-These challenges include keeping computational cost reasonable,
-structuring the proof so manual annotation burden is manageable, 
-and allowing different refinement proofs to build on top of each
-other. 
-We will use our garbage collector case study to compare and contrast
-\civl with existing techniques in literature. 
+While many of the verification techniques available in \civl appear in
+the literature, \civl is the first to make sound, joint use of them to
+support multiple layers of refinement. 
+Below, we first contrast \civl with approaches for 
+refinement in the literature. 
+We then put \civl and other techniques in context by contrasting them
+on \civl's design driver, our six-layer refinement proof of a
+concurrent mark-sweep garbage collector~\cite{gc-techreport}.
 
-Our garbage collector
-proof~\cite{techreport} spanning six levels of abstraction.
+
+Atomic action specifications have been explored by the
+Calvin~\cite{FlanaganFQS05} verifier previously. 
+\civl makes a distinction between preemptive and cooperative
+semantics, and carries out refinement verification on a procedure body
+with cooperative semantics as enabled by movers types and reduction.
+Calvin attempts to verify refinement directly on the preemptive
+semantics, making only limited use of movers at the lowest-level
+representation. 
+Calvin, unlike \civl, does not support location invariants and linear
+variables. 
+It instead requires that a two-state rely predicate modeling all possible
+interference on the shared state by other threads be supplied. 
+Location invariants can encode rely-guarantee reasoning vice versa. 
+However, in practice, carrying out non-interference reasoning only
+using rely-guarantee reasoning can be significantly harder from a
+human interactive proof standpoint. We discuss this point further on
+the garbage collector below. 
+
+Like \civl and Calvin, the QED~\cite{ElmasQT09} tool and proof system
+can verify atomicity of procedures. 
+QED pioneered the approach of
+proving refinement between two full concurrent programs. 
+However, QED lacked the critical ability to reason about
+non-interference using invariant or rely-guarantee style reasoning.
+The only way to prove atomicity of a method is to transform its body
+into a single (yield-free) atomic action using abstraction and
+reduction. 
+\civl's
+support for verifying an atomic specification for a procedure subsumes
+QED's but is more general. 
+Most importantly, \civl is able to verify
+an atomic specification for a procedure body that is not atomic (has
+yields) and is able to leverage location invariants and linear
+variables for atomicity
+refinement verification as was illustrated in the write barrier
+example in Section~\ref{sec:overview}. 
+QED does not support location invariants and linear variables. 
+
+Another key distinction between \civl and QED is the fact that a proof step in QED is a small rewrite in the concurrent program
+that must be justified by potentially expensive reduction and invariant reasoning.
+In QED, abstract versions of a program are obtained by transforming the initial
+version by applying a proof script. 
+This makes it difficult to organize a proof in QED by providing a
+description of a program at several different levels of abstraction. 
+Further, the number of small proof steps directly affect both programmer
+and computer effort. 
+By contrast, \civl supports large proof steps, in each of which the bodies of several procedures
+are automatically replaced by atomic actions, thereby lowering the cost of both interaction and automation.
+
+Liang et al.~\cite{LiangRGSim}) present a method for verifying that procedure
+bodies refine atomic specifications. 
+The key verification approach is
+rely-guarantee reasoning and the refinement (simulation) relation between
+a procedure and its specification is constrained so it is preserved under
+parallel composition. 
+This work also lists a concurrent garbage collector as one of the case
+studies. 
+Their proof corresponds to a few layers of our proof, in particular,
+does not refine the implementation to the level of hardware
+instructions. 
+Since this work uses different languages to describe the high-level
+and low-level programs, it is not immediately possible to carry out a
+multi-level stepwise refinement proof. 
+This work does not provide any tool support for verifying refinement. 
+
+Turon and Wand~\cite{TuronM11} use ownership disciplines and
+separation logic to verify refinement of atomic specifications by 
+concurrent data structure implementations. Rely-guarantee reasoning is
+supported to provide compositionality and non-interference
+arguments. This work targets a single refinement step between atomic
+specifications for methods and their implementations. 
+No tool support for this verification method is provided. 
+
+Verifying linearizability of concurrent data structures (see, e.g.,
+\cite{tacasLin,aliLin}) can be viewed as an instance of one-level of
+refinement in our setting. \civl can be used for mechanical
+verification of linearizability, as we did for the Treiber stack, for
+instance. Tools and techniques specific to verifying linearizability
+cannot, however, be easily generalized for stepwise refinement proofs
+through multiple levels. 
+
+Refinement proofs
+between implementations and specifications of protocols have been
+investigated using the TLA+~\cite{Lamport2004} specification
+language. 
+Compositional proofs between specifications and
+implementations consisting of modules~\cite{AbadiAssumeGuarantee} have
+been investigated in this context. 
+Modular refinement proofs for
+hardware systems have been investigated extensively
+(e.g.,~\cite{\cite{Henzinger1999,Eiriksson2000}) using the
+  SMV~\cite{McMillan00} and Mocha~\cite{AlurHMQRT98} model checking tools.
+For concurrent, shared-memory
+software, there is a significant cognitive gap between the imperative
+multithreaded program text as written in, e.g., \civl, and the TLA+,
+SMV or Mocha descriptions for the program. The latter encode the
+semantics of an imperative concurrent program as a
+state-transition relation. 
+Proofs in TLA+, SMV and Mocha, whether modular or not, are
+distinguished from proofs in \civl and other techniques that operate
+off of the imperative program text in this key regard. 
+Reasoning on a
+semantic model of a program rather than the program text itself, for
+shared-memory concurrent programs, adds a significant amount of
+cognitive load to the user. 
+It also makes it difficult to structure a
+proof along the syntactic structure of the imperative program. 
+
+We now contrast techniques discussed above and \civl on our design
+driver, the stepwise refinement of a garbage collector~\cite{gc-techreport} which spans six levels of abstraction.
 Each of these six refinement proofs is made feasible by a different
 blend of the techniques in \civl. 
 While other refinement techniques have also used garbage collectors as
-case studies, they only handle one or two of the levels in 
+case studies, the refinement tasks tackled there correspond only to one or two of the levels in 
 our refinement proof. 
 Accordingly, the techniques only target the refinement verification
 challenges apparent at those levels of the proof. 
@@ -66,78 +169,26 @@ deploy and combine these techniques for a refinement proof spanning
 many different descriptions of a program at many different levels of
 abstraction. 
 
-Atomic action specifications have been explored by the
-Calvin~\cite{FlanaganFQS05} verifier previously. 
-Three design choices and features make \civl better suited for
-carrying out a stepwise refinement proof of a realistic program
-through several layers of abstraction as in our garbage collector
-proof. 
-First, \civl makes a distinction between preemptive and cooperative
-semantics, and carries out refinement verification on a procedure body
-with cooperative semantics as enabled by movers types and reduction. 
-Calvin attempts to verify refinement directly on the preemptive semantics.
-Second, Calvin does not support location invariants and linear variables. 
-It instead requires that a two-state rely predicate modeling all possible
-interference on the shared state by other threads be supplied. 
-A rely predicate that is valid at each interleaving point in
-preemptive semantics is difficult to construct. 
-The ability to reason on cooperative semantics using location-specific
-annotations lowers the complexity of annotations required for the refinement proof.
-Third, \civl, unlike Calvin, supports variable hiding. Variable hiding
+Reasoning about non-interference using only rely-guarantee reasoning requires the use of potentially a large number of auxiliary variables
+and a rely predicate for each thread that is valid at each interleaving point in
+the preemptive semantics. 
+Such a rely predicate is difficult to construct and maintain from a
+human standpoint.
+In phases ... our garbage collector proof, each location invariant in
+the body of the mark procedure and the location invariants in the
+mutators were different. 
+Encoding this using rely-guarantee reasoning would have necessitated
+the use of auxiliary variables that correspond to the program counter
+of each thread active during the mark phase. 
+Being able to simply attach the location invariant to the
+corresponding ``yield'' instead was instrumental in the interactive
+refinement proof at this level. 
+Variable hiding
 is an important capability when relating multiple versions of a
-program at different levels of abstraction. In our gargabe collector
+program at different levels of abstraction. 
+In our gargabe collector
 proof, the top-level description hides almost all implementation
 variables to provide an idealized interface to application threads. 
-
-Reduction has been used for program simplification by the
-QED~\cite{ElmasQT09} verifier.
-Like \civl and Calvin, QED can verify atomicity of procedures. However,
-the only method to do so in QED is transforming the procedure body
-into a single (yield-free) atomic action using abstraction and reduction. \civl's
-support for verifying an atomic specification for a procedure subsumes
-QED's but is more general. Most importantly, \civl is able to verify
-an atomic specification for a procedure body that is not atomic (has
-yields) and is able to leverage location invariants and linear
-variables for atomicity
-refinement verification as was illustrated in the write barrier
-example in Section~\ref{sec:overview}. QED does not support location invariants and linear variables. 
-
-Another key distinction between \civl and QED is the fact that a proof step in QED is a small rewrite in the concurrent program
-that must be justified by potentially expensive reduction and invariant reasoning.
-The number of these small proof steps directly affect both programmer
-and computer effort. 
-By contrast, \civl supports large proof steps, in each of which the bodies of several procedures
-are automatically replaced by atomic actions, thereby lowering the cost of both interaction and automation.
-In QED, abstract versions of a program are obtained by transforming the initial
-version by applying a proof script. 
-This makes it difficult to organize a proof in QED by providing a
-description of a program at several different levels of abstraction. 
-The input to \civl is a single file that correlates several different
-representations of the same program at different levels of
-abstraction. 
-The increased scalability and usability of \civl is key to the construction of proofs spanning a large abstraction gap
-between specification and implementation, as is demonstrated by our
-garbage collector case study. 
-
-This paragraph needs to be improved.
-TLA+~\cite{Lamport2004} has been used for performing refinement proofs between implementations and specifications of protocols.
-TLA+ drops down to logic but proofs are tedious and do not scale because of lack of software structuring.
-
-We need a paragraph on refinement proofs in hardware, citing use of SMV~\cite{McMillan00} to verify protocol processor~\cite{Eiriksson2000} 
-and Mocha~\cite{AlurHMQRT98} verification of VGI processor~\cite{Henzinger1999}.
-
-Examples are approaches to
-checking linearizability of concurrent data
-structures~\cite{tacasLin,aliLin}, 
-verifying correctness of
-concurrent data structure implementations assuming that a certain
-ownership discipline is followed~\cite{TuronM11} 
-
-A rely-guarantee rule for simulation proofs between a source and
-target programs. 
-Thread-modular, nothing about procedure modular, 
-Rely-guarantee, manual, separation logic, justify concurrent optimizations
-many manual proofs of garbage collectors (e.g.,~\cite{LiangRGSim}). 
 
 
 {\bf Other approaches.}
@@ -162,7 +213,11 @@ Concurrent separation logic~\cite{OHearn07} reasons about concurrency without
 explicitly checking for non-interference between threads. 
 Recently, tools based on this logic that blend in explicit non-interference reasoning have been developed~\cite{SAGL,RGSep}. 
 \civl's combination of interference checking and linear variables is an extreme example of this trend,
-supplying very primitive abstractions and letting programmers mix and match these abstractions freely.
+supplying very primitive abstractions and letting programmers mix and
+match these abstractions freely.
+%agnostic, general, encode thread identifiers, permissions
+%and uses these to support refinement
+%non-interference on higher or lower-level
 
 Is there any other POPL-style work that needs to be cited?
 
@@ -180,3 +235,30 @@ Is there any other POPL-style work that needs to be cited?
 %% We provide a methodology in which the {\em refinement} problem can be stated in a modular way guided by the syntactic structure of the program as in the Floyd-Hoare method. 
 %% We check refinement by reasoning about the code of a single procedure at a time, in fact, one interference-free step of the implementation at a time. 
 
+% In this section, we discuss related work on verification of concurrent systems.
+% We first discuss approaches based on refinement and later approaches more directly inspired 
+% by Floyd-Hoare reasoning.
+
+% A generic, widely-applicable approach to specifying and verifying refinement for shared-memory concurrent software is lacking. 
+%For many systems, a natural way to write a full functional specification is to provide a description of the entire system at an abstract level. 
+%Checking refinement in this context is a means for full functional verification. 
+%Alternatively, a series of increasingly more abstract models of a system can be used to reduce the computational cost of verifying safety properties, since safety properties of higher-level models are preserved by lower-level models. 
+%This use of refinement is complementary to other techniques that combat the difficulty of verification, such as Floyd-Hoare, rely-guarantee, separation logic for modularity. 
+
+%%{\bf Refinement-oriented verification.}  
+
+%*** Hammer home ***
+%*** Two full programs ***
+%The first: Layered refinement proofs that stack on top of each other.
+%Reverse order. 
+
+%Much shorter
+%Rely-guarantee vs location invariants. Allows us to encode
+%rely-guarantee, but location invariants is convenient. 
+%Make this point in the GC proof. ONLY. 
+
+%The ability to reason on cooperative semantics using location-specific
+%annotations lowers the complexity of annotations required for the refinement proof.
+
+%Non-interference
+%Summarize in a few sentences
