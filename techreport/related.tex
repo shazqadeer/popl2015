@@ -2,10 +2,8 @@
 \section{Related work}
 \label{sec:related}
 
-The key design goal for \civl was to facilitate interactive, verified top-down refinement
-of a realistic system via several intermediate
-descriptions, down to a detailed implementation.  
-This task poses some unique computational and human usability challenges. 
+The key design goal for \civl is automated refinement of a concurrent software system,
+via intermediate descriptions, down to a detailed implementation in terms of primitive atomic operations.
 \civl verifies that each description correctly refines the description
 at the level above, which requires a collection of correlated
 whole-program refinement proofs. 
@@ -14,25 +12,13 @@ targeted at a single refinement proof, and not between two whole
 programs, rather, between procedure implementations and
 specifications. 
 The \civl theory and verification tool are the first to
-enable multiple ``stacked'' whole-program refinement proofs
+enable multiple layered whole-program refinement proofs
 within a single unifying theory and automate this process with tool support.
 While many of the verification techniques available in \civl appear in
 the literature, \civl is the first to make sound, joint use of them to
 support multiple layers of refinement. 
 
-Below, we first discuss approaches for refinement in the literature. 
-We then put \civl and other techniques in context by contrasting them
-on \civl's design driver, our six-layer refinement proof of a
-concurrent mark-sweep garbage collector~\cite{gc-techreport}.
-We conclude with a brief discussion of techniques in the literature
-for combatting the complexity of concurrent program verification. 
-These techniques are orthogonal and complementary to \civl.
-More importantly, they can be aided significantly by \civl's whole program
-refinement capability, as further complexity reduction can be achieved
-by applying these techniques to a more abstract, simpler program. 
-
-{\bf: Refinement Approaches in the Literature}
-
+\subsection{Refinement-oriented verification}
 Atomic action specifications have been explored by the
 \calvin~\cite{FlanaganFQS05,FreundQ04} verifier previously. 
 \civl makes a distinction between preemptive and cooperative
@@ -66,7 +52,7 @@ are automatically replaced by atomic actions, thereby lowering the cost of both 
 The non-interference reasoning in \QED is even more limited than \calvin.
 \QED supports only global invariants and does not support rely-guarantee reasoning or linear variables.
 
-Liang et al.~\cite{LiangRGSim}) present a method for verifying that procedure
+Liang et al.~\cite{LiangRGSim} present a method for verifying that procedure
 bodies refine atomic specifications. 
 The key verification approach is
 rely-guarantee reasoning and the refinement (simulation) relation between
@@ -129,12 +115,39 @@ cognitive load to the user.
 It also makes it difficult to structure a
 proof along the syntactic structure of the imperative program. 
 
-{\bf: Discussion in the Design Driver Context} 
+\subsection{Reasoning about concurrency}
+In this section, we briefly discuss foundational techniques
+for combating the complexity of concurrent program verification. 
+\civl has common ideas with tools and formalisms
+discussed in this section, but the primary purpose of the latter 
+is the verification of safety properties of a {\em single} concurrent program rather than refinement. 
+These techniques are orthogonal and complementary to \civl.
+Refinement in \civl is orthogonal to these techniques and can potentially be combined with them.
+Conversely, these techniques can be aided significantly by \civl's 
+ability to connect a complex concurrent program to a simpler abstraction.
 
+VCC~\cite{VCC} is a tool for verifying concurrent C programs.  
+Chalice~\cite{LM09} is a language and modular verification tool for concurrent programs. 
+VCC does not support refinement and Chalice does so only for sequential programs.  
+VCC and Chalice base their invariant reasoning on objects, object ownership, and type invariants. 
+Invariant reasoning in \civl is more primitive and based on predicates in yield statements. 
+Although the approach in VCC and Chalice is more convenient when applicable, \civl's approach is more flexible. 
+VCC and Chalice can reason sequentially about objects exclusively owned by a thread;
+\civl accomplishes the same using linear variables.
+Neither VCC nor Chalice support movers and reduction reasoning.
+
+Concurrent separation logic~\cite{OHearn07} reasons about concurrency without 
+explicitly checking for non-interference between threads. 
+Recently, tools based on this logic that blend in explicit non-interference reasoning have been developed~\cite{SAGL,RGSep}. 
+\civl's combination of interference checking and linear variables is
+an extreme example of this trend, is very general and agnostic. We supply very primitive abstractions and let programmers mix and
+match these abstractions freely to encode the non-interference
+reasoning style of their choice. 
+
+\subsection{Discussion}
 We now put atomicity refinement techniques from the literature and
 \civl in context by presenting an overview of our design
-driver, the stepwise refinement of a garbage
-collector~\cite{gc-techreport}.
+driver, the stepwise refinement of a garbage collector~\cite{gc-techreport}.
 The refinement proof spans six levels of abstraction. 
 Each of refinement proof relating two consecutive levels is made feasible by a different
 blend of the techniques in \civl. 
@@ -163,7 +176,7 @@ garbage collector proof of Liang et al.~\cite{LiangRGSim} (which
 for these top few levels of our proof, rely-guarantee and separation-logic-based
 approaches would have also performed well. 
 One important distinction is \civl's capability to use location invariants rather than pure rely-guarantee reasoning.
-This helped interactive proof at the top levels significantly;
+This helped interactive proof at the top levels significantly.
 For the mark phase of the garbage collector, we made critical use of different invariants at different
 locations in procedure bodies. 
 While the same non-interference argument could have been encoded in
@@ -197,7 +210,7 @@ To sum up, while existing techniques in the literature have as their
 ``sweet spot'' a few of the refinement proofs in our garbage collector
 proof, they run into difficulty in others. 
 More critically, they
-do not facilitate stacking refinement proofs, which is required for stepwise
+do not facilitate layering refinement proofs, which is required for stepwise
 refinement. 
 Using a realistic top-down proof as \civl's design driver led us to
 combine in one tool and consistent theory, the verification techniques
@@ -210,26 +223,3 @@ verification, and encode the component techniques, e.g., linearity, in
 assertion-based verification. 
 %%%%%%%%% SHAZ PLEASE REFINE OR REMOVE THIS FINAL SENTENCE %%%%%%%%%%%
 
-{\bf Combatting Verification Complexity: Orthogonal Approaches} 
-
-\civl has common ideas with tools and formalisms
-discussed in this section, but the primary purpose of the latter 
-is the verification of a {\em single} concurrent program, not refinement. 
-
-VCC~\cite{VCC} is a tool for verifying concurrent C programs.  
-Chalice~\cite{LM09} is a language and modular verification tool for concurrent programs. 
-VCC does not support refinement and Chalice does so only for sequential programs.  
-VCC and Chalice base their invariant reasoning on objects, object ownership, and type invariants. 
-Invariant reasoning in \civl is more primitive and based on predicates in yield statements. 
-Although the approach in VCC and Chalice is more convenient when applicable, \civl's approach is more flexible. 
-VCC and Chalice can reason sequentially about objects exclusively owned by a thread;
-\civl accomplishes the same using linear variables.
-Neither VCC nor Chalice support movers and reduction reasoning.
-
-Concurrent separation logic~\cite{OHearn07} reasons about concurrency without 
-explicitly checking for non-interference between threads. 
-Recently, tools based on this logic that blend in explicit non-interference reasoning have been developed~\cite{SAGL,RGSep}. 
-\civl's combination of interference checking and linear variables is
-an extreme example of this trend, is very general and agnostic. We supply very primitive abstractions and let programmers mix and
-match these abstractions freely to encode the non-interference
-reasoning style of their choice. 
