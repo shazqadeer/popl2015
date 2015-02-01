@@ -246,7 +246,7 @@ $
 \label{fig:operational-semantics2}
 \end{figure}
 
-In this paper, we will formalize our verification method on a core concurrent programming language \civl.
+In this paper, we will formalize our verification method on a core concurrent programming language, \civl.
 In this section, we present the syntax and operational semantics of our language.
 Figure~\ref{fig:definitions} contains basic definitions.
 Figure~\ref{fig:syntax} uses these definitions to define the syntax of a (dynamically executing) \civl program.
@@ -377,7 +377,7 @@ The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr
 The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
 The expression $e$ is a loop invariant and the expression $\alpha$ is a summary for failure-free executions of the loop that do not go 
 through a yield statement (Section~\ref{sec:refinement}).
-The condtional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ statements cannot refer to global variables.
+The conditional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ statements cannot refer to global variables.
 
 A finite $\trans$-execution from $\Prog$ is a sequence of programs $\Prog_0,\Prog_1,\ldots,\Prog_n$ such that $\Prog_0 = \Prog$ 
 and $\Prog_i \trans \Prog_{i+1}$ for all $0 \leq i < n$.
