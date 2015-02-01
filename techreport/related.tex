@@ -8,12 +8,12 @@ via intermediate descriptions, down to a detailed implementation in terms of pri
 at the level above, which requires a collection of correlated
 whole-program refinement proofs. 
 By contrast, existing work on atomicity refinement for concurrent software is
-targeted at a single refinement proof, and not between two whole
-programs, rather, between procedure implementations and
-specifications. 
+targeted at a single refinement proof between procedure implementations and
+specifications, and not between two whole programs.
 The \civl theory and verification tool are the first to
 enable multiple layered whole-program refinement proofs
-within a single unifying theory and automate this process with tool support.
+within a single unifying theory and automate this process with
+interactive tool support.
 While many of the verification techniques available in \civl appear in
 the literature, \civl is the first to make sound, joint use of them to
 support multiple layers of refinement. 
@@ -118,12 +118,12 @@ proof along the syntactic structure of the imperative program.
 \subsection{Reasoning about concurrency}
 In this section, we briefly discuss foundational techniques
 for combating the complexity of concurrent program verification. 
-\civl has common ideas with tools and formalisms
-discussed in this section, but the primary purpose of the latter 
-is the verification of safety properties of a {\em single} concurrent program rather than refinement. 
-These techniques are orthogonal and complementary to \civl.
+\civl as well as atomicity refinement verification discussed in the previous
+section have common ideas with tools and formalisms
+discussed in this section. But the primary purpose of the techniques
+discussed here is the verification of safety properties of a {\em single} concurrent program rather than refinement. 
 Refinement in \civl is orthogonal to these techniques and can potentially be combined with them.
-Conversely, these techniques can be aided significantly by \civl's 
+Conversely, these techniques can be aided by \civl's 
 ability to connect a complex concurrent program to a simpler abstraction.
 
 VCC~\cite{VCC} is a tool for verifying concurrent C programs.  
@@ -140,9 +140,10 @@ Concurrent separation logic~\cite{OHearn07} reasons about concurrency without
 explicitly checking for non-interference between threads. 
 Recently, tools based on this logic that blend in explicit non-interference reasoning have been developed~\cite{SAGL,RGSep}. 
 \civl's combination of interference checking and linear variables is
-an extreme example of this trend, is very general and agnostic. We supply very primitive abstractions and let programmers mix and
-match these abstractions freely to encode the non-interference
-reasoning style of their choice. 
+an extreme example of this trend, is very general and technique-agnostic. 
+We supply very primitive abstractions and let programmers mix and
+match these abstractions freely to encode the non-interference reasoning style of their choice. 
+
 
 \subsection{Discussion}
 We now put atomicity refinement techniques from the literature and
@@ -151,34 +152,34 @@ driver, the stepwise refinement of a garbage collector~\cite{gc-techreport}.
 The refinement proof spans six levels of abstraction. 
 Each of refinement proof relating two consecutive levels is made feasible by a different
 blend of the techniques in \civl. 
-While other refinement techniques have also used garbage collectors as
-case studies, the refinement tasks tackled there bridge only one or two of the levels in 
-our refinement proof\footnote{A more specific discussion of this point
-  can be found in the technical report on the verification of the
-  garbage collector\cite{gc-techreport}.} and only target the refinement verification
-challenges apparent at those levels of the proof. 
+% While other refinement techniques have also used garbage collectors as
+% case studies, the refinement tasks tackled there bridge only one or two of the levels in 
+% our refinement proof\footnote{A more specific discussion of this point
+%   can be found in the technical report on the verification of the
+%   garbage collector\cite{gc-techreport}.} and only target the refinement verification
+% challenges apparent at those levels of the proof. 
 
 The topmost-level description of the garbage collector provides an
 idealized, abstract view of memory. 
 At this level, none of the lowest-level implementation variables are
 visible -- variable hiding has been used to project them away. 
 In the top few levels of the garbage collector proof, invariant-based
-non-interference reasonig was the key tool we used, while reduction
+non-interference reasoning was our primary tool, while reduction
 simplified verification by enabling us to use coarser atomic actions and fewer
 location invariants.  
 Linear variables were used throughout the proof to model the distinct
 thread identifiers for the garbage collector thread and mutator
-threads, but were most instrumental in encoding the fact that during
-the initialization phase of the program there is no concurrency.
-As exemplified by the
-garbage collector proof of Liang et al.~\cite{LiangRGSim} (which
-{\em assumes} the atomicity of actions in the lower levels our proof),
-for these top few levels of our proof, rely-guarantee and separation-logic-based
-approaches would have also performed well. 
-One important distinction is \civl's capability to use location invariants rather than pure rely-guarantee reasoning.
+threads, but were most instrumental in encoding single-threaded
+execution in the initialization phase of the program. 
+For these top few levels of our proof, rely-guarantee and separation-logic-based
+approaches would have also performed well, as demonstrated by the
+garbage collector proof of Liang et al.~\cite{LiangRGSim}, where
+the atomicity of actions in the lower levels our proof is {\em
+  assumed} but not verified.
+An important distinguishing capability in \civl is being able to use location invariants rather than pure rely-guarantee reasoning.
 This helped interactive proof at the top levels significantly.
-For the mark phase of the garbage collector, we made critical use of different invariants at different
-locations in procedure bodies. 
+For the mark phase of the garbage collector, we made critical use of
+different invariants at different locations in procedure bodies. 
 While the same non-interference argument could have been encoded in
 rely-guarantee reasoning, as we had done ourselves in an earlier
 version of our proof, 
@@ -186,18 +187,13 @@ it would have required the use of several additional auxiliary shared variables.
 Invariants, rely and guarantee conditions referring to such auxiliary
 variables throughout the program made interactive invariant reasoning more difficult to manage. 
 
-In the lowest few levels of the garbage collector proof, where
+In the lower levels of the garbage collector proof, where
 correctness of concurrent data structures and synchronization primitives were proven, we made
 relatively little use of location invariants, and made heavier use of
-linear variables and reduction.
-Our proof at all levels was aided significantly because
-reduction (which also used linearity while proving commutativity)
-enabled us to reason about coarser atomic blocks, fewer interleaving
-locations, and therefore fewer location invariants and fewer 
-yield-to-yield refinement checks. 
-But in the lower levels of the proof, reduction and variable hiding were our primary
-tools. 
-For one of these lower-leve refinement tasks, for instance, when verifying the correctness of a
+linear variables and reduction. 
+We also used variable hiding heavily to hide low-level implementation
+variables. 
+For lower-level refinement tasks, for instance, when verifying the correctness of a
 lock-protected concurrently-accessed stack, ownership
 arguments, separation logic, or \QED-style atomicity would have been
 sufficient. 
@@ -206,7 +202,7 @@ reasoning via invariants and linear variables was indispensable,
 atomicity alone, or ownership or separation logic arguments alone
 would have run into difficulty. 
 
-To sum up, while existing techniques in the literature have as their
+While existing techniques in the literature have as their
 ``sweet spot'' a few of the refinement proofs in our garbage collector
 proof, they run into difficulty in others. 
 More critically, they
@@ -217,9 +213,12 @@ combine in one tool and consistent theory, the verification techniques
 of linearity, reduction and non-interference reasoning in the service
 of a modular refinement proof directed by the syntactic structure of
 the imperative concurrent program. 
-For this purpose, we also devised
-novel ways to combine automata-theoretic and assertion-based
-verification, and encode the component techniques, e.g., linearity, in
-assertion-based verification. 
-%%%%%%%%% SHAZ PLEASE REFINE OR REMOVE THIS FINAL SENTENCE %%%%%%%%%%%
+
+%%% SHAZ, I REMOVED THIS SECONDARY NOVELTY POINT, SINCE IT IS MADE
+%%% ELSEWHERE IN THE PAPER TOO.
+% For this purpose, we also devised
+% novel ways to combine automata-theoretic and assertion-based
+% verification, and encode the component techniques, e.g., linearity, in
+% assertion-based verification.  
+% %%%%%%%%% SHAZ PLEASE REFINE OR REMOVE THIS FINAL SENTENCE %%%%%%%%%%%
 
