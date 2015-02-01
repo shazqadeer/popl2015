@@ -393,7 +393,7 @@ Rules \textsc{Async1} and \textsc{Async2} together handle $\async{P}$ and are si
 to rules \textsc{Call1} and \textsc{Async2} respectively.
 Rules \textsc{Seq}, \textsc{Ite}, and \textsc{While} rewrite the statement recursively;
 the loop annotation in \textsc{While} may be rewritten arbitrarily.
-Rule \textsc{Procedure} rewrits the body of a procedure recursively and allows the procedure
+Rule \textsc{Procedure} rewrites the body of a procedure recursively and allows the procedure
 specifications to be rewritten arbitrarily.
 Rules \textsc{StackFrame} rewrites only the statement in the stack frame and leaves other components unchanged.
 
@@ -1245,13 +1245,13 @@ The rule \textsc{StackFrame} checks a stack frame $(P, L, \stmt)$ by checking $\
 The precondition $\phi$ of the stack frame may be specialized to the local state $L$ to obtain the precondition for $\stmt$.
 The rule \textsc{Procedure} checks the body of the procedure $P$ with
 the precondition $(P \not\in \dom(\Refines),\phi)$ and postcondition $(\true,\psi)$,
-where $\phi$ and $\psi$ are the preconditin and postconditions of $P$ respectively.
+where $\phi$ and $\psi$ are the precondition and postconditions of $P$ respectively.
 This check ensures that if $P$ has an atomic action specification, the body refines it appropriately.
 The rule also checks that the body of $P$ modifies only those thread-local variables mentioned in the 
 specification of $P$ and that the precondition and postcondition of $P$ does not refer to procedure-local variables.
 
 The rules \textsc{Weaken}, \textsc{Frame1}, and \textsc{Frame2} are standard.
-The rule \textsc{While}, \textsc{Ite}, and \textsc{Seq} extend the analogous Floyd-Hoare rules with refinement checking.
+The rules \textsc{While}, \textsc{Ite}, and \textsc{Seq} extend the analogous Floyd-Hoare rules with refinement checking.
 The rule \textsc{While} checks that the body of the loop stutters and concludes that the loop itself stutters.
 The rule \textsc{Ite} checks that both branches behave in the same way.
 The rule \textsc{Seq} for $\stmt_1;\stmt_2$ chains the refinement behavior of $\stmt_1$ with that of $\stmt_2$.
