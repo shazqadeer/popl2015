@@ -14,7 +14,7 @@ The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a
 with no benchmark requiring more than a few seconds.
 
 \subsection{Garbage collector}
-This combination of techniques helps manage the complexity of our verification of a realistic GC algorithm.  
+We have used \civl to design and verify a realistic concurrent garbage collection (GC) algorithm.  
 In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
 it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
 These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
@@ -26,6 +26,81 @@ we used six levels of refinement to help hide low-level details from the high-le
 We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
 
 The GC verification takes 60 seconds on the same 4-core Windows PC, generating and verifying 667 proof obligations. 
-Should we provide more statistics about these proof obligations, e.g., their breakdown into commutativity and refinement checks?
-Should we mention that verification time is dominated by the theorem prover; the time taken for the automata-theoretic simulation check is trivial.
+The bulk of this time, 54 seconds, is taken by the verification of the refinement checks from Section~\ref{sec:refinement}.
+The linear type checking, the yield safety checks, and the commutativity checks take the rest of the time and are insignificant in comparison.
 
+\subsection{Discussion of the proof}
+We now put atomicity refinement techniques from the literature and
+\civl in context by presenting an overview of our design
+driver, the stepwise refinement of a garbage collector~\cite{gc-techreport}.
+The refinement proof spans six levels of abstraction. 
+Each of refinement proof relating two consecutive levels is made feasible by a different
+blend of the techniques in \civl. 
+% While other refinement techniques have also used garbage collectors as
+% case studies, the refinement tasks tackled there bridge only one or two of the levels in 
+% our refinement proof\footnote{A more specific discussion of this point
+%   can be found in the technical report on the verification of the
+%   garbage collector\cite{gc-techreport}.} and only target the refinement verification
+% challenges apparent at those levels of the proof. 
+
+The topmost-level description of the garbage collector provides an
+idealized, abstract view of memory. 
+At this level, none of the lowest-level implementation variables are
+visible -- variable hiding has been used to project them away. 
+In the top few levels of the garbage collector proof, invariant-based
+non-interference reasoning was our primary tool, while reduction
+simplified verification by enabling us to use coarser atomic actions and fewer
+location invariants.  
+Linear variables were used throughout the proof to model the distinct
+thread identifiers for the garbage collector thread and mutator
+threads, but were most instrumental in encoding single-threaded
+execution in the initialization phase of the program. 
+For these top few levels of our proof, rely-guarantee and separation-logic-based
+approaches would have also performed well, as demonstrated by the
+garbage collector proof of Liang et al.~\cite{LiangRGSim}, where
+the atomicity of actions in the lower levels our proof is {\em assumed} but not verified.
+An important distinguishing capability in \civl is being able to use location invariants rather than pure rely-guarantee reasoning.
+This helped interactive proof at the top levels significantly.
+For the mark phase of the garbage collector, we made critical use of
+different invariants at different locations in procedure bodies. 
+While the same non-interference argument could have been encoded in
+rely-guarantee reasoning, as we had done ourselves in an earlier
+version of our proof, 
+it would have required the use of several additional auxiliary shared variables. 
+Invariants, rely and guarantee conditions referring to such auxiliary
+variables throughout the program made interactive invariant reasoning more difficult to manage. 
+
+In the lower levels of the garbage collector proof, where
+correctness of concurrent data structures and synchronization primitives were proven, we made
+relatively little use of location invariants, and made heavier use of
+linear variables and reduction. 
+We also used variable hiding heavily to hide low-level implementation
+variables. 
+For lower-level refinement tasks, for instance, when verifying the correctness of a
+lock-protected concurrently-accessed stack, ownership
+arguments, separation logic, or \QED-style atomicity would have been
+sufficient. 
+But, at the higher levels of our proof, where non-interference
+reasoning via invariants and linear variables was indispensable, 
+atomicity alone, or ownership or separation logic arguments alone
+would have run into difficulty. 
+
+While existing techniques in the literature have as their
+``sweet spot'' a few of the refinement proofs in our garbage collector
+proof, they run into difficulty in others. 
+More critically, they
+do not facilitate layering refinement proofs, which is required for stepwise
+refinement. 
+Using a realistic top-down proof as \civl's design driver led us to
+combine in one tool and consistent theory, the verification techniques
+of linearity, reduction and non-interference reasoning in the service
+of a modular refinement proof directed by the syntactic structure of
+the imperative concurrent program. 
+
+%%% SHAZ, I REMOVED THIS SECONDARY NOVELTY POINT, SINCE IT IS MADE
+%%% ELSEWHERE IN THE PAPER TOO.
+% For this purpose, we also devised
+% novel ways to combine automata-theoretic and assertion-based
+% verification, and encode the component techniques, e.g., linearity, in
+% assertion-based verification.  
+% %%%%%%%%% SHAZ PLEASE REFINE OR REMOVE THIS FINAL SENTENCE %%%%%%%%%%%

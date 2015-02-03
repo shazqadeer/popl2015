@@ -249,7 +249,7 @@ $
 In this paper, we will formalize our verification method on a core concurrent programming language, \civl.
 In this section, we present the syntax and operational semantics of our language.
 Figure~\ref{fig:definitions} contains basic definitions.
-Figure~\ref{fig:syntax} uses these definitions to define the syntax of a (dynamically executing) \civl program.
+Figure~\ref{fig:syntax} uses these definitions to define the syntax of a \civl program.
 
 Informally, a \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
 thread-local variables that are shared across procedures, and local variables inside a procedure.
@@ -275,8 +275,10 @@ Procedures do not have parameters, but parameters may be modeled using thread-lo
 {\bf Actions.}
 $\actions$ maps an action name $A \in \ActionName$ to a tuple $(\rho,\alpha,m)$.
 Actions are used inside procedure bodies to access global and thread-local variables.
-The predicate $\rho$ is the gate and the predicate $\alpha$ is the transition relation of $A$;
-$\rho$ is a predicate over $\Store$ and $\alpha$ is a predicate over $\Store \times \Store$.
+The predicate $\rho$ over $\Store$ is the gate and the predicate $\alpha$ over $\Store \times \Store$ 
+is the transition relation of $A$.
+If the gate $\rho$ does not hold on the current state, the program fails;
+otherwise, the program makes progress by executing the action $A$ based on the transition relation $\alpha$.
 Finally, $m$ is one of four values in $\{B,R,L,N\}$;
 it denotes the commutativity type of the action, $B$ for both mover, $R$ for right mover, $L$ for left mover, 
 and $N$ for non mover~\cite{FlanaganFLQ08}. 
@@ -292,11 +294,6 @@ The programmer provides a function $\Perm$ from $\Value$ to $2^\Value$
 and the linear type checker (Section~\ref{sec:linearity}) enforces the invariant that 
 different available variables contain distinct values and 
 the sets $\Perm(v)$ for values $v$ contained in available variables are always pairwise disjoint.
-It is often convenient to collect the permissions in a set of available variables.
-To that end, we define the function $\Collect$.
-Given a partial map $\pi$ from $\VarName$ to $\Value$ and a set $X \subseteq \dom(\pi)$,
-let $\Collect(\pi,X)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X\}$.
-For any multiset $\Lambda$ over $\Value$, we also define $\IsSet(\Lambda)$ be true iff $\Lambda$ is a set.
 
 \noindent
 {\bf Global store.}
@@ -354,6 +351,8 @@ The statement $\yield{e,\lins}$ contains a predicate $e$ and the linear permissi
 The yield predicate $e$ is expected to be established by the executing thread and preserved by other threads;
 the linear permissions $\lins$ are expected to be available as long as the control of the thread
 is at the yield statement.
+The yield statement is the mechanism by which the programmer specifies the cooperative semantics over which 
+the refinement check is performed.
 The statement $\call{A}$ invokes the action $A$.
 Suppose $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins, \lins')$.
 If $\rho$ does not hold, the statement $\call{A}$ fails, 
@@ -385,7 +384,11 @@ An infinite $\trans$-execution from $\Prog$ is defined similarly.
 We write $\Safe(\Prog)$ if $\Prog$ cannot fail in one step (by executing the rule \textsc{Fail}).
 We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
 
-Figure~\ref{fig:syntax} also defines the subset $\mathit{YieldingThread}$ of threads and subsets 
+\subsection{Definitions}
+\label{sec:definitions}
+We conclude this section by presenting a few definitions of concepts that are used in Section~\ref{sec:verification} to formalize
+our verification method.
+Figure~\ref{fig:syntax} defines the subset $\mathit{YieldingThread}$ of threads and subsets 
 $\YProgram$ and $\CProgram$ of $\Program$.
 A yielding thread in $\mathit{YieldingThread}$ is one that is waiting to execute at a yield statement.
 A program in $\YProgram$ is one in which all threads except at most one thread are yielding threads.
@@ -413,11 +416,6 @@ We write $\Cooperative(\Prog)$ if for each infinite $\ytrans$-execution $\Prog \
 starting from $\Prog$, there is some $i \geq 0$ such that $\Prog_i \in \CProgram$.
 We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
 
-\subsection{Definitions}
-\label{sec:definitions}
-We conclude this section by presenting a few definitions of concepts that are used in Section~\ref{sec:verification} to formalize
-our verification method.
-
 A predicate $\rho$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma \in \Store$
 and $v \in \Value$, if $\sigma \in \rho$ then $\sigma[x \rightarrow v] \in \rho$.
 A transition relation $\alpha$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma,\sigma' \in \Store$
@@ -440,5 +438,10 @@ set $\{(\sigma, \sigma') \mid \sigma \in \rho \Rightarrow (\sigma,\sigma') \in \
 We let $\rho \circ \alpha$ denote the relation obtained by restricting the domain of $\alpha$ to $\rho$.
 Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the codomain of $\alpha$ to $\rho$.
 We also sometimes use $\false$ to represent the empty set of states or the empty set of transitions.
-
 Given a relation $R$ (over a pair of sets), we denote the domain of $R$ by $\dom(R)$ and the codomain of $R$ by $\cod(R)$.
+
+It is often convenient to collect the permissions in a set of available variables.
+To that end, we define the function $\Collect$.
+Given a partial map $\pi$ from $\VarName$ to $\Value$ and a set $X \subseteq \dom(\pi)$,
+let $\Collect(\pi,X)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X\}$.
+For any multiset $\Lambda$ over $\Value$, we also define $\IsSet(\Lambda)$ be true iff $\Lambda$ is a set.

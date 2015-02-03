@@ -8,11 +8,10 @@
 \usepackage{graphicx}
 \usepackage[latin1]{inputenc}
 \usepackage{amsmath,amsfonts,amssymb}
-\usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
-\usepackage{algorithm}
 \usepackage{url}
-\usepackage{amsmath, amsthm, amssymb}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{amsmath,amssymb}
 \usepackage{color}
 \usepackage{fancyvrb}
 \usepackage{mathpartir}
@@ -27,12 +26,6 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
-
-\theoremstyle{remark}
-\newtheorem{example}{Example}
-
-\theoremstyle{definition}
-\newtheorem{definition}{Definition}
 
 \newcommand{\calvin}{{\sc calvin}\xspace}
 \newcommand{\QED}{{\sc qed}\xspace}
@@ -59,7 +52,7 @@
 \input{macros}
 
 \begin{abstract}
-We present \civl, a language and verifier for concurrent programs based on automated and refinement reasoning.  
+We present \civl, a language and verifier for concurrent programs based on automated and modular refinement reasoning.  
 \civl supports reasoning about a concurrent program at many levels of abstraction. 
 Atomic actions in a high-level description are refined to fine-grain and optimized lower-level implementations. 
 Modular specifications and proof annotations, such as location invariants and procedure pre- and post-conditions, 

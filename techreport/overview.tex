@@ -54,8 +54,7 @@ procedure SetColorLocked(linear tid:Tid,
 \label{fig:ysa}
 \end{figure}
 
-\civl supports the verification of refinement of atomic action specifications for procedures. 
-We illustrate this technique on the program in Figure~\ref{fig:reft},
+We present an overview of our approach to refinement on the program in Figure~\ref{fig:reft},
 a simplified version of the write barrier in a concurrent garbage collector (GC).
 In a concurrent GC, a color (either \exC{WHITE}, \exC{GRAY}, or \exC{BLACK})
 is associated with each object on the heap.  
@@ -133,7 +132,7 @@ the mover types {\tt right}, {\tt left}, and {\tt both}.
 In this case, the only mover type is {\tt atomic} which does not require any verification.
 The tradeoff is that a yield statement accompanied with an appropriate predicate
 must be inserted before every invocation of an atomic action.
-We have observed that in many concurrent programs, this tradeoff is inappropriate for two reasons.
+We have observed that in many concurrent programs, this tradeoff is counterproductive for two reasons.
 First, the annotation burden goes up because sophisticated ghost variables may need to be introduced in the 
 program semantics.\footnote{Well-scoped location invariants that cannot refer to the state of other threads are known to be incomplete, 
 both in theory and in practice.}

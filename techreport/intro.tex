@@ -45,7 +45,7 @@ on an abstraction of $P$ in which each atomic action of $P$ is represented by on
 The mover types themselves are verified separately and automatically using an automated theorem prover~\cite{MouraB08}.
 
 To address the second problem that refinement verification typically requires invariants about the program execution, 
-\civl allows the programmer to specify location-specific invariants, attached either to a yield statement
+\civl allows the programmer to specify location invariants, attached either to a yield statement
 or to a procedure as its precondition or postcondition.
 Each location invariant must be correct for all executions and must continue to hold in spite of potential interference from concurrently executing threads.
 We build upon classical work~\cite{OwickiG76,Jones83} on reasoning about non-interference
@@ -71,5 +71,5 @@ We conclude this section by summarizing the novel features of the \civl verifier
 \begin{itemize}
 \item Automated refinement checking of atomic action specifications against imperative code.
 \item A combination of automata-theoretic checking based on simulation relations and logical checking based on verification conditions.
-\item Powerful and flexible invariant reasoning based on location-specific invariants and linear variables.
+\item Powerful and flexible invariant reasoning based on location invariants and linear variables.
 \end{itemize}

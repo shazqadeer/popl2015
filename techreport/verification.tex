@@ -297,7 +297,7 @@ In this section, we take a closer look at the judgment
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
 In this judgment, 
 $\Refines \in \ProcName \pf \ActionName$ is a partial function from procedure names to action names,
-$\HiddenProcs \in 2^{\ProcName}$ is a procedure names,
+$\HiddenProcs \in 2^{\ProcName}$ is a set of procedure names,
 $\HiddenVars \in 2^\Global$ is a set of global variables,
 and $\HiddenActions \in 2^{\ActionName}$ is a set of action names.
 The map $\Refines$ indicates for a procedure $P \in \dom(\Refines)$ the action $\Refines(P)$ 
@@ -321,8 +321,8 @@ Rule \textsc{Program} first checks sanity conditions involving $\Refines$, $\Hid
 and $\HiddenActions$.  These include checks that $\dom(\Refines)$ is a subset of $\HiddenProcs$,
 $\cod(\Refines)$ is disjoint from $\HiddenActions$, and the atomic actions that are 
 available in the abstract program do not access any hidden variable in $\HiddenVars$.
-Next, it connects actions, procedure bodies, and global state in the concrete and the abstract program.
-Note that hidden procedures, global variables, and actions are unconstrained in the abstract program since they will not be used.
+Next, it connects actions, procedure bodies, and global state in the concrete and the abstract program;
+the hidden procedures, global variables, and actions are unconstrained in the abstract program.
 Next, it checks that every action in $\cod(\Refines)$ has a gate 
 that is independent of procedure-local variables and a transition relation that leaves 
 procedure-local variables unchanged.  
@@ -379,7 +379,7 @@ This case is handled by \textsc{Thread1} by erasing the sub-stack.
 In the latter case, if $b_i$ is false then \textsc{Thread1} erases the sub-stack;
 otherwise, if $b_i$ is true then \textsc{Thread2} replaces the sub-stack with $\call{\Refines(P)}$.
 
-We discuss the remainder of the rules top down.
+We discuss the remainder of the rules starting from the top of the figure.
 Rule \textsc{Atomic} ensures that the abstract program only uses actions not in $\HiddenActions$ 
 but otherwise leaves $\call{A}$ unchanged.
 Rule \textsc{Yield} allows the annotations associated with the yield statement to be rewritten arbitrarily.
@@ -390,7 +390,7 @@ leaving the statement unchanged if $P \not \in \HiddenProcs$,
 rewriting to $\skipstmt$ if $P \in \HiddenProcs \setminus \dom(\Refines)$,
 and rewriting to $\call{\Refines(P)}$ if $P \in \dom(\Refines)$.
 Rules \textsc{Async1} and \textsc{Async2} together handle $\async{P}$ and are similar 
-to rules \textsc{Call1} and \textsc{Async2} respectively.
+to rules \textsc{Call1} and \textsc{Call2} respectively.
 Rules \textsc{Seq}, \textsc{Ite}, and \textsc{While} rewrite the statement recursively;
 the loop annotation in \textsc{While} may be rewritten arbitrarily.
 Rule \textsc{Procedure} rewrites the body of a procedure recursively and allows the procedure
@@ -858,11 +858,6 @@ To address this problem, we require additionally
 that the program is cooperative, that is, it yields infinitely often in any infinite execution.
 The program in the example above is not cooperative.
 
-Given a program $\Prog \in \CProgram$, proving $\Cooperative^*(\Prog)$ 
-is similar to proving termination of sequential program.
-The basic idea is to provide a loop with a measure function $f$ that decreases for each yield-free and failure-free 
-execution of the body of the loop.
-
 Of course, the judgment $\jy \Prog$ depends on the mover annotations on the atomic actions being correct.
 We capture this requirement in the judgmen $\CommutativitySafe(\Prog)$.
 Formally, the program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
@@ -871,7 +866,9 @@ $\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$
 then all of the following conditions are satisfied:
 \begin{itemize}
 \item {\bf Commutativity.}
-If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+This condition checks that if action $A_1$ is a right mover or action $A_2$ is a left mover,
+then the effect of executing $A_1$ followed by $A_2$ in two different threads can be achieved by executing $A_2$ followed by $A_1$.
+Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
 \[
 \scriptsize{
 \begin{array}{l}
@@ -900,7 +897,11 @@ If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \]
 
 \item {\bf Forward preservation.}
-If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+This condition checks that if $A_1$ is a right mover or $A_2$ is a left mover,
+the failure of $A_2$ immediately after the execution of $A_1$ is sufficient to imply 
+that $A_2$ must also fail before the exection of $A_1$.
+This condition is equivalent to forward preservation of the gate of $A_2$ by the execution of $A_1$.
+Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
 \[
 \scriptsize{
 \begin{array}{l}
@@ -927,7 +928,11 @@ If $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \]
 
 \item {\bf Backward preservation.}
-If $m_1 \in \{B,L\}$, then 
+This condition checks that if $A_1$ is a left mover and $A_2$ 
+is an arbitrary action, then the failure of $A_2$ immediately before the execution of $A_1$ 
+is sufficient to imply that $A_2$ must also fail immediately after the execution of $A_1$.
+This condition is equivalent to backward preservation of the gate of $A_2$ by the execution of $A_1$.
+Formally, if $m_1 \in \{B,L\}$, then 
 \[
 \scriptsize{
 \begin{array}{l}
@@ -954,6 +959,7 @@ If $m_1 \in \{B,L\}$, then
 \]
 
 \item {\bf Nonblocking.}
+This condition checks that if $A_1$ is a left mover, then it must be non-blocking.
 If $m_1 \in \{B, L\}$, then
 $\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
 \end{itemize}
@@ -970,7 +976,7 @@ If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
 
 In this section, we formalize the judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 Together these judgments check that the body of each procedure $P$ in $\dom(\Refines)$ behaves like the atomic action $\Refines(P)$.
-Our strategy for $P$ is to check that along all paths in its body, there occurs exactly one atomic block 
+Our strategy for $P$ is to check that along all control paths in its body, there occurs exactly one atomic block 
 $\ablock{e,\lins}{\stmt}$ that is simulated by the atomic action $\Refines(P)$.
 All other atomic blocks before or after this unique block are simulated by the transition relation $\Havoc(\HiddenVars \cup \Local)$ 
 which allows procedure-local and hidden global variables to be modified arbitrarily but requires that other global variables and thread-local variables are not modified.
@@ -1287,7 +1293,7 @@ Since we are only interested in proving a simulation relation between the concre
 it is safe to leave unverified the gates at all other invocations of atomic actions which are present in both the concrete and abstract program.
 Finally, this rule verifies the postcondition $\psi$ from the precondition $\phi$ using the semantics of the atomic action.
 
-We now discuss the judgment $\InterferenceSafe(\Prog)$,
+We now move on to discuss the judgment $\InterferenceSafe(\Prog)$,
 where $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$. 
 Let $\Yields(\Prog)$ be the union of the following sets:
 \begin{itemize}
