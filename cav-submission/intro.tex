@@ -58,6 +58,10 @@ The correctness of an atomic action specification gives us a simple frame rule--
 by providing a linear type system~\cite{Wadler90lineartypes} that enables logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
 and disjoint memory~\cite{LahiriQW11}.
 
+Finally, \civl provides a simple module system. Modules areverified separately, soundly doing away with checks that pertain to cross-module interactions. 
+This feature is significant since commutativity checks and non-interference checks for location invariants are quadratic, whole program checks involving all pairs of yield locations and atomic blocks, or all pairs of actions from a program. 
+Using the module system, the number of checks is reduced; they become quadratic in the number of yields and atomic blocks {\em within each module} rather than the entire program. 
+
 We have implemented \civl as a conservative extension of the \boogie verifier.  
 We have used it to verify a collection of microbenchmarks and benchmarks from the 
 literature~\cite{Blumofe1999,ElmasQT09,ElmasTQ05,FarzanKP14,FlanaganQ03,Herlihy2008}. 
@@ -67,9 +71,13 @@ down to atomic actions corresponding to individual memory accesses.
 The level of granularity of the lowest-level implementation distinguishes this verification effort, 
 detailed in a technical report~\cite{gc-techreport}, from previous attempts in the literature. 
 
-We conclude this section by summarizing the novel features of the \civl verifier:
+We conclude this section by listing the novel techniques we developed within \civl to enable automated, whole-program stepwise refinement checking:
 \begin{itemize}
-\item Automated refinement checking of atomic action specifications against imperative code.
-\item A combination of automata-theoretic checking based on simulation relations and logical checking based on verification conditions.
-\item Powerful and flexible invariant reasoning based on location invariants and linear variables.
+\item Automated refinement checking of atomic action specifications against imperative code. 
+The whole-program refinement proof is decomposed to smaller refinement tasks following the program's syntactic structure, reducing the interactive and computational difficulty of the task. 
+\item Per-procedure simulation relations and mover-based reduction verified using a novel hybrid of automata-theoretic checking and logical checking based on verification conditions. These hybrid approaches provide \civl with more generality and combine the strengths of automata-theoretic and logical techniques. 
+\item Powerful and flexible non-interference reasoning based on combination of location invariants and linear variables.
+The human and computational proof-effort reduction brought about by these techniques is demonstrated in our garbage collector proof. 
+\item A module system that allows independent verification and sound composition of modules into larger modules, enabling different module boundaries at different levels of the refinement proof. 
+
 \end{itemize}
