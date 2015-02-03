@@ -1,0 +1,256 @@
+\section{Examples}
+\label{sec:examples}
+
+In this section, we present a collection of examples that illustrate
+specification and verification features supported by the \civl verifier.
+\subsection{Reasoning about interference}
+\label{sec:examples-interference}
+\begin{figure}
+\begin{verbatim}
+var x:int;
+\end{verbatim}
+\begin{verbatim}
+procedure p()
+  requires x >= 5;
+  ensures  x >= 8;
+{
+  yield x >= 5;  x := x + 1;
+  yield x >= 6;  x := x + 1;
+  yield x >= 7;  x := x + 1;
+}
+procedure q() { x := x + 3; }
+\end{verbatim}
+\caption{Program~1}
+\label{fig:ex1}
+\end{figure}
+
+We present an overview of the \civl language and verifier through a sequence of examples.
+Figure~\ref{fig:ex1} shows Program~1 containing a procedure {\tt p}
+executing concurrently with another procedure {\tt q}. 
+An execution of a \civl program is non-preemptive; a thread explicitly yields control to the
+scheduler via the {\tt yield} statement following which execution continues on a 
+nondeterministically chosen thread.
+The {\tt yield} statement has a predicate $\varphi$ attached to it.
+The yielding thread must establish $\varphi$ when it yields and the execution of other threads 
+must preserve $\varphi$; these two requirements in Owicki-Gries-style
+reasoning~\cite{OwickiG76} are usually known as {\em sequential correctness}
+and {\em non-interference}, respectively.
+To check these requirements, the \civl verifier creates verification conditions, whose number is at most
+quadratic in the number of yield statements in the program.
+For example, in Program~1 each yield predicate in {\tt p} must be checked against the action 
+{\tt x := x + 3} in {\tt q}.
+
+\begin{figure}
+\begin{verbatim}
+procedure yield_x(n:int)
+  requires x >= n;
+  ensures  x >= n;
+{
+  yield x >= n;
+}
+procedure p()
+  requires x >= 5;
+  ensures  x >= 8;
+{
+  call yield_x(5);  x := x + 1;
+  call yield_x(6);  x := x + 1;
+  call yield_x(7);  x := x + 1;
+}
+\end{verbatim}
+\caption{Program~2}
+\label{fig:ex2}
+\end{figure}
+
+{\bf From quadratic to linear verification conditions.}
+Figure~\ref{fig:ex2} shows Program~2, a variation of Program~1 in which the procedure {\tt yield\_x} 
+contains a single yield statement and {\tt p} calls {\tt yield\_x} instead of yielding directly.
+If the calls to {\tt yield\_x} are inlined in Program~2, then we will get Program~1.
+Both Program~1 and~2 are verifiable in \civl but the cost of verifying Program~2 is less because it has fewer yield statements.
+In fact, if it is possible to capture all interference in a concurrent program in a single yield predicate, 
+then the trick in Program~2 can be used to verify the program with a linear number of verification conditions.
+
+\begin{figure}
+\begin{verbatim}
+procedure yield_x()
+  ensures  x >= old(x);
+{
+  yield x >= old(x);
+}
+procedure p()
+  requires x >= 5;
+  ensures  x >= 8;
+{
+  call yield_x();  x := x + 1;
+  call yield_x();  x := x + 1;
+  call yield_x();  x := x + 1;
+}
+\end{verbatim}
+\caption{Program~3}
+\label{fig:ex3}
+\end{figure}
+
+{\bf Encoding rely-guarantee specifications.}
+Figure~\ref{fig:ex3} shows Program~3, yet another variation of Programs~1 and~2 which shows how to encode a rely-guarantee-style~\cite{Jones83} (two-state invariant)
+proof using \civl's one-state yield statements. 
+The standard rely-guarantee specification to prove the assertions in {\tt p} is that the environment of {\tt p} 
+may only increase {\tt x}.
+We can encode this in \civl by factoring out the yield statement in a separate procedure
+and then referring {\tt old(x)}, the value of {\tt x} when {\tt yield\_x} is
+entered. 
+
+
+\begin{figure}
+\begin{verbatim}
+type Tid;
+const nil: Tid;
+procedure Allocate() 
+  returns (linear tid:Tid);
+  ensures tid != nil;
+
+var a:[Tid]int;
+
+procedure main()
+{
+  while (true) {
+    var linear tid:Tid := Allocate();
+    async call P(tid);
+    yield true;
+  }
+}
+procedure P(linear tid: Tid)
+  requires tid != nil;
+  ensures a[tid] == old(a)[tid] + 1;
+{
+  var t:int := a[tid];
+  yield t == a[tid];
+  a[tid] := t + 1;
+}
+\end{verbatim}
+\caption{Program 4}
+\label{fig:ex5}
+\end{figure}
+
+\subsection{Linear variables}
+
+Program~4 in Figure~\ref{fig:ex5} introduces linear variables, a feature of \civl 
+that is useful for encoding disjointness among values contained in 
+different variables.  
+This example uses this feature for encoding the concept of an identifier 
+that is unique to each thread.
+Program~4 contains a shared global array {\tt a} indexed by an uninterpreted type {\tt Tid} 
+representing the set of thread identifiers.
+A collection of threads are executing procedure {\tt P} concurrently.
+The identifier of the thread executing {\tt P} is passed in as the parameter {\tt tid}.
+A thread with identifier {\tt tid} owns {\tt a[tid]} and can increment it without danger of interference.
+The yield predicate {\tt t == a[tid]} in {\tt P} indicates this expectation, yet it is not possible to prove it 
+unless the reasoning engine knows that the value of {\tt tid} in one thread is distinct 
+its value in a different thread.
+
+Instead of building a notion of thread identifiers into \civl, we provide a more 
+primitive and general notion of linear variables.
+The \civl type system ensures that values contained in linear variables cannot be duplicated.
+Consequently, the parameter {\tt tid} of distinct concurrent calls to {\tt P} are known to be distinct;
+the \civl verifier exploits this invariant while checking for non-interference.
+
+\begin{figure}
+\begin{verbatim}
+type lmap;
+function dom(lmap): [int]bool;
+function map(lmap): [int]int;
+const empty: lmap;
+axiom domain(empty) == {};
+\end{verbatim}
+\begin{verbatim}
+procedure Load(linear l_in:lmap, i:int) 
+  returns(linear l:lmap, v:int);
+  requires dom(l_in)[i];
+  ensures l == l_in && v == map(l_in)[i];
+\end{verbatim}
+\begin{verbatim}
+procedure Store(linear l_in:lmap, i:int, v:int) 
+  returns(linear l:lmap);
+  requires dom(l_in)[i];
+  ensures dom(l) == dom(l_in) 
+          && map(l) == map(l_in)[i := v];
+\end{verbatim}
+\begin{verbatim}
+procedure Move(linear l1_in:lmap) 
+  returns(linear l1:lmap, linear l2:lmap);
+  ensures l1 == empty && l2 == l1_in;
+\end{verbatim}
+\begin{verbatim}
+procedure Transfer(linear l1_in:lmap, 
+                   linear l2_in:lmap, i:int) 
+  returns(linear l1:lmap, linear l2:lmap);
+  ensures dom(l1) == dom(l1_in) - {i};
+  ensures map(l1) == map(l1_in);
+  ensures dom(l2) == dom(l2_in) + {i};
+  ensures map(l2) == map(l2_in)[i := map(l1)[i]];
+\end{verbatim}
+\caption{Encoding linear maps}
+\label{fig:linear-maps}
+\end{figure}
+
+\begin{figure}
+\begin{verbatim}
+var linear g: lmap;
+var b: bool;
+\end{verbatim}
+\begin{verbatim}
+procedure P()
+{
+  var t: int;
+  var linear l: lmap;
+  while (b) { call Yield(); }
+                b := true;
+                call g, l := Move(g);
+  call Yield(); call l, t := Load(l, p);
+  call Yield(); call l := Store(l, p, t+1);
+  call Yield(); call l, t := Load(l, p+4);
+  call Yield(); call l := Store(l, p+4, t+1);
+  call Yield(); call l, g := Move(l);
+                b := false;
+  call Yield();
+}
+\end{verbatim}
+\begin{verbatim}
+procedure Yield() 
+{
+  yield b || (dom(g) == {p,p+4} && 
+              map(g)[p] == map(g)[p+4]);
+}
+\end{verbatim}
+\caption{Program 6}
+\label{fig:ex6}
+\end{figure}
+
+{\bf Linear maps.}
+Figure~\ref{fig:linear-maps} illustrates how linear maps~\cite{LahiriQW11} can be encoded in \civl.
+A linear map {\tt l} is a pair comprising {\tt map(l)}, an array of integers, 
+and {\tt dom(l)}, a set of integers representing the locations where it is legal to access {\tt map(l)}.
+In the parlance of separation logic, a linear map can be thought of as a collection of
+{\em points-to} facts partitioned by separating conjunction; 
+furthermore, there is an implicit separating conjuction between the values contained in two distinct linear maps.
+Figure~\ref{fig:linear-maps} shows the primitive operations on linear maps.
+If a program is written using only these primitive operations, it is guaranteed all 
+occurrences of {\tt Load} and {\tt Store} can be erased to loads and stores, respectively, 
+to a single global memory.  
+In addition, all occurrences of {\tt Move} and {\tt Transfer} can be erased completely.
+Thus, linear maps provide a mechanism to program functionally yet execute imperatively.
+At the same time, as is evident from the specifications of the primitive operations,
+linear maps can be encoded using classical logic and verification of programs using them can benefit 
+seamlessly from advances in first-order automated theorem proving.
+
+Program~6 uses a linear map {\tt g} to represent two adjacent memory location starting at offset {\tt p}.
+The variable {\tt g} is protected by a lock encoded with a boolean variable {\tt b}.
+The procedure {\tt P} acquires the lock {\tt b} using atomic test-and-set, moves the content of {\tt g} into a local 
+linear map {\tt l}, increments both memory locations in {\tt l}, and then moves {\tt l} back into {\tt g}.
+The yield statement is encapsulated in the {\tt Yield} procedure; 
+it amounts to a simple global invariant asserting that whenever the lock {\tt b} is not held, the domain of {\tt g} must
+contain the two adjacent address {\tt p} and {\tt p+4} and the values stored in these addresses are identical.
+This program captures the essence of programming with monitors~\cite{Hoare74} and demonstrates that this reasoning 
+can be encoded easily in \civl.
+
+{\bf Permissions.}
+
+
