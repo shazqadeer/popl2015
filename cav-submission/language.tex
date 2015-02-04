@@ -1,56 +1,22 @@
 \section{A concurrent programming language}
 \label{sec:language}
 
-\begin{figure}
+\begin{wrapfigure}{l}{0.6\textwidth}
 \setlength{\tabcolsep}{3pt}
 \scriptsize{
 \begin{tabular}{rclcl}
-$g$ & $\in$ & $\Global \subseteq \VarName$ \\
-$\tl$ & $\in$ & $\ThreadLocal \subseteq \VarName$ \\
-$l$ & $\in$ & $\Local \subseteq \VarName$ \\
-$x,y$ & $\in$ & $\Var = \Global \cup \ThreadLocal \cup \Local$ \\
-$v$ &  $\in$ & $\Value$ \\
-$\sigma$ & $\in$ & $\Store = \Var \rightarrow \Value$ \\
-$\varsG$ & $\in$ & $\StoreGlobal = \Global \rightarrow \Value$ \\
-$\varsTL$ & $\in$ & $\StoreThreadLocal = \ThreadLocal  \rightarrow \Value$ \\
-$\varsL$ & $\in$ & $\StoreLocal = \Local \rightarrow \Value$ \\
-$e, \phi, \psi, \rho, \locExpr$ & $\in$ & $\StateExpr = 2^{\Store}$ \\
-$\alpha, \beta$ & $\in$ & $\TransExpr = 2^{(\Store,\Store)}$ \\
-$P$ & $\in$ & $\ProcName$ \\
-$A$ & $\in$ & $\ActionName$ \\
-$m$ & $\in$ & $\Mover = \{B,R,L,N\}$\\
-$\actions$ & $\in$ & $\ActionName \rightarrow (\StateExpr, \TransExpr, \Mover)$ \\
-$\procs$ & $\in$ & $\ProcName \rightarrow (\StateExpr, 2^{\ThreadLocal}, \StateExpr, \Stmt)$ \\
-$\lins$ & $\in$ & $\LinearVar = 2^{\Global \cup \ThreadLocal}$ \\
-$\ProcLins$ & $\in$ & $(\ActionName \cup \ProcName) \rightarrow (\LinearVar, \LinearVar)$ \\
-$\ABlockAny$ & $\in$ & $\mathit{InsideABlock} ::= \ABlockInside \mid \ABlockOutside$ \\
-$\Refines$ & $\in$ & $\ProcName \pf \ActionName$ \\
-$\HiddenVars$ & $\in$ & $2^\Global$ \\
-$\HiddenActions$ & $\in$ & $2^\ActionName$ \\
-$\HiddenProcs$ & $\in$ & $2^\ProcName$ \\
-$\Perm$ & $\in$ & $\Value \rightarrow 2^\Value$
-\end{tabular}
-}
-\caption{Definitions}
-\label{fig:definitions}
-\end{figure}
-
-\begin{figure}
-\setlength{\tabcolsep}{3pt}
-\scriptsize{
-\begin{tabular}{rclcl}
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e,\lins} \mid \call{A} \mid \call{P} \mid$ \\
-                  & & $\async{P} \mid \ablock{e,\lins}{\stmt} \mid \stmt;\;\stmt \mid$\\
-                  & & $\ite{\locExpr}{\stmt}{\stmt} \mid \while{e,\alpha}{\locExpr}{\stmt}$ \vspace{6pt} \\
-\end{tabular}
-\begin{tabular}{rclcl}
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e,\lins} \mid \call{A} \mid$ \\
+                  & & $\call{P} \mid \async{P} \mid$ \\
+                  & & $\ablock{e,\lins}{\stmt} \mid \stmt;\;\stmt \mid$\\
+                  & & $\ite{\locExpr}{\stmt}{\stmt} \mid$ \\
+                  & & $\while{e,\alpha}{\locExpr}{\stmt}$ \\
 $\Frame \in \mathit{Frame}$ &::= & $(P, \varsL, \stmt)$ \\
 $T \in \mathit{Thread}$ &::= &$(\varsTL, \Frames)$ \\
 $\StmtCtxt \in \mathit{StmtCtxt}$ &::= &$[]_{\Stmt} \mid \StmtCtxt;\stmt$ \\
 $\FrameCtxt \in \mathit{FrameCtxt}$ &::= & $(P, []_{\StoreLocal}, \StmtCtxt)$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\StoreThreadLocal}, \FrameCtxt\cdot\Frames)$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\StoreGlobal}, \TS \cdot \ThreadCtxt \cdot \TS)$ \\
-$\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \vspace{6pt} \\
+$\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \\
 $\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
 $\YProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads)$ \\
 $\CProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads)$
@@ -58,199 +24,10 @@ $\CProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads)$
 }
 \caption{Syntax}
 \label{fig:syntax}
-\end{figure}
+\end{wrapfigure}
 
-\begin{figure}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\
-\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \trans (\MakeStore{\varsG'}{\varsTL'}{\varsL'}, s')
-}
-{\ProgCtxt[\varsG][\varsTL][\varsL][s] \trans \ProgCtxt[\varsG'][\varsTL'][\varsL'][s']}
-\;(\textsc{Step})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\ProgCtxt[\varsG][\varsTL][\varsL][s] = (\_, \actions, \_, \_, \_) \\\\
-\actions \vdash (\MakeStore{\varsG}{\varsTL}{\varsL}, s) \trans \error
-}
-{\ProgCtxt[\varsG][\varsTL][\varsL][s]) \trans \error}
-\;(\textsc{Fail})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs(P) = (\phi, \mods, \psi,\stmt) \\
-\ProcLins(P) = (\lins, \lins') \\
-T' = (\varsTL, (P, \varsL, \yield{\phi,\lins};\stmt)) \\
-\TS = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\async{P}] \cdot \Vector{T_2} \\
-\TS' = \Vector{T_1} \cdot \ThreadCtxt[\varsTL][\varsL][\skipstmt] \cdot \Vector{T_2}
-}
-{
-(\procs, \actions, \ProcLins, \varsG, \TS)
-\trans
-(\procs, \actions, \ProcLins, \varsG, \TS' \cdot T')
-}
-\;(\textsc{Async})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-T = (\varsTL, \epsilon) 
-}
-{(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot \Vector{T'})}
-\;(\textsc{End})
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\procs(P) = (\phi, \mods, \psi,\stmt) \\
-\ProcLins(P) = (\lins, \lins') \\
-T = (\varsTL, (P', \varsL, \StmtCtxt[\call{P}]) \cdot \Frames) \\
-T' = (\varsTL, (P, \varsL, \yield{\phi,\lins};\stmt) \cdot (P', \varsL, \StmtCtxt[\yield{\psi,\lins'}]) \cdot \Frames)
-}
-{(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T' \cdot \Vector{T'})}
-\;{(\textsc{Call})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-T = (\varsTL, (P,\varsL,\skipstmt) \cdot \Frames) \\ T' = (\varsTL, \Frames)
-}
-{(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T' \cdot \Vector{T'})}
-\;(\textsc{Return})
-$
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Operational semantics for program}
-\label{fig:operational-semantics1}
-\end{figure}
-
-\begin{figure}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\actions(A) = (\rho, \alpha, m) \\
-\vars \not \in \rho
-}
-{
-\actions \vdash (\vars, \call{A}) \trans \error
-}
-\;{(\textsc{Atomic-False})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\actions(A) = (\rho, \alpha, m) \\
-\vars \in \rho \\
-(\vars, \vars') \in \alpha
-}
-{
-\actions \vdash (\vars, \call{A}) \trans (\vars',\skipstmt)
-}
-\;{(\textsc{Atomic-True})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\\
-}
-{\actions \vdash (\vars, \yield{e,\lins}) \trans (\vars, \skipstmt)}
-\;{(\textsc{Yield})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-}
-{\actions \vdash (\vars, \ablock{e,\lins}{\stmt}) \trans (\vars, \stmt)}
-\;{(\textsc{AtomicBlock})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\\
-}
-{\actions \vdash (\vars, \skipstmt;\stmt) \trans (\vars, \stmt)}
-\;{\;\;\;\;\;\;\;\;\;\;\;\;(\textsc{Seq})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars \not\in \locExpr
-}
-{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_2)}
-\;{(\textsc{If-False})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars \in \locExpr
-}
-{\actions \vdash (\vars, \ite{\locExpr}{s_1}{s_2}) \trans (\vars, s_1)}
-\;{(\textsc{If-True})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars \not\in \locExpr \\
-}
-{\actions \vdash (\vars, \while{e,\alpha}{\locExpr}{s}) \trans (\vars, \skipstmt)}
-\;{(\textsc{While-False})}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\inferrule
-{
-\vars \in \locExpr \\
-\stmt' = \while{e,\alpha}{\locExpr}{\stmt}
-}
-{\actions \vdash (\vars, \stmt') \trans (\vars, \stmt;\stmt')}
-\;{(\textsc{While-True})}
-$
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Operational semantics for statements}
-\label{fig:operational-semantics2}
-\end{figure}
-
-In this paper, we will formalize our verification method on a core concurrent programming language, \civl.
-In this section, we present the syntax and operational semantics of our language.
-Figure~\ref{fig:definitions} contains basic definitions.
-Figure~\ref{fig:syntax} uses these definitions to define the syntax of a \civl program.
-
+We present our verification method on a core concurrent programming language, \civl.
+In this section, we present the syntax (Figure~\ref{fig:syntax}) and operational semantics of our language informally.
 Informally, a \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
 thread-local variables that are shared across procedures, and local variables inside a procedure.
 The sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
@@ -307,11 +84,7 @@ $\varsTL$ is the thread-local store and $\Frames$ is a stack of frames comprisin
 Each frame $(P, \varsL, \stmt)$ in $\Frames$ comprises a procedure $P$, its procedure-local store $\varsL$, 
 and a statement $\stmt$.
 
-\subsection{Operational semantics}
-\label{sec:operational-semantics}
-
-Figures~\ref{fig:operational-semantics1} and~\ref{fig:operational-semantics2} together present the operational semantics as a relation 
-$\trans$ between a pair of programs.
+We formalize the operational semantics of \civl as a relation $\trans$ between a pair of programs.
 The rules for the relation extend the syntax of statements with an embedded context~\cite{WrightF94}.
 A statement context $\StmtCtxt$ is either a context $[]_{\Stmt}$ or the sequential composition of a 
 statement context and a statement.
@@ -329,65 +102,15 @@ A thread context $\ThreadCtxt$ has three contexts embedded inside it, $[]_{\Stor
 $[]_{\StoreLocal}$ for substituting a procedure-local store, and $[]_{\Stmt}$ for substituting a statement.
 The result of substituting a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ThreadCtxt$ 
 is a thread and is denoted by $\ThreadCtxt[\varsTL][\varsL][\stmt]$.
-Finally, the result of substituting a global store $\varsG$, a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ProgCtxt$ is a program and is denoted by $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$.
-
-The operational semantics use the notation $\MakeStore{\varsG}{\varsTL}{\varsL}$ to denote the concatenation of the 
-stores $\varsG$, $\varsTL$, and $\varsL$.
-Rule \textsc{Step} in Figure~\ref{fig:operational-semantics1} allows the program $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ to move 
-to $\ProgCtxt[\varsG'][\varsTL'][\varsL'][\stmt']$
-if $(\MakeStore{\varsG}{\varsTL}{\varsL}, \stmt)$ can move to $(\MakeStore{\varsG'}{\varsTL'}{\varsL'}, \stmt)$ 
-according to any rule in Figure~\ref{fig:operational-semantics2} except for rule \textsc{Atomic-False}.
-Similarly, rule~\textsc{Fail} allows $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ to fail if $(\MakeStore{\varsG}{\varsTL}{\varsL}, \stmt)$
-fails according to rule \textsc{Atomic-False}. 
-Rule \textsc{Async} describes the creation of a thread via $\async{P}$.  
-The new thread is added to the sequence of threads in the program.
-Rule \textsc{End} describes the termination of a thread; the terminating thread is removed
-from the sequence of threads in the program.
-Rules \textsc{Call} and \textsc{Return} describe the call and return of a procedure via $\call{P}$.
-
-The rules in Figure~\ref{fig:operational-semantics2} provide the operational semantics for the statements in \civl.
-The statement $\skipstmt$ has no side effect and is used as a marker in the formal operational semantics.
-The statement $\yield{e,\lins}$ contains a predicate $e$ and the linear permissions $\lins$.
-The yield predicate $e$ is expected to be established by the executing thread and preserved by other threads;
-the linear permissions $\lins$ are expected to be available as long as the control of the thread
-is at the yield statement.
-The yield statement is the mechanism by which the programmer specifies the cooperative semantics over which 
-the refinement check is performed.
-The statement $\call{A}$ invokes the action $A$.
-Suppose $\actions(A) = (\rho, \alpha, m)$ and $\ProcLins(A) = (\lins, \lins')$.
-If $\rho$ does not hold, the statement $\call{A}$ fails, 
-otherwise the store is updated according to the transition relation $\alpha$.
-The permissions in $\lins$ are expected to be available at the beginning
-and the permissions in $\lins'$ are guaranteed to be available at the end.
-The statement $\call{P}$ invokes the procedure $P$.
-Suppose $\procs(P) = (\phi, \mods, \psi, \stmt)$ and $\ProcLins(P) = (\lins, \lins')$.
-It is expected that the precondition $\phi$ holds and the permissions $\lins$ are available at the beginning.
-Then, the statement $\stmt$ executes.
-When $\stmt$ terminates, the postcondition $\psi$ holds and the permissions $\lins'$ are available.
-The predicates $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
-The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
-The statement $\ablock{e,\lins}{\stmt}$ is useful only for compactly encoding non-interference checks (Section~\ref{sec:refinement});
-the predicate $e$ is expected to hold and the permissions $\lins$ expected to be available at the beginning of $\stmt$.
-In \civl, yield predicates, preconditions, and postconditions are the three sources of location invariants~\cite{OwickiG76}.
-
-Finally, we have the standard primitives for sequencing, conditional execution, and looping.
-The statement $\stmt_1;\;\stmt_2$ executes $\stmt_1$ followed by $\stmt_2$.
-The statement $\ite{\locExpr}{\stmt_1}{\stmt_2}$ executes $\stmt_1$ if $\locExpr$ is true and otherwise executes $\stmt_2$.
-The statement $\while{e,\alpha}{\locExpr}{\stmt}$ executes $\stmt$ repeatedly until $\locExpr$ becomes false.
-The expression $e$ is a loop invariant and the expression $\alpha$ is a summary for failure-free executions of the loop that do not go 
-through a yield statement (Section~\ref{sec:refinement}).
-The conditional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ statements cannot refer to global variables.
+Finally, the result of substituting a global store $\varsG$, a thread-local store $\varsTL$, 
+a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ProgCtxt$ is a program and is denoted by $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$.
 
 A finite $\trans$-execution from $\Prog$ is a sequence of programs $\Prog_0,\Prog_1,\ldots,\Prog_n$ such that $\Prog_0 = \Prog$ 
 and $\Prog_i \trans \Prog_{i+1}$ for all $0 \leq i < n$.
 An infinite $\trans$-execution from $\Prog$ is defined similarly.
-We write $\Safe(\Prog)$ if $\Prog$ cannot fail in one step (by executing the rule \textsc{Fail}).
+We write $\Safe(\Prog)$ if $\Prog$ cannot fail in one step.
 We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
 
-\subsection{Definitions}
-\label{sec:definitions}
-We conclude this section by presenting a few definitions of concepts that are used in Section~\ref{sec:verification} to formalize
-our verification method.
 Figure~\ref{fig:syntax} defines the subset $\mathit{YieldingThread}$ of threads and subsets 
 $\YProgram$ and $\CProgram$ of $\Program$.
 A yielding thread in $\mathit{YieldingThread}$ is one that is waiting to execute at a yield statement.
@@ -415,33 +138,3 @@ We write $\CSafe^*(\Prog)$ if $\CSafe(\Prog')$ for all $\Prog'$ such that $\Prog
 We write $\Cooperative(\Prog)$ if for each infinite $\ytrans$-execution $\Prog \ytrans \Prog_0 \ytrans \Prog_1 \ytrans \cdots$ 
 starting from $\Prog$, there is some $i \geq 0$ such that $\Prog_i \in \CProgram$.
 We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
-
-A predicate $\rho$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma \in \Store$
-and $v \in \Value$, if $\sigma \in \rho$ then $\sigma[x \rightarrow v] \in \rho$.
-A transition relation $\alpha$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma,\sigma' \in \Store$
-and $v,v' \in \Value$, if $(\sigma,\sigma') \in \alpha$ then $(\sigma[x \rightarrow v], \sigma(x \rightarrow v')) \in \alpha$.
-We define $\accessVars(\rho)$ to be the smallest set $X \subseteq \Var$ such that $\rho$
-is independent of $x$ for all $x \in \Var \setminus X$.
-We also define $\accessVars(\alpha)$ similarly.
-For any transition relation $\alpha$, let $\elim{\Local}.\ \alpha$ be the transition relation
-\[\{(\MakeStore{\varsG}{\varsTL}{\varsL}, \MakeStore{\varsG'}{\varsTL'}{\varsL'}) \mid \exists \varsL_1,\varsL_2.\ (\MakeStore{\varsG}{\varsTL}{\varsL_1}, \MakeStore{\varsG'}{\varsTL'}{\varsL_2}) \in \alpha \}.\]
-For any $X \subseteq \Var$, let $\Havoc(X)$, be the transition relation 
-$\{(\sigma,\sigma') \mid \forall x \in \Var \setminus X.\ \sigma(x) = \sigma'(x)\}$.
-
-Given $\rho_1, \rho_2 \in \StateExpr$, we write $\rho_1 \vee \rho_2$ for the union of $\rho_1$ and $\rho_2$, 
-$\rho_1 \wedge \rho_2$ for the intersection of $\rho_1$ and $\rho_2$, and $\neg \rho_1$ for $\StateExpr \setminus \rho_1$.
-Similarly, given $\alpha_1, \alpha_2 \in \TransExpr$, we write $\alpha_1 \vee \alpha_2$ for the union of $\alpha_1$ and $\alpha_2$, 
-$\alpha_1 \wedge \alpha_2$ for the intersection of $\alpha_1$ and $\alpha_2$, and $\neg \alpha_1$ for $\TransExpr \setminus \alpha_1$.
-We denote the relational composition of $\alpha_1$ and $\alpha_2$ by $\alpha_1 \circ \alpha_2$.
-Given $\rho \in \StateExpr$ and $\alpha \in \TransExpr$, we denote by $\ga{\rho}{\alpha}$ the
-set $\{(\sigma, \sigma') \mid \sigma \in \rho \Rightarrow (\sigma,\sigma') \in \alpha\}$.
-We let $\rho \circ \alpha$ denote the relation obtained by restricting the domain of $\alpha$ to $\rho$.
-Similarly, we let $\alpha \circ \rho$ denote the relation obtained by restricting the codomain of $\alpha$ to $\rho$.
-We also sometimes use $\false$ to represent the empty set of states or the empty set of transitions.
-Given a relation $R$ (over a pair of sets), we denote the domain of $R$ by $\dom(R)$ and the codomain of $R$ by $\cod(R)$.
-
-It is often convenient to collect the permissions in a set of available variables.
-To that end, we define the function $\Collect$.
-Given a partial map $\pi$ from $\VarName$ to $\Value$ and a set $X \subseteq \dom(\pi)$,
-let $\Collect(\pi,X)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X\}$.
-For any multiset $\Lambda$ over $\Value$, we also define $\IsSet(\Lambda)$ be true iff $\Lambda$ is a set.

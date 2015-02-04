@@ -12,7 +12,7 @@
 \usepackage{color}
 \usepackage{fancyvrb}
 \usepackage{mathpartir}
-
+\usepackage{wrapfig}
 \usepackage{caption}
 
 \usepackage{tikz}
@@ -37,8 +37,8 @@
 \begin{document}
 
 \title{Automated and modular refinement reasoning for concurrent programs}
-\author{Chris Hawblitzel \\ Microsoft \and Erez Petrank \\ Technion \and Shaz Qadeer \\ Microsoft \and Serdar Tasiran \\ Ko\c{c} University}
-\date{}
+\author{Chris Hawblitzel\inst{1} \and Erez Petrank\inst{2} \and Shaz Qadeer\inst{1} \and Serdar Tasiran\inst{3}}
+\institute{Microsoft \and Technion \and Ko\c{c} University}
 
 \maketitle
 
@@ -59,9 +59,6 @@ from a simple high-level specification down to a highly-concurrent implementatio
 \input{overview}
 \input{language}
 \input{verification}
-\input{implementation}
-\input{examples}
-\input{modules}
 \input{experience}
 \input{related}
 
