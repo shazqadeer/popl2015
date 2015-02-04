@@ -71,13 +71,17 @@ down to atomic actions corresponding to individual memory accesses.
 The level of granularity of the lowest-level implementation distinguishes this verification effort, 
 detailed in a technical report~\cite{gc-techreport}, from previous attempts in the literature. 
 
-We conclude this section by listing the novel techniques we developed within \civl to enable automated, whole-program stepwise refinement checking:
+In conclusion, \civl is the first automated verifier for shared-memory multithreaded programs that 
+provides the capability to establish a multi-layered refinement proof.
+This novel capability is enabled by two important innovations in core verification techniques
+for reducing the complexity of invariants supplied by the programmer and the verification conditions solved by the prover.
 \begin{itemize}
-\item Automated refinement checking of atomic action specifications against imperative code. 
-The whole-program refinement proof is decomposed to smaller refinement tasks following the program's syntactic structure, reducing the interactive and computational difficulty of the task. 
-\item Per-procedure simulation relations and mover-based reduction verified using a novel hybrid of automata-theoretic checking and logical checking based on verification conditions. These hybrid approaches provide \civl with more generality and combine the strengths of automata-theoretic and logical techniques. 
-\item Powerful and flexible non-interference reasoning based on combination of location invariants and linear variables.
-The human and computational proof-effort reduction brought about by these techniques is demonstrated in our garbage collector proof. 
-\item A module system that allows independent verification and sound composition of modules into larger modules, enabling different module boundaries at different levels of the refinement proof. 
-
+\item
+Reasoning about preemptive semantics is replaced by simpler reasoning about cooperative operational semantics by exploiting 
+automata-theoretic simulation checking.
+We are not aware of any other verifier that combines automata-based and logic-based reasoning in this style.
+\item 
+A linear type system establishes invariants about disjointness of permission sets associated with values contained in program variables.
+These invariants, communicated to the prover as free assumptions, significantly reduce the overhead of program annotations.
+We are not aware of any other verifier that combines type-based and logic-based reasoning in this style.
 \end{itemize}
