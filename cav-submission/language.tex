@@ -68,7 +68,7 @@ The procedure (or action) requires that the set $\lins$ be available at the begi
 and makes available the set $\lins'$ at the end of its invocation; 
 we refer to $\lins$ and $\lins'$ as the input and output linear permissions respectively.
 The programmer provides a function $\Perm$ from $\Value$ to $2^\Value$
-and the linear type checker (Section~\ref{sec:linearity}) enforces the invariant that 
+and the linear type checker enforces the invariant that 
 different available variables contain distinct values and 
 the sets $\Perm(v)$ for values $v$ contained in available variables are always pairwise disjoint.
 
