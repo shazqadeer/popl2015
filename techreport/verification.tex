@@ -258,13 +258,10 @@ Together, these judgments allow us to conclude the safety of preemptive semantic
 from the safety of the preemptive semantics of $\Prog'$.
 
 The auxiliary judgment $\jl \Prog$, described in Section~\ref{sec:linearity}, 
-checks that $\Prog$ uses linear variables appropriately and that the statement
-inside any atomic block does not contain any yield.
-The former is important because appropriate use of linear variables gives our verifier access to free disjointness
+checks that $\Prog$ uses linear variables appropriately.
+This check is important because appropriate use of linear variables gives our verifier access to free disjointness
 assumptions that are important for commutativity reasoning (Section~\ref{sec:yield-sufficiency})
 and precise non-interference (Section~\ref{sec:refinement}).
-The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
-in one thread is preserved by each atomic block in a different thread.
 
 \begin{theorem}
 \label{thm:correctness}

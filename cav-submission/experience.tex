@@ -40,8 +40,9 @@ In particular, Mark must coordinate with WriteField's write barrier,
 and Sweep must not remove any objects that are still reachable by ReadField and WriteField.
 
 The GC verification takes 60 seconds on the same 4-core Windows PC, generating and verifying 667 proof obligations. 
-The bulk of this time, 54 seconds, is taken by the verification of the refinement checks from Section~\ref{sec:refinement}.
-The linear type checking, the yield safety checks, and the commutativity checks take the rest of the time and are insignificant in comparison.
+The bulk of this time, 54 seconds, is taken by the verification of the two judgments,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$, described in Section~\ref{sec:verification}.
+The checks for linear variables, yield sufficiency, and commutativity take the rest of the time and are insignificant in comparison.
 
 \subsection{Discussion of the proof}
 The GC verification demonstrates that stepwise refinement using \civl is a
@@ -74,6 +75,5 @@ execution in the initialization phase of the program.
 Variable hiding was used throughout the proof. 
 
 Our experience with the GC verification indicates that 
-\civl's capability to make sound, joint use of multiple verification
-techniques is very valuable. 
+\civl's capability to use multiple verification techniques, soundly and cooperatively, is very valuable. 
 

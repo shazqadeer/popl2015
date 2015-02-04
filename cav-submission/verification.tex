@@ -11,57 +11,52 @@ The main contribution of this paper is a verification method that allows us to s
 program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
 safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
 
-We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
-$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
 The safety of the program $\Prog$, as defined in Section~\ref{sec:language}, depends on 
 the preemptive semantics of $\Prog$.
 Our overall goal is to conclude the safety of preemptive semantics of $\Prog$
 from the safety of the preemptive semantics of $\Prog'$.
 We achieve this goal in two steps.
-First, the judgment $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$
-establishes a simulation relation between 
-the cooperative semantics of $\Prog$ and the preemptive semantics of $\Prog'$.
-The two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\HiddenProcs \jr \Prog$,
-described in Section~\ref{sec:refinement}, check the validity of this simulation relation,
-allowing us to conclude the safety of the cooperative semantics of $\Prog$ from 
-the safety of the preemptive semantics of $\Prog'$.
-The two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$,
-described in Section~\ref{sec:yield-sufficiency}, go further 
-and allow us to conclude the safety of preemptive semantics of $\Prog$ from the 
-safety of its cooperative semantics.
+First, we establish a simulation relation from the cooperative semantics of $\Prog$ 
+to the preemptive semantics of $\Prog'$,
+allowing us to conclude the safety of the former from the safety of the latter.
+This step involves three verification judgments---$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs \jr \Prog$, and $\InterferenceSafe(\Prog)$.
+Next, we establish that the safety of the cooperative semantics of $\Prog$ is 
+sufficient for the safety of the preemptive semantics of $\Prog$.
+This step involves three verification judgments---$\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
 Together, these judgments allow us to conclude the safety of preemptive semantics of $\Prog$
 from the safety of the preemptive semantics of $\Prog'$.
 
-The auxiliary judgment $\jl \Prog$, described in Section~\ref{sec:linearity}, 
-checks that $\Prog$ uses linear variables appropriately and that the statement
-inside any atomic block does not contain any yield.
-The former is important because appropriate use of linear variables gives our verifier access to free disjointness
-assumptions that are important for commutativity reasoning (Section~\ref{sec:yield-sufficiency})
-and precise non-interference (Section~\ref{sec:refinement}).
-The latter is important because non-interference between threads is checked pairwise by verifying that each yield predicate
-in one thread is preserved by each atomic block in a different thread.
+The verification strategy described above depends on the auxiliary judgment $\jl \Prog$ that
+checks that $\Prog$ uses linear variables appropriately.
+This check is important because appropriate use of linear variables gives our verifier access to free disjointness
+assumptions that increase precision at low annotatation overhead.
 
 \begin{theorem}
 \label{thm:correctness}
-Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
+Let $\Prog \in \CProgram$ be such that $\Cooperative^*(\Prog)$.
 Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, 
 $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
-and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following conditions hold:
+and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following hold:
 \begin{enumerate}
 \item
-$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
+$\jl \Prog$.
+\item
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ \\ and $\InterferenceSafe(\Prog)$.
 \item
 $\jy \Prog$ and $\CommutativitySafe(\Prog)$.
-\item
-$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 \end{enumerate}
-If $\Cooperative^*(\Prog)$ and $\Safe^*(\Prog')$, then $\Safe^*(\Prog)$.
+If $\Safe^*(\Prog')$, then $\Safe^*(\Prog)$.
 \end{theorem}
 
-Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety of $\Prog'$ 
-and the responsiveness of $\Prog$.
+Theorem~\ref{thm:correctness} is our main soundness theorem;
+it concludes the safety of $\Prog$ from the safety of $\Prog'$.
 In general, the correctness proof of a large program is obtained by chaining together
 multiple instances of this theorem connecting a sequence of programs.  
-As we discuss later, the $\leadsto$ relation constrains the code and state of adjacent programs in this chain 
-to create a simulation but leaves the annotations unconstrained to allow as much flexibility in verification as possible.
+
+In the rest of this section, we look at the individual verification judgments discussed above in more detail.
+We begin with the judgments $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs \jr \Prog$, and $\InterferenceSafe(\Prog)$ for establishing a simulation relation from 
+the cooperative semantics of $\Prog$ to the preemptive semantics of $\Prog'$.
 
