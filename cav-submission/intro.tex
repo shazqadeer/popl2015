@@ -58,46 +58,10 @@ The correctness of an atomic action specification gives us a simple frame rule--
 by providing a linear type system~\cite{Wadler90lineartypes} that enables logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
 and disjoint memory~\cite{LahiriQW11}.
 
-\begin{wrapfigure}{l}{0.5\textwidth}
-{\scriptsize
-\begin{verbatim}
-var Color: int; // WHITE=1, GRAY=2, BLACK=3
-procedure WB(linear tid:Tid)
-atomic [if (Color == WHITE) Color := GRAY];
-{
-  var cNoLock:int;
-  cNoLock := GetColorNoLock(tid);
-  yield Color >= cNoLock;
-  if (cNoLock == WHITE) 
-    call WBSlow(tid);
-}
-procedure WBSlow(linear tid:Tid)
-atomic [if (Color == WHITE) Color := GRAY];
-{
-  var cLock:int;
-  call AcquireLock(tid);
-  cLock := GetColorLocked(tid);
-  if (cLock == WHITE) 
-    call SetColorLocked(tid, GRAY);
-  call ReleaseLock(tid);
-}
-procedure GetColorNoLock(linear tid:Tid) 
-  returns (cl:int) atomic [...];
-procedure AcquireLock(linear tid:Tid) 
-  right [...];
-procedure ReleaseLock(linear tid:Tid) 
-  left [...];
-procedure GetColorLocked(linear tid:Tid) 
-  returns (cl:int) both [...];
-procedure SetColorLocked(linear tid:Tid, 
-  cl: int) atomic [...];
-\end{verbatim}
-}
-\caption{Write barrier}
-\label{fig:reft}
-\end{wrapfigure}
 
-Finally, \civl provides a simple module system. Modules areverified separately, soundly doing away with checks that pertain to cross-module interactions. 
+Finally, \civl provides a simple module system. Modules can be
+verified separately, in parallel or at different times if desired,
+since the module system soundly does away with checks that pertain to cross-module interactions. 
 This feature is significant since commutativity checks and non-interference checks for location invariants are quadratic, whole program checks involving all pairs of yield locations and atomic blocks, or all pairs of actions from a program. 
 Using the module system, the number of checks is reduced; they become quadratic in the number of yields and atomic blocks {\em within each module} rather than the entire program. 
 

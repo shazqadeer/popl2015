@@ -10,6 +10,45 @@ Before writing to an address \exC{addr}, a mutator thread checks
 and sets it to \exC{GRAY}, indicating that the object at \exC{addr}
 and objects reachable from it should not be garbage collected. 
 
+\begin{wrapfigure}{l}{0.5\textwidth}
+{\scriptsize
+\begin{verbatim}
+var Color: int; // WHITE=1, GRAY=2, BLACK=3
+procedure WB(linear tid:Tid)
+atomic [if (Color == WHITE) Color := GRAY];
+{
+  var cNoLock:int;
+  cNoLock := GetColorNoLock(tid);
+  yield Color >= cNoLock;
+  if (cNoLock == WHITE) 
+    call WBSlow(tid);
+}
+procedure WBSlow(linear tid:Tid)
+atomic [if (Color == WHITE) Color := GRAY];
+{
+  var cLock:int;
+  call AcquireLock(tid);
+  cLock := GetColorLocked(tid);
+  if (cLock == WHITE) 
+    call SetColorLocked(tid, GRAY);
+  call ReleaseLock(tid);
+}
+procedure GetColorNoLock(linear tid:Tid) 
+  returns (cl:int) atomic [...];
+procedure AcquireLock(linear tid:Tid) 
+  right [...];
+procedure ReleaseLock(linear tid:Tid) 
+  left [...];
+procedure GetColorLocked(linear tid:Tid) 
+  returns (cl:int) both [...];
+procedure SetColorLocked(linear tid:Tid, 
+  cl: int) atomic [...];
+\end{verbatim}
+}
+\caption{Write barrier}
+\label{fig:reft}
+\end{wrapfigure}
+
 Procedure \exC{WB} implements the write barrier.
 To simplify exposition, 
 we consider a single object whose color is stored in the shared variable \exC{Color}.
@@ -19,10 +58,12 @@ mutator slows applications down. To avoid this,
 If the color is {\tt WHITE}, it calls the more expensive procedure \exC{WBSlow} 
 that re-examines and possibly updates \exC{Color} while holding the lock.
 \civl simplifies reasoning about \exC{WB} and \exC{WBSlow} by allowing us to 
-compactly express their specification as the following atomic action:
-\begin{verbatim}
-[if (Color == WHITE) Color := GRAY]
-\end{verbatim}
+compactly express their specification as the following atomic action:\\
+\begin{small}
+\begin{tt}
+[if (Color == WHITE)  Color := GRAY]
+\end{tt}
+\end{small}\\
 This specification indicates that regardless of the different implementations of 
 \exC{WB} and \exC{WBSlow} and regardless of how the environment interferes
 with their execution, to their respective callers it appears as if they atomically execute the above code.
