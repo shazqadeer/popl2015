@@ -1,0 +1,42 @@
+\section{Modules}
+\label{sec:modules}
+
+\civl's features must scale up to larger programs in a modular way:
+we should be able to check a large program by breaking it into smaller pieces and checking the pieces independently.
+This section describes a simple module system built on \civl that allows separate verification of modules,
+allowing programmers to make changes to the private implementation of one module
+without disturbing the verification of other modules.
+
+A key challenge for modular verification in \civl is the $\CommutativitySafe$ and $\InterferenceSafe$ judgments.
+Naively, these are whole-program judgments,
+quadratically checking all pairs of actions or all pairs of yields and atomic blocks from an entire program.
+To achieve separate verification for \civl,
+we must be able to check these judgments on a per-module basis.
+To achieve this,
+we observe that $\CommutativitySafe$ and $\InterferenceSafe$ are trivially true for operations that act on disjoint sets of global variables.
+If an atomic block modifies only variables $g_1$ and $g_2$, it will not interfere with a yield that refers only to variables $g_3$ and $g_4$.
+Suppose each module $M$ owns a set of global variables, such that each global variable is owned by exactly one module.
+Then we can decree that only $M$'s procedures and actions can access $M$'s global variables.
+Formally, define ownership for global variables, procedures and actions as:
+
+\begin{tabular}{rclcl}
+$M$ & $\in$ & $\Module$ \\
+$\own_{\Global}$ & $\in$ & $\Global \rightarrow \Module$ \\
+$\own_{\ProcName}$ & $\in$ & $\ProcName \rightarrow \Module$ \\
+$\own_{\ActionName}$ & $\in$ & $\ActionName \rightarrow \Module$ \\
+\end{tabular}
+
+If $\own_{\ProcName}(P) = M$, then $P$'s preconditions, postconditions, and statements only refer to global $g$ where $\own_{\Global}(g) = M$.
+Similarly, if $\own_{\ProcName}(A) = M$, then $A$'s gate and transition relation can depend only on $g$ where $\own_{\Global}(g) = M$.
+With this restriction, $\CommutativitySafe$ and $\InterferenceSafe$ can be checked for each module $M$ in isolation;
+no other module $M'$ could interfere with any of the global variables owned by $M$.
+
+Nevertheless, a fixed ownership assignment is too inflexible to allow effective sharing of global state between modules.
+Therefore, it's also important to notice that $\own_{\Global}$, $\own_{\ProcName}$, and $\own_{\ActionName}$ can change across a series of refinement layers.
+This enables a style of modularity where a low-level module $M_1$ implements low-level actions on a set of global variables,
+and then ownership passes from the low-level module $M_1$ to a higher-level module $M_2$ that builds on $M_1$.
+This is particularly useful for libraries:
+a library module implementing locks may define a variable to represent the abstract state of a lock;
+after the lock module is verified at a low layer,
+a client module can take ownership of the lock variable in a higher layer to aid verification of the client module
+(see TODO TECH REPORT for a detailed example).
