@@ -23,7 +23,7 @@ This step involves three verification judgments---$\Refines;\HiddenProcs;\Hidden
 $\Refines;\HiddenProcs \jr \Prog$, and $\InterferenceSafe(\Prog)$.
 Next, we establish that the safety of the cooperative semantics of $\Prog$ is 
 sufficient for the safety of the preemptive semantics of $\Prog$.
-This step involves three verification judgments---$\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
+This step involves two verification judgments---$\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
 Together, these judgments allow us to conclude the safety of preemptive semantics of $\Prog$
 from the safety of the preemptive semantics of $\Prog'$.
 
@@ -31,6 +31,52 @@ The verification strategy described above depends on the auxiliary judgment $\jl
 checks that $\Prog$ uses linear variables appropriately.
 This check is important because appropriate use of linear variables gives our verifier access to free disjointness
 assumptions that increase precision at low annotatation overhead.
+
+The judgments $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, and $\InterferenceSafe(\Prog)$ establish a simulation relation from 
+the cooperative semantics of $\Prog$ to the preemptive semantics of the abstract program $\Prog'$.
+The map $\Refines \in \ProcName \pf \ActionName$ indicates for a procedure $P \in \dom(\Refines)$ 
+the action $\Refines(P)$ that abstracts it;
+in $\Prog'$, every occurrence of $\call{P}$ is replaced by $\call{\Refines(P)}$.
+The set $\HiddenProcs \in 2^{\ProcName}$ 
+contains all procedures that are hidden in $\Prog'$ as a result of the abstraction.
+This set includes $\dom(\Refines)$ but can also contain other procedures whose invocations 
+are replaced by $\skipstmt$ in $\Prog'$.
+The sets $\HiddenVars \in 2^\Global$ and $\HiddenActions \in 2^{\ActionName}$ are the global variables and atomic actions, 
+respectively, that are hidden in the abstract program.
+The vector $\bs{b}$ contains a $\Boolean$ value $b_i$ for each thread $T_i$ in $\Prog$.
+If $b_i$ is true, it indicates that there is a partially executed procedure on the stack of $T_i$ 
+such that $P \in \dom(\Refines)$ but the code inside $P$ that corresponds to the execution of the atomic action $\Refines(P)$
+has yet to be executed.
+The value of $b_i$ is used to rewrite the stack of $T_i$ while transforming $\Prog$ to $\Prog'$.
+
+The validity of the transformation from $\Prog$ to $\Prog'$ depends on establishing a simulation relation between them.
+More formally, if $\Safe^*(\Prog')$, then $\CSafe(\Prog)$;
+also, if $\Prog$ can evolve to $\Prog_1$ by executing from the current yield statement to the next yield statement, 
+then there is $\Prog'_1$ and $b_1$ such that $\Prog'$ can evolve in zero or more steps to $\Prog'_1$ 
+and $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$.
+The judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$ 
+establish this property via a collection of verification conditions, one for each procedure and 
+one for each pair of yield statement and atomic block in the program.
+
+The judgments $\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$
+allow us to conclude the safety of preemptive semantics of $\Prog$
+from the safety of the cooperative semantics of $\Prog$.
+Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$.
+The map $\actions$ maps each atomic action to a triple $(\rho, \alpha, m)$, the last component of which 
+denotes type of atomic action---$B$ for {\em both mover}, $R$ for {\em right mover}, $L$ for {\em left mover},
+and $N$ for {\em non mover}.
+Informally, an action labeled $N$ does not commute with other concurrent actions,
+an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
+an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
+and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
+The ability to commute past actions in the environment is the essence of the justification 
+for reasoning about cooperative semantics.
+For example, a yield after a right mover or a yield before a left mover is unncessary.
+The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} that encodes 
+all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
+The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by traces of $\YSA$
+and the judgment $\CommutativitySafe(\Prog)$ checks that all mover annotations are correct.
 
 \begin{theorem}
 \label{thm:correctness}
@@ -55,8 +101,4 @@ it concludes the safety of $\Prog$ from the safety of $\Prog'$.
 In general, the correctness proof of a large program is obtained by chaining together
 multiple instances of this theorem connecting a sequence of programs.  
 
-In the rest of this section, we look at the individual verification judgments discussed above in more detail.
-We begin with the judgments $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
-$\Refines;\HiddenProcs \jr \Prog$, and $\InterferenceSafe(\Prog)$ for establishing a simulation relation from 
-the cooperative semantics of $\Prog$ to the preemptive semantics of $\Prog'$.
 

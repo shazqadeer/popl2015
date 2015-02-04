@@ -10,7 +10,7 @@ standard benchmarks from the literature such as a multiset implementation~\cite{
 the ticket algorithm~\cite{FarzanKP14}, 
 Treiber stack~\cite{Herlihy2008}, work-stealing queue~\cite{Blumofe1999},
 device cache~\cite{ElmasQT09}, and lock-protected increment~\cite{FlanaganQ03}. 
-The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a standard 4-core Windows PC 
+The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a standard 4-core Windows PC (2.8GHz, 8GB)
 with no benchmark requiring more than a few seconds.
 
 \subsection{Garbage collector}
@@ -39,12 +39,13 @@ but the most important point at the high level is that their work not interfere 
 In particular, Mark must coordinate with WriteField's write barrier,
 and Sweep must not remove any objects that are still reachable by ReadField and WriteField.
 
-The GC verification takes 60 seconds on the same 4-core Windows PC, generating and verifying 667 proof obligations. 
+Overall, our GC implementation consists of about 2100 lines of Boogie code.
+The verification takes 60 seconds on the same PC used for microbenchmarks.
 The bulk of this time, 54 seconds, is taken by the verification of the two judgments,
 $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$, described in Section~\ref{sec:verification}.
 The checks for linear variables, yield sufficiency, and commutativity take the rest of the time and are insignificant in comparison.
 
-\subsection{Discussion of the proof}
+\subsection{Discussion}
 The GC verification demonstrates that stepwise refinement using \civl is a
 powerful verification approach. 
 Another important lesson learned from the GC proof is that a collection

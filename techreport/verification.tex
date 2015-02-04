@@ -246,7 +246,7 @@ $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \
 (see rules in Figure~\ref{fig:program-transformation}).
 The goal of this judgment is to establish a simulation relation between 
 the cooperative semantics of $\Prog$ and the preemptive semantics of $\Prog'$.
-The two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\HiddenProcs \jr \Prog$,
+The two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$,
 described in Section~\ref{sec:refinement}, check the validity of this simulation relation,
 allowing us to conclude the safety of the cooperative semantics of $\Prog$ from 
 the safety of the preemptive semantics of $\Prog'$.
@@ -809,7 +809,8 @@ Informally, an action labeled $N$ does not commute with other concurrent actions
 an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
 an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
 and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
-The ability to commute past actions in the environment provides the capability to eliminate yields.
+The ability to commute past actions in the environment is the essence of the justification 
+for reasoning about cooperative semantics.
 For example, a yield after a right mover or a yield before a left mover is unncessary.
 The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} that encodes 
 all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.

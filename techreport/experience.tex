@@ -10,7 +10,7 @@ standard benchmarks from the literature such as a multiset implementation~\cite{
 the ticket algorithm~\cite{FarzanKP14}, 
 Treiber stack~\cite{Herlihy2008}, work-stealing queue~\cite{Blumofe1999},
 device cache~\cite{ElmasQT09}, and lock-protected increment~\cite{FlanaganQ03}. 
-The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a standard 4-core Windows PC 
+The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a standard 4-core Windows PC (2.8GHz, 8GB)
 with no benchmark requiring more than a few seconds.
 
 In addition to these 32 small benchmarks,
@@ -117,7 +117,7 @@ and we assume that all objects have the same number of fields.
 (Except for the assumption of sequential consistency, none of these substantially alter the nature of the proof.)
 
 Overall, our implementation consists of about 2100 lines of Boogie code.
-The GC verification takes 60 seconds on the same 4-core Windows PC, generating and verifying 667 proof obligations. 
+The GC verification takes 60 seconds on the same PC used for microbenchmarks.
 The bulk of this time, 54 seconds, is taken by the verification of the refinement checks from Section~\ref{sec:refinement}.
 The linear type checking, the yield safety checks, and the commutativity checks take the rest of the time and are insignificant in comparison.
 
@@ -202,7 +202,7 @@ between the collector and any mutator operations that require the whole mutator 
 (``mutatorTidWhole'', used in Figure~\ref{fig:VerifiedGC}'s ReadField, WriteField, Alloc,
 and most other mutator operations).
 
-\subsection{Discussion of the proof}
+\subsection{Discussion}
 We now put atomicity refinement techniques from the literature and
 \civl in context by presenting an overview of our design
 driver, the stepwise refinement of a garbage collector~\cite{gc-techreport}.
