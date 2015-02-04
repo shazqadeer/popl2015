@@ -1,59 +1,6 @@
 \section{Overview}
 \label{sec:overview}
 
-\begin{figure} 
-\begin{verbatim}
-var Color: int; // WHITE=1, GRAY=2, BLACK=3
-procedure WB(linear tid:Tid)
-atomic [if (Color == WHITE) Color := GRAY];
-{
-  var cNoLock:int;
-  cNoLock := GetColorNoLock(tid);
-  yield Color >= cNoLock;
-  if (cNoLock == WHITE) 
-    call WBSlow(tid);
-}
-procedure WBSlow(linear tid:Tid)
-atomic [if (Color == WHITE) Color := GRAY];
-{
-  var cLock:int;
-  call AcquireLock(tid);
-  cLock := GetColorLocked(tid);
-  if (cLock == WHITE) 
-    call SetColorLocked(tid, GRAY);
-  call ReleaseLock(tid);
-}
-procedure GetColorNoLock(linear tid:Tid) 
-  returns (cl:int) atomic [...];
-procedure AcquireLock(linear tid:Tid) 
-  right [...];
-procedure ReleaseLock(linear tid:Tid) 
-  left [...];
-procedure GetColorLocked(linear tid:Tid) 
-  returns (cl:int) both [...];
-procedure SetColorLocked(linear tid:Tid, 
-  cl: int) atomic [...];
-\end{verbatim}
-\caption{Write barrier}
-\label{fig:reft}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.35]{WBSlow.pdf}
-\end{center}
-\caption{Abstraction of \exC{WBSlow}}
-\label{fig:midwb}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.35]{YieldTypeCheckingAutomaton.pdf}
-\end{center}
-\caption{Yield sufficiency automaton ($YSA$)}
-\label{fig:ysa}
-\end{figure}
-
 We present an overview of our approach to refinement on the program in Figure~\ref{fig:reft},
 a simplified version of the write barrier in a concurrent garbage collector (GC).
 In a concurrent GC, a color (either \exC{WHITE}, \exC{GRAY}, or \exC{BLACK})
@@ -132,8 +79,7 @@ These mover types are checked by constructing verification conditions from each 
 The use of movers is entirely optional in \civl, but very beneficial
 in our experience. The programmer can choose to avoid mover and
 commutativity reasoning, and simply
-annotating atomic action specifications with the mover type {\tt
-  atomic}.
+annotating atomic action specifications with the mover type {\tt atomic}.
 However, without mover reasoning,  a yield statement and an
 accompanying predicate
 must be inserted before every invocation of an atomic action.
@@ -141,6 +87,13 @@ It has been demonstrated in work in the literature that mover
 reasoning simplifies many proofs~\cite{ElmasQT09}. 
 In our experience with \civl, we have observed that using more yield
 predicates rather than mover reasoning can make proofs difficult in two ways.
+\begin{wrapfigure}{l}{0.5\textwidth}
+\begin{center}
+\includegraphics[scale=0.25]{YieldTypeCheckingAutomaton.pdf}
+\end{center} 
+\caption{Yield sufficiency automaton ($YSA$)}
+\label{fig:ysa}
+\end{wrapfigure}
 First, the annotation burden goes up because sophisticated ghost variables may need to be introduced in the 
 program semantics.\footnote{Well-scoped location invariants that cannot refer to the state of other threads are known to be incomplete, 
 both in theory and in practice.}
@@ -152,9 +105,15 @@ feature and its use in conjunction with other techniques illustrated in
 this section. 
 
 \civl verifies mover-based reduction, i.e., the correctness of the placement of {\tt yield}s using a novel  approach.
-A {\em Yield
-  Sufficiency Automaton\/} ($\YSA$ in Figure~\ref{fig:ysa}) encodes all sequences of atomic actions and yields for which safety of cooperative semantics is sufficient 
+A {\em Yield Sufficiency Automaton\/} ($\YSA$ in Figure~\ref{fig:ysa}) encodes all sequences of atomic actions and yields for which safety of cooperative semantics is sufficient 
 for safety of preemptive semantics. 
+\begin{wrapfigure}{l}{0.5\textwidth}
+\begin{center}
+\includegraphics[scale=0.25]{WBSlow.pdf}
+\end{center}
+\caption{Abstraction of \exC{WBSlow}}
+\label{fig:midwb}
+\end{wrapfigure}
 Roughly speaking, each ``transaction'' starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
 In the middle, it can have at most one non mover.
 \civl then interprets the control-flow graphs of each procedure as an automaton with mover types as edge labels. 
