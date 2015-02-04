@@ -14,16 +14,30 @@ The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a
 with no benchmark requiring more than a few seconds.
 
 \subsection{Garbage collector}
-We have used \civl to design and verify a realistic concurrent garbage collection (GC) algorithm.  
+We have used \civl to design and verify a realistic concurrent mark-sweep garbage collection (GC) algorithm.  
 In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
 it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
 These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
 and coordination between the GC and mutator threads during root scanning; our use of linearity aids the proof of root scanning, 
-while our rely-guarantee encoding aids management of colors inside the write barrier.  
+while our rely-guarantee encoding aids management of colors inside the write barrier
+(which is similar to the barrier in Section~\ref{sec:overview}).
 Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
 from low-level memory operations all the way up to high-level specifications; 
 we used six levels of refinement to help hide low-level details from the high-level portions of the verification.
 We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
+
+\civl's support for refinement allows us to write concise specifications of the garbage collector's correctness:
+to be correct, the GC must implement Allocate, ReadField, and WriteField actions that appear to act atomically,
+even though in the underlying implementation,
+these operations execute concurrently with the garbage collector thread and with other program threads.
+The specification states that Allocate atomically adds new objects to the heap,
+while ReadField and WriteField read and write fields from heap objects.
+Although the garbage collector's Mark and Sweep code constitutes the bulk of the GC code,
+they are hidden in the high-level specification;
+they have detailed correctness specifications in the middle levels of the proof,
+but the most important point at the high level is that their work not interfere with Allocate, ReadField, and WriteField.
+In particular, Mark must coordinate with WriteField's write barrier,
+and Sweep must not remove any objects that are still reachable by ReadField and WriteField.
 
 The GC verification takes 60 seconds on the same 4-core Windows PC, generating and verifying 667 proof obligations. 
 The bulk of this time, 54 seconds, is taken by the verification of the refinement checks from Section~\ref{sec:refinement}.
@@ -36,7 +50,6 @@ driver, the stepwise refinement of a garbage collector~\cite{gc-techreport}.
 The refinement proof spans six levels of abstraction. 
 Each of refinement proof relating two consecutive levels is made feasible by a different
 blend of the techniques in \civl. 
-
 % While other refinement techniques have also used garbage collectors as
 % case studies, the refinement tasks tackled there bridge only one or two of the levels in 
 % our refinement proof\footnote{A more specific discussion of this point
