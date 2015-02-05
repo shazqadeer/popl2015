@@ -9,7 +9,8 @@ Thus, a program contains all information to represent not only the static progra
 written by the programmer but also the dynamic state of the program as it executes.
 The mutually disjoint sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
 respectively, and $\Var$ denotes their union.
-\begin{wrapfigure}{l}{0.6\textwidth}
+\begin{wrapfigure}[14]{l}{0.6\textwidth}
+\vspace*{-0.5cm}
 \setlength{\tabcolsep}{3pt}
 \scriptsize{
 \begin{tabular}{rclcl}
@@ -128,13 +129,13 @@ $\Prog \ctrans \error$ if there is a $\ytrans$-execution from $\Prog$ to $\error
 except for $\Prog$ is not in $\CProgram$.
 \end{enumerate}
 
-Consider a program $\Prog \in \Program$.
+Consider a program $\Prog \in \CProgram$.
 We write $\Safe(\Prog)$ if it is not the case that $\Prog \trans \error$.
 We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
-Consider a program $\Prog \in \CProgram$.
 We write $\CSafe(\Prog)$ if it is not the case that $\Prog \ctrans \error$.
 We write $\CSafe^*(\Prog)$ if $\CSafe(\Prog')$ for all $\Prog'$ such that $\Prog \ctrans^* \Prog'$.
-
 We write $\Cooperative(\Prog)$ if for each infinite $\ytrans$-execution $\Prog \ytrans \Prog_0 \ytrans \Prog_1 \ytrans \cdots$ 
 starting from $\Prog$, there is some $i \geq 0$ such that $\Prog_i \in \CProgram$.
 We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
+Our verification method is applicable to a program $\Prog$ only if $\Cooperative^*(\Prog)$ holds.
+Verifying this condition is similar to proving termination and is orthogonal to the contribution of this paper.

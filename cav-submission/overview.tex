@@ -11,7 +11,8 @@ barrier. It checks
 and sets it to \exC{GRAY}, indicating that the object at \exC{addr}
 and objects reachable from it should not be garbage collected. 
 
-\begin{wrapfigure}{l}{0.5\textwidth}
+\begin{wrapfigure}[25]{l}{0.5\textwidth}
+\vspace*{-1cm}
 {\scriptsize
 \begin{verbatim}
 var Color: int; // WHITE=1, GRAY=2, BLACK=3
@@ -49,6 +50,7 @@ procedure SetColorLocked(linear tid:Tid,
   cl: int) atomic [...];
 \end{verbatim}
 }
+\vspace*{-0.3cm}
 \caption{Write barrier}
 \label{fig:reft}
 \end{wrapfigure}
@@ -134,10 +136,12 @@ It has been demonstrated in work in the literature that mover
 reasoning simplifies many proofs~\cite{ElmasQT09}. 
 In our experience with \civl, we have observed that using more yield
 predicates rather than mover reasoning can make proofs difficult in two ways.
-\begin{wrapfigure}{l}{0.5\textwidth}
+\begin{wrapfigure}[8]{l}{0.5\textwidth}
+\vspace*{-1cm}
 \begin{center}
 \includegraphics[scale=0.25]{YieldTypeCheckingAutomaton.pdf}
 \end{center} 
+\vspace*{-0.3cm}
 \caption{Yield sufficiency automaton ($YSA$)}
 \label{fig:ysa}
 \end{wrapfigure}
@@ -154,11 +158,12 @@ this section.
 Given verified mover types for actions, \civl verifies reduction, i.e., the correctness of the placement of {\tt yield}s using a novel  approach.
 A {\em Yield Sufficiency Automaton\/} ($\YSA$ in Figure~\ref{fig:ysa}) encodes all sequences of atomic actions and yields for which safety of cooperative semantics is sufficient 
 for safety of preemptive semantics. 
-\begin{wrapfigure}{l}{0.5\textwidth}
+\begin{wrapfigure}[8]{l}{0.5\textwidth}
+\vspace*{-1cm}
 \begin{center}
 \includegraphics[scale=0.25]{WBSlow.pdf}
 \end{center}
-\vspace*{-0.2cm}
+\vspace*{-0.5cm}
 \caption{Abstraction of \exC{WBSlow}}
 \label{fig:midwb}
 \end{wrapfigure}

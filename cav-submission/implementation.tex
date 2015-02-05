@@ -4,7 +4,7 @@
 We have implemented the method described in this section as a conservation extension 
 of the Boogie~\cite{BarnettCDJL05} language and verifier.
 Our implementation provides new language primitives for linear variables, asynchronous and parallel procedure calls, 
-yields, atomic actions as procedure specifications, and hiding of global variables.
+yields, atomic actions as procedure specifications, expressing refinement layers, and hiding of global variables and procedures.
 At its core, Boogie is an unstructured language comprising code blocks and goto statements.
 Our implementation handles the complexity of unstructured control flow.
 To simplify the exposition, our formalization uses Floyd-Hoare triples to present sequential correctness and 
@@ -16,10 +16,9 @@ Annotated atomic code blocks are also inferred automatically.
 Non-interference checks are collected as inlined procedures
 invoked at appropriate places within the code of a procedure for increased precision.
 
-The judgment $\jy \Prog$ from Section~\ref{sec:verification} is fully automated.
-We adapted an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
-labeled graphs to check that the control flow graph of a procedure is simulated by
-the $\YSA$ automaton.
+We automated the judgment $\jy \Prog$ from Section~\ref{sec:verification} 
+by adapting an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
+labeled graphs.
 The complexity of the algorithm is $O(n*m)$, where $n$ and $m$ are the number of control-flow graph nodes and edges.
 In practice, this part of the verification is fast.
 
