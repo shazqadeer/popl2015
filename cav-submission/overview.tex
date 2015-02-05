@@ -5,7 +5,8 @@ We present an overview of our approach to refinement on the program in Figure~\r
 a simplified version of the write barrier in a concurrent garbage collector (GC).
 In a concurrent GC, a color (either \exC{WHITE}, \exC{GRAY}, or \exC{BLACK})
 is associated with each object on the heap.  
-Before writing to an address \exC{addr}, a mutator thread checks 
+Before writing to an address \exC{addr}, a mutator executes a write
+barrier. It checks 
 \exC{addr} has color \exC{WHITE}
 and sets it to \exC{GRAY}, indicating that the object at \exC{addr}
 and objects reachable from it should not be garbage collected. 
@@ -14,6 +15,7 @@ and objects reachable from it should not be garbage collected.
 {\scriptsize
 \begin{verbatim}
 var Color: int; // WHITE=1, GRAY=2, BLACK=3
+
 procedure WB(linear tid:Tid)
 atomic [if (Color == WHITE) Color := GRAY];
 {
@@ -23,6 +25,7 @@ atomic [if (Color == WHITE) Color := GRAY];
   if (cNoLock == WHITE) 
     call WBSlow(tid);
 }
+
 procedure WBSlow(linear tid:Tid)
 atomic [if (Color == WHITE) Color := GRAY];
 {
@@ -33,6 +36,7 @@ atomic [if (Color == WHITE) Color := GRAY];
     call SetColorLocked(tid, GRAY);
   call ReleaseLock(tid);
 }
+
 procedure GetColorNoLock(linear tid:Tid) 
   returns (cl:int) atomic [...];
 procedure AcquireLock(linear tid:Tid) 
@@ -52,11 +56,12 @@ procedure SetColorLocked(linear tid:Tid,
 Procedure \exC{WB} implements the write barrier.
 To simplify exposition, 
 we consider a single object whose color is stored in the shared variable \exC{Color}.
-Acquiring and releasing a loc for each address encountered by a
-mutator slows applications down. To avoid this, 
-\exC{WB} reads \exC{Color} without holding a lock.
-If the color is {\tt WHITE}, it calls the more expensive procedure \exC{WBSlow} 
-that re-examines and possibly updates \exC{Color} while holding the lock.
+\exC{WB} first reads \exC{Color} without holding a lock, to avoid,
+when possible, the
+cost of acquiring and releasing a lock for each address encountered by
+a mutator. 
+If \exC{Color} is {\tt WHITE}, it calls the more expensive procedure \exC{WBSlow} 
+to re-examines and possibly update \exC{Color} while holding the lock.
 \civl simplifies reasoning about \exC{WB} and \exC{WBSlow} by allowing us to 
 compactly express their specification as the following atomic action:\\
 \begin{small}
@@ -91,19 +96,20 @@ This proof requires both correct modeling of environment interference in the yie
 and the atomic action specification for the called procedure \exC{WBSlow}.
 The \civl verifier automatically computes a logical verification condition capturing
 these proof obligations from the body and specification of \exC{WB}.
+
 Just as the verification of \exC{WB} builds on the specification of \exC{WBSlow},
 the verification of \exC{WBSlow} builds on other refinement proofs (not shown) 
 of the procedures called in \exC{WBSlow};
-these called procedures are shown at the bottom of the figure. 
-While this example shows only one procedure at this level, in programs
-with many procedures with atomic specifications at each level,
+these procedures are shown at the bottom of the figure. 
+This example shows only one procedure at this layer. In programs
+with many procedures with atomic specifications at each layer,
 \civl combines the per-procedure refinement proofs soundly into a
 whole-program refinement proof. 
 
 {\bf Reduction, preemptive semantics vs collaborative semantics.}
 The verification of \exC{WBSlow} highlights reduction-related features
 in \civl. 
-As explained above, the refinement checking is performed on cooperative semantics in which a 
+Refinement checking is performed on cooperative semantics in which a 
 {\tt yield}-to-{\tt yield} execution fragment of code is executed atomically.
 However, in a real execution, control can switch between threads at any point in the code. 
 A naive modeling of a real execution would put a yield statement before every instruction in the code.
@@ -118,8 +124,8 @@ that it commutes later in time against concurrently executing environment action
 These mover types are checked by constructing verification conditions from each pair of atomic actions.
 
 The use of movers is entirely optional in \civl, but very beneficial
-in our experience. The programmer can choose to avoid mover and
-commutativity reasoning, and simply
+in our experience. One can avoid 
+mover and commutativity reasoning, simply
 annotating atomic action specifications with the mover type {\tt atomic}.
 However, without mover reasoning,  a yield statement and an
 accompanying predicate
@@ -145,21 +151,23 @@ reasoning but provides automation for this important verification
 feature and its use in conjunction with other techniques illustrated in
 this section. 
 
-\civl verifies mover-based reduction, i.e., the correctness of the placement of {\tt yield}s using a novel  approach.
+Given verified mover types for actions, \civl verifies reduction, i.e., the correctness of the placement of {\tt yield}s using a novel  approach.
 A {\em Yield Sufficiency Automaton\/} ($\YSA$ in Figure~\ref{fig:ysa}) encodes all sequences of atomic actions and yields for which safety of cooperative semantics is sufficient 
 for safety of preemptive semantics. 
 \begin{wrapfigure}{l}{0.5\textwidth}
 \begin{center}
 \includegraphics[scale=0.25]{WBSlow.pdf}
 \end{center}
+\vspace*{-0.2cm}
 \caption{Abstraction of \exC{WBSlow}}
 \label{fig:midwb}
 \end{wrapfigure}
-Roughly speaking, each ``transaction'' starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
-In the middle, it can have at most one non mover.
-\civl then interprets the control-flow graphs of each procedure as an automaton with mover types as edge labels. 
-This abstraction for \exC{WBSlow} is shown in Figure~\ref{fig:midwb}
-\civl verifies that this automaton is simulated by the yield-sufficiency automaton using an existing algorithm for computing simulation relation~\cite{HenzingerHK95}.
+Each ``transaction'' starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
+In the middle, it can have at most one non mover. Transactions must be
+separated by {\tt yield}s.
+\civl then interprets the control-flow graph of each procedure as an automaton with mover types as edge labels. 
+This abstraction for \exC{WBSlow} is shown in Figure~\ref{fig:midwb}.
+\civl verifies that this automaton is simulated by the yield-sufficiency automaton using an existing algorithm for computing simulation relations~\cite{HenzingerHK95}.
 
 {\bf Variable hiding.}
 The atomic action specification of \exC{WBSlow} makes no reference to the lock variable, although its implementation involves a lock. 
@@ -167,7 +175,7 @@ When verifying refinement for \exC{WBSlow}, the lock variable has been hidden.
 \civl allows the programmer to both introduce and hide variables in
 each refinement step, thereby providing the capability to perform data refinement.
 The ability to introduce and hide variables and write yield predicates specific to each refinement step 
-facilitates proofs spanning large abstraction gaps between the specification and implementation.
+facilitates proofs spanning a large range of abstraction.
 
 %%%%%%%%%% Shaz, we make this point in the intro and it breaks the
 %%%%%%%%%% flow in this example.

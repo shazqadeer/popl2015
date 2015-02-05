@@ -63,13 +63,13 @@ Finally, \civl provides a simple module system. Modules can be
 verified separately, in parallel or at different times if desired,
 since the module system soundly does away with checks that pertain to cross-module interactions. 
 This feature is significant since commutativity checks and non-interference checks for location invariants are quadratic, whole program checks involving all pairs of yield locations and atomic blocks, or all pairs of actions from a program. 
-Using the module system, the number of checks is reduced; they become quadratic in the number of yields and atomic blocks {\em within each module} rather than the entire program. 
+Using the module system, the number of checks is reduced; they become quadratic in the number of yields and atomic blocks within each module rather than the entire program. 
 
 We have implemented \civl as a conservative extension of the \boogie verifier.  
 We have used it to verify a collection of microbenchmarks and benchmarks from the 
 literature~\cite{Blumofe1999,ElmasQT09,ElmasTQ05,FarzanKP14,FlanaganQ03,Herlihy2008}. 
 The most challenging case study with \civl was carried out concurrently with \civl's development and served as a design driver. 
-We verified a concurrent garbage collector, through six levels of refinement, 
+We verified a concurrent garbage collector, through six layers of refinement, 
 down to atomic actions corresponding to individual memory accesses. 
 The level of granularity of the lowest-level implementation distinguishes this verification effort, 
 detailed in a technical report~\cite{gc-techreport}, from previous attempts in the literature. 

@@ -28,11 +28,10 @@ $\CProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads)$
 
 We present our verification method on a core concurrent programming language, \civl.
 In this section, we present the syntax (Figure~\ref{fig:syntax}) and operational semantics of our language informally.
-Informally, a \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
+A \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
 thread-local variables that are shared across procedures, and local variables inside a procedure.
-The sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
-respectively.
-These sets are mutually disjoint and $\Var$ denotes their union.
+The mutually disjoint sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
+respectively, and $\Var$ denotes their union.
 There is an uninterpreted set $\Value$ of values that may be stored in these variables.
 $\Store$, $\StoreGlobal$, $\StoreThreadLocal$, and $\StoreLocal$ are all sets of maps into $\Value$
 from $\Var$, $\Global$, $\ThreadLocal$, and $\Local$ respectively.
