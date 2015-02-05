@@ -26,18 +26,17 @@ from low-level memory operations all the way up to high-level specifications;
 we used six layers of refinement to help hide low-level details from the high-level portions of the verification.
 We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
 
-\civl's support for refinement allows us to write concise specifications of the garbage collector's correctness:
-to be correct, the GC must implement Allocate, ReadField, and WriteField actions that appear to act atomically,
-even though in the underlying implementation,
-these operations execute concurrently with the garbage collector thread and with other program threads.
+\civl's support for refinement enables concise specifications of the GC's correctness:
+a correct GC must implement Allocate, ReadField, and WriteField actions that appear to act atomically,
+even though the implementation of these operations actually executes concurrently with the GC thread and with other program threads.
 The specification states that Allocate atomically adds new objects to the heap,
-while ReadField and WriteField read and write fields from heap objects.
-Although the garbage collector's Mark and Sweep code constitutes the bulk of the GC code,
+while ReadField and WriteField read and write heap object fields.
+Although the GC's Mark and Sweep code constitutes most of the GC code,
 they are hidden in the high-level specification;
 they have detailed correctness specifications in the middle layers of the proof,
 but the most important point at the high level is that their work not interfere with Allocate, ReadField, and WriteField.
 In particular, Mark must coordinate with WriteField's write barrier,
-and Sweep must not remove any objects that are still reachable by ReadField and WriteField.
+and Sweep must not remove objects reachable by ReadField and WriteField.
 
 Overall, our GC implementation consists of about 2100 lines of Boogie code.
 The verification takes 60 seconds on the same PC used for microbenchmarks.
@@ -53,7 +52,7 @@ of techniques is needed to support stepwise refinement, and a different blend of
 techniques best serves the verification goals at different layers of refinement. 
 We now expand on this point. 
 
-The primary purpose of the lower layers of the GC proof was to enable
+The primary purpose of the GC proof's lower layers was to enable
 reasoning with coarser atomic actions at higher layers. 
 Reduction was the primary proof method used in these layers, where
 concurrent data structures and synchronization primitives were proven
