@@ -27,9 +27,11 @@ $\CProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads)$
 \end{wrapfigure}
 
 We present our verification method on a core concurrent programming language, \civl.
-In this section, we present the syntax (Figure~\ref{fig:syntax}) and operational semantics of our language informally.
+Figure~\ref{fig:syntax} shows the syntax;  the operational semantics is described informally below.
 A \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
 thread-local variables that are shared across procedures, and local variables inside a procedure.
+Thus, a program contains all information to represent not only the static program 
+written by the programmer but also the dynamic state of the program as it executes.
 The mutually disjoint sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
 respectively, and $\Var$ denotes their union.
 There is an uninterpreted set $\Value$ of values that may be stored in these variables.
@@ -61,15 +63,16 @@ and $N$ for non mover~\cite{FlanaganFLQ08}.
 
 \noindent
 {\bf Linear interfaces.}
-$\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface 
+$\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface~\cite{Wadler90lineartypes}
 $(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
-The procedure (or action) requires that the set $\lins$ be available at the beginning of its invocation 
-and makes available the set $\lins'$ at the end of its invocation; 
-we refer to $\lins$ and $\lins'$ as the input and output linear permissions respectively.
-The programmer provides a function $\Perm$ from $\Value$ to $2^\Value$
-and the linear type checker enforces the invariant that 
-different available variables contain distinct values and 
-the sets $\Perm(v)$ for values $v$ contained in available variables are always pairwise disjoint.
+To exploit linearity during verification, the programmer provides a function $\Perm$ from $\Value$ to $2^\Value$.
+The set $\Perm(v)$ is the set of {\em permissions\/} associated with a value $v \in \Value$.
+The \civl type checker computes a set of {\em available\/} linear variables at each control location such that
+the multiset union of the permissions associated with the available variables is guaranteed to be a set, i.e., 
+permissions are never duplicated among linear variables.
+The linear interface $(\lins, \lins')$ of a procedure (or action) indicates the available sets
+at its beginning ($\lins$) and end ($\lins'$), respectively.
+Linear interfaces allow \civl to reason about each procedure separately.
 
 \noindent
 {\bf Global store.}
