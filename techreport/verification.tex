@@ -812,9 +812,9 @@ and an action labeled $B$ commutes both to the left and the right of other concu
 The ability to commute past actions in the environment is the essence of the justification 
 for reasoning about cooperative semantics.
 For example, a yield after a right mover or a yield before a left mover is unncessary.
-The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} that encodes 
-all sequences of atomic actions, atomic blocks, and yields with enough yields to capture all behaviors.
-The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by traces of $\YSA$.
+The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
+all sequences of atomic actions and yields to capture all behaviors.
+The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by $\YSA$.
 
 The essence of the rules in Figure~\ref{fig:yield-sufficiency}
 is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\LM\}$;

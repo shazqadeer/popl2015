@@ -86,44 +86,39 @@ $\varsTL$ is the thread-local store and $\Frames$ is a stack of frames comprisin
 Each frame $(P, \varsL, \stmt)$ in $\Frames$ comprises a procedure $P$, its procedure-local store $\varsL$, 
 and a statement $\stmt$.
 
-We formalize the operational semantics of \civl as a relation $\trans$ between a pair of programs.
-The rules for the relation extend the syntax of statements with an embedded context~\cite{WrightF94}.
-A statement context $\StmtCtxt$ is either a context $[]_{\Stmt}$ or the sequential composition of a 
-statement context and a statement.
-Thus, each statement context has a unique context $[]_{\Stmt}$ inside it;
-this context encodes the current position of the execution of a thread.
-The result of substituting a statement $\stmt$ inside the statement context $\StmtCtxt$ 
-is another statement and is denoted by $\StmtCtxt[\stmt]$.
-Similarly, we define a frame context $\FrameCtxt$ with two contexts embedded inside it, 
-$[]_{\StoreLocal}$ for substituting a procedure-local store
-and $[]_{\Stmt}$ for substituting a statement.
-The result of substituting a procedure-local store $\varsL$ and a statement $\stmt$ inside 
-$\FrameCtxt$ is a frame and is denoted by $\FrameCtxt[\varsL][\stmt]$;
-here, $\varsL$ is the procedure-local store for the procedure containing the currently executed statement $\stmt$.
-A thread context $\ThreadCtxt$ has three contexts embedded inside it, $[]_{\StoreThreadLocal}$ for substituting a thread-local store, 
-$[]_{\StoreLocal}$ for substituting a procedure-local store, and $[]_{\Stmt}$ for substituting a statement.
-The result of substituting a thread-local store $\varsTL$, a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ThreadCtxt$ 
-is a thread and is denoted by $\ThreadCtxt[\varsTL][\varsL][\stmt]$.
-Finally, the result of substituting a global store $\varsG$, a thread-local store $\varsTL$, 
-a procedure-local store $\varsL$, and a statement $\stmt$ inside $\ProgCtxt$ is a program and is denoted by $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$.
+We formalize the preemptive operational semantics of \civl as a relation $\trans$ with domain $\Program$ and 
+codomain $\Program \cup \{\error\}$.
+We use four contexts---$\StmtCtxt$, $\FrameCtxt$, $\ThreadCtxt$, and $\ProgCtxt$---to formalize $\trans$
+as a structured operational semantics~\cite{WrightF94}.
+In this semantics, a thread is chosen nondeterministically to execute a single statement.
+The statement $\skipstmt$ has no side effect.
+The statement $\yield{e,\lins}$ contains a predicate $e$ and a set $\lins$ comprising global and thread-local variables.
+The yield predicate $e$ is expected to be established by the executing thread and preserved by other threads;
+the variables $\lins$ are expected to be available at the yield statement.
+The yield statement is the mechanism by which the programmer specifies the cooperative semantics (described later) over which 
+the refinement check is performed.
+In \civl, yield predicates, preconditions, and postconditions are the three sources of location invariants~\cite{OwickiG76}.
+The statement $\call{A}$ invokes the action $A$.
+Suppose $\actions(A) = (\rho, \alpha, m)$.
+If $\rho$ does not hold, the statement $\call{A}$ fails and the program evolves to $\error$, 
+otherwise the store is updated according to the transition relation $\alpha$.
+The statement $\call{P}$ invokes the procedure $P$.
+Suppose $\procs(P) = (\phi, \mods, \psi, \stmt)$.
+It is expected that the precondition $\phi$ holds, then statement $\stmt$ executes, and finally the postcondition $\psi$ holds.
+The predicates $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
+The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
+The statement $\ablock{e,\lins}{\stmt}$ is useful only for compactly encoding non-interference checks;
+the predicate $e$ is expected to hold and the set $\lins$ is expected to be available at the beginning of $\stmt$.
+Finally, we have the standard primitives for sequencing, conditional execution, and looping.
 
-A finite $\trans$-execution from $\Prog$ is a sequence of programs $\Prog_0,\Prog_1,\ldots,\Prog_n$ such that $\Prog_0 = \Prog$ 
-and $\Prog_i \trans \Prog_{i+1}$ for all $0 \leq i < n$.
-An infinite $\trans$-execution from $\Prog$ is defined similarly.
-We write $\Safe(\Prog)$ if $\Prog$ cannot fail in one step.
-We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
-
-Figure~\ref{fig:syntax} defines the subset $\mathit{YieldingThread}$ of threads and subsets 
-$\YProgram$ and $\CProgram$ of $\Program$.
-A yielding thread in $\mathit{YieldingThread}$ is one that is waiting to execute at a yield statement.
+We now define the cooperative operational semantics induced by the presence of yield statements in the program.
+A {\em yielding thread\/} ($\mathit{YieldingThread}$ in Figure~\ref{fig:syntax}) is one that is waiting to execute at a yield statement.
 A program in $\YProgram$ is one in which all threads except at most one thread are yielding threads.
 A program in $\CProgram$ is one in which all threads are yielding threads.
-Let $\ytrans$ be the relation $\trans$ whose domain and codomain are restricted to $\YProgram$.
-A $\ytrans$-execution from a program $\Prog \in \YProgram$ is defined similarly to a $\trans$-execution.
-In such an execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches 
-a yield statement and becomes a yielding thread.
-At that point, all threads are yielding and any one can be picked for execution.
-
+Thus, we have $\CProgram \subseteq \YProgram \subseteq \Program$.
+Let $\ytrans$ be the relation obtained by restricting the domain and codomain of $\trans$ to $\YProgram$.
+In a $\ytrans$-execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches 
+a yield statement and becomes a yielding thread; at that point, all threads are yielding and any one can be picked for execution.
 We define the relation $\ctrans$ with domain $\CProgram$ and codomain $\CProgram \cup \{\error\}$ as follows:
 \begin{enumerate}
 \item 
@@ -134,9 +129,13 @@ $\Prog \ctrans \error$ if there is a $\ytrans$-execution from $\Prog$ to $\error
 except for $\Prog$ is not in $\CProgram$.
 \end{enumerate}
 
+Consider a program $\Prog \in \Program$.
+We write $\Safe(\Prog)$ if it is not the case that $\Prog \trans \error$.
+We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
 Consider a program $\Prog \in \CProgram$.
 We write $\CSafe(\Prog)$ if it is not the case that $\Prog \ctrans \error$.
 We write $\CSafe^*(\Prog)$ if $\CSafe(\Prog')$ for all $\Prog'$ such that $\Prog \ctrans^* \Prog'$.
+
 We write $\Cooperative(\Prog)$ if for each infinite $\ytrans$-execution $\Prog \ytrans \Prog_0 \ytrans \Prog_1 \ytrans \cdots$ 
 starting from $\Prog$, there is some $i \geq 0$ such that $\Prog_i \in \CProgram$.
 We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
