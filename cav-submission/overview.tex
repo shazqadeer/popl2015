@@ -169,6 +169,16 @@ separated by {\tt yield}s.
 This abstraction for \exC{WBSlow} is shown in Figure~\ref{fig:midwb}.
 \civl verifies that this automaton is simulated by the yield-sufficiency automaton using an existing algorithm for computing simulation relations~\cite{HenzingerHK95}.
 
+{\bf Linear variables.}
+Figure~\ref{fig:reft}'s thread identifier (\exC{tid}) variables are declared \exC{linear} to indicate that two threads cannot possess the same thread identifier simultaneously.
+To enforce unique ownership of linear resources, the \civl type checker prohibits duplication of linear resources~\cite{Wadler90lineartypes}.
+Interference checking and commutativity checking leverage this linearity by automatically inserting assumptions about disjointness of linear resources into verification conditions,
+making it easier to prove non-interference and commutativity.
+Linearity is general enough to support much more than just fixed thread identifiers:
+\civl also uses it to express separation of memory (in the style of separation logic~\cite{Reynolds02}; see \cite{LahiriQW11})
+and to express permissions~\cite{boyland:03fractions} that may be transferred but not duplicated between threads.
+Our verified GC, for example, expresses mutual exclusion during initialization and root scanning by temporarily transferring permissions from mutator threads to the GC thread.
+
 {\bf Variable hiding.}
 The atomic action specification of \exC{WBSlow} makes no reference to the lock variable, although its implementation involves a lock. 
 When verifying refinement for \exC{WBSlow}, the lock variable has been hidden. 
