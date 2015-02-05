@@ -1,6 +1,14 @@
 \section{A concurrent programming language}
 \label{sec:language}
 
+We present our verification method on a core concurrent programming language, \civl.
+Figure~\ref{fig:syntax} shows the syntax;  the operational semantics is described informally below.
+A \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
+thread-local variables that are shared across procedures, and local variables inside a procedure.
+Thus, a program contains all information to represent not only the static program 
+written by the programmer but also the dynamic state of the program as it executes.
+The mutually disjoint sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
+respectively, and $\Var$ denotes their union.
 \begin{wrapfigure}{l}{0.6\textwidth}
 \setlength{\tabcolsep}{3pt}
 \scriptsize{
@@ -25,15 +33,6 @@ $\CProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads)$
 \caption{Syntax}
 \label{fig:syntax}
 \end{wrapfigure}
-
-We present our verification method on a core concurrent programming language, \civl.
-Figure~\ref{fig:syntax} shows the syntax;  the operational semantics is described informally below.
-A \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
-thread-local variables that are shared across procedures, and local variables inside a procedure.
-Thus, a program contains all information to represent not only the static program 
-written by the programmer but also the dynamic state of the program as it executes.
-The mutually disjoint sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
-respectively, and $\Var$ denotes their union.
 There is an uninterpreted set $\Value$ of values that may be stored in these variables.
 $\Store$, $\StoreGlobal$, $\StoreThreadLocal$, and $\StoreLocal$ are all sets of maps into $\Value$
 from $\Var$, $\Global$, $\ThreadLocal$, and $\Local$ respectively.

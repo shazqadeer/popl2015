@@ -170,7 +170,7 @@ This abstraction for \exC{WBSlow} is shown in Figure~\ref{fig:midwb}.
 \civl verifies that this automaton is simulated by the yield-sufficiency automaton using an existing algorithm for computing simulation relations~\cite{HenzingerHK95}.
 
 {\bf Linear variables.}
-Figure~\ref{fig:reft}'s thread identifier (\exC{tid}) variables are declared \exC{linear} to indicate that two threads cannot possess the same thread identifier simultaneously.
+In Figure~\ref{fig:reft}, thread identifier (\exC{tid}) variables are declared \exC{linear} to indicate that two threads cannot possess the same thread identifier simultaneously.
 To enforce unique ownership of linear resources, the \civl type checker prohibits duplication of linear resources~\cite{Wadler90lineartypes}.
 Interference checking and commutativity checking leverage this linearity by automatically inserting assumptions about disjointness of linear resources into verification conditions,
 making it easier to prove non-interference and commutativity.
@@ -186,17 +186,4 @@ When verifying refinement for \exC{WBSlow}, the lock variable has been hidden.
 each refinement step, thereby providing the capability to perform data refinement.
 The ability to introduce and hide variables and write yield predicates specific to each refinement step 
 facilitates proofs spanning a large range of abstraction.
-
-%%%%%%%%%% Shaz, we make this point in the intro and it breaks the
-%%%%%%%%%% flow in this example.
-%
-% There are two important benefits of atomic action specifications.
-% First, an atomic action is often the most compact and precise way to express the specification a procedure.
-% Second, an atomic action specification successfully hides from the caller of a procedure $P$
-% the potentially numerous yields inside the body of $P$.
-% This capability provides modularity akin to that provided by the frame rule for sequential programs.
-% Without this capability, any postcondition $\phi$ needed by the caller of $P$ must be made explicit in the precondition 
-% and yield predicates of $P$ and all procedures recursively called inside it.
-% With this capability, the caller achieves the same effect by writing $\yield{\phi}$ before and after the call, 
-% provided that $\phi$ is preserved by the atomic action specification of $P$.
 

@@ -61,13 +61,13 @@ one for each pair of yield statement and atomic block in the program.
 
 The second sub-goal is discharged by the two judgments $\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
 Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$.
-To justify that reasoning about cooperative semantics is sufficient, 
+To justify that $\CSafe^*(\Prog)$ is sufficient for $\Safe^*(\Prog)$,
 we exploit commutativity information available from the mover types of atomic actions.
 The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
 all sequences of atomic actions and yields for which reasoning about cooperative semantics is sufficient.
-For example, the $\YSA$ a yield after a right mover or a yield before a left mover is unncessary.
-The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by $\YSA$
-and the judgment $\CommutativitySafe(\Prog)$ checks that all mover annotations are correct.
+For example, the $\YSA$ automaton indicates that a yield after a right mover or a yield before a left mover is unnecessary.
+The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by $\YSA$;
+it depends on the judgment $\CommutativitySafe(\Prog)$ which checks that all mover annotations are correct.
 
 \begin{theorem}
 \label{thm:correctness}
