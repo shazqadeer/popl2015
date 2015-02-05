@@ -4,7 +4,7 @@
 We have implemented the method described in this section as a conservation extension 
 of the Boogie~\cite{BarnettCDJL05} language and verifier.
 Our implementation provides new language primitives for linear variables, asynchronous and parallel procedure calls, 
-yields, and atomic actions as procedure specifications.
+yields, atomic actions as procedure specifications, and hiding of global variables.
 At its core, Boogie is an unstructured language comprising code blocks and goto statements.
 Our implementation handles the complexity of unstructured control flow.
 To simplify the exposition, our formalization uses Floyd-Hoare triples to present sequential correctness and 
@@ -16,7 +16,7 @@ Annotated atomic code blocks are also inferred automatically.
 Non-interference checks are collected as inlined procedures
 invoked at appropriate places within the code of a procedure for increased precision.
 
-The judgment $\jy \Prog$ from Section~\ref{sec:yield-sufficiency} is fully automated.
+The judgment $\jy \Prog$ from Section~\ref{sec:verification} is fully automated.
 We adapted an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
 labeled graphs to check that the control flow graph of a procedure is simulated by
 the $\YSA$ automaton.
@@ -29,7 +29,3 @@ The programmer may attach a positive layer number to each annotation and procedu
 version $i$ of the program is constructed from annotations labeled $i$ and procedures labeled at least $i$.
 We have implemented a type checker to make sure that layer numbers are used appropriately, e.g., 
 it is illegal for a procedure with layer $i$ to call a procedure with layer $j$ greater than $i$.
-
-Our verifier also supports hiding of global variables.
-Hiding global variables is particularly useful because simple summaries can be written for complicated procedures
-once enough variables relevant to their implementation have been hidden.
