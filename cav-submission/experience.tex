@@ -47,10 +47,9 @@ The checks for linear variables, yield sufficiency, and commutativity take the r
 \subsection{Discussion}
 The GC verification demonstrates that stepwise refinement using \civl is a
 powerful verification approach. 
-Another important lesson learned from the GC proof is that a collection
+Another important lesson learned is that a collection
 of techniques is needed to support stepwise refinement, and a different blend of
 techniques best serves the verification goals at different layers of refinement. 
-We now expand on this point. 
 
 The primary purpose of the GC proof's lower layers was to enable
 reasoning with coarser atomic actions at higher layers. 
@@ -63,8 +62,8 @@ non-interference reasoning was our primary tool.
 This reasoning was made simpler on a program with coarser
 atomic actions. 
 We observed that the use
-of location invariants made the certain layers of the proof more
-manageable as compared to an earlier effort where we used
+of location invariants made certain layers of the proof more
+manageable compared to an earlier effort verifying the same GC where we used
 rely-guarantee reasoning and auxiliary variables to reason about
 non-interference.  
 

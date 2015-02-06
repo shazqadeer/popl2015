@@ -10,7 +10,7 @@ While many of the verification techniques used within \civl appear in
 the literature, \civl is the first to make sound, joint use of them to
 decompose the refinement task following the syntactic structure of a
 program. In the following, we first contrast \civl with refinement
-verification techniques. We then contrast \civl with tools and
+verification techniques, and then with tools and
 techniques for reasoning about concurrent programs in general. 
 
 \subsection{Refinement-oriented verification}
@@ -35,11 +35,9 @@ invariants to be a powerful verification device.
 refinement-oriented approach of \civl.
 A key distinction between \civl and \QED is the fact that a proof step in \QED is a small rewrite in the concurrent program
 that must be justified by potentially expensive reduction and invariant reasoning.
-In \QED, abstract versions of a program are obtained by transforming the initial
-version by applying a proof script. 
-This makes it difficult to organize a proof in \QED by providing a
-description of a program at several different levels of abstraction. 
-Further, the number of small proof steps directly affect both programmer
+In \QED, procedures can be proven atomic only one procedure at a time, and only by
+transforming their bodies by reduction to be yield free. 
+The number of small proof steps directly affect both programmer
 and computer effort. 
 By contrast, \civl supports large proof steps, in each of which the bodies of several procedures
 are automatically replaced by atomic actions, thereby lowering the cost of both interaction and automation.
@@ -94,9 +92,9 @@ TLA+, one must encode
 the program semantics as a state-transition system and express
 verification goals in terms of this system. 
 For concurrent, shared-memory
-software, there is a cognitive gap between the program's state-transition relation
-and the structured, imperative multithreaded program text.
-\civl enables users to reason on the latter.
+software, \civl enables reasoning on the structured, imperative
+multithreaded program text rather than a logic description of the
+program's state-transition relation. 
  
 
 \subsection{Reasoning about concurrency}
