@@ -101,6 +101,68 @@ entered.
 
 \begin{figure}
 \begin{verbatim}
+var x:int, y:int, z:int;
+\end{verbatim}
+\begin{verbatim}
+procedure incr_x()
+  ensures  x >= old(x) + 1;
+{
+  yield x >= old(x);
+  x := x + 1;
+  yield x >= old(x) + 1;
+}
+\end{verbatim}
+\begin{verbatim}
+procedure yield_y()
+  ensures  y >= old(y);
+{
+  yield y >= old(y);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure yield_z()
+  ensures  z >= old(z);
+{
+  yield z >= old(z);
+}
+\end{verbatim}
+\begin{verbatim}
+procedure p()
+  requires x == 3 && y == 5 && z == 7;
+{
+  call incr_x() | yield_y() | yield_z();
+  assert x >= 4 && y >= 5 && z >= 7;
+}
+\end{verbatim}
+\caption{Program 4}
+\label{fig:ex4}
+\end{figure}
+
+{\bf Parallel calls.}
+Program~4 in Figure~\ref{fig:ex4} illustrates parallel calls,
+supported by Boogie
+based on the standard Owicki-Gries rules for parallel composition of threads.  
+The statement {\tt call incr\_x() | yield\_y() | yield\_z()} in {\tt p} creates three threads 
+executing {\tt incr\_x}, {\tt yield\_y}, and {\tt yield\_z} respectively, yields control to the scheduler,
+and blocks until all three threads have terminated.
+For a procedure to be invoked in a parallel call, its preconditions and postconditions
+must be stable against interference.
+This requirement ensures that it is safe to assume the precondition in the callee
+and the postcondition in the caller.
+
+The threads created by {\tt p} for {\tt yield\_y} and {\tt yield\_z} are not doing any interesting computation; 
+their only purpose is to make available to their parent the conjunction of their respective postconditions
+(following Owicki-Gries rules for parallel composition).
+In this example, the postconditions of {\tt yield\_y} and {\tt yield\_z} preserve information about variables
+{\tt y} and {\tt z} that would otherwise be lost during the call to {\tt incr\_x},
+whose postcondition only supplies information about {\tt x} even though its yield statements potentially cause
+all global variables, including {\tt y} and {\tt z}, to change.
+This example demonstrates modular proof structuring by factoring out yield assertions into a collection of procedures;
+the declaration of {\tt incr\_x} can focus on changes to {\tt x},
+without having to explicitly preserve invariants about all other variables in the program.
+
+\begin{figure}
+\begin{verbatim}
 type Tid;
 const nil:Tid;
 procedure Allocate() 
@@ -126,18 +188,18 @@ procedure P(linear tid: Tid)
   a[tid] := t + 1;
 }
 \end{verbatim}
-\caption{Program 4}
+\caption{Program 5}
 \label{fig:ex5}
 \end{figure}
 
 \subsection{Linear variables}
 
-Program~4 in Figure~\ref{fig:ex5} introduces linear variables, a feature of \civl 
+Program~5 in Figure~\ref{fig:ex5} introduces linear variables, a feature of \civl 
 that is useful for encoding disjointness among values contained in 
 different variables.  
 This example uses this feature for encoding the concept of an identifier 
 that is unique to each thread.
-Program~4 contains a shared global array {\tt a} indexed by an uninterpreted type {\tt Tid} 
+Program~5 contains a shared global array {\tt a} indexed by an uninterpreted type {\tt Tid} 
 representing the set of thread identifiers.
 A collection of threads are executing procedure {\tt P} concurrently.
 The identifier of the thread executing {\tt P} is passed in as the parameter {\tt tid}.

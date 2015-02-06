@@ -39,8 +39,9 @@ With this restriction, $\CommutativitySafe$ and $\InterferenceSafe$ can be check
 no other module $M'$ could interfere with any of the global variables owned by $M$.
 
 As a more concrete example, suppose modules \verb`Lock1` and \verb`Lock2` independently implement locks,
-expressed as atomic actions on variables \verb`lock1` and \verb`lock2`:
+expressed as atomic actions on variables \verb`lock1` and \verb`lock2` (Figure~\ref{fig:lockModules}).
 
+\begin{figure}
 \begin{verbatim}
 module Lock1
   var lock1:Tid;
@@ -48,8 +49,9 @@ module Lock1
     right [assume lock1 == none;
            lock1 := tid;]
   {...}
-  procedure Rel1()
-    left [lock1 := none;]
+  procedure Rel1(linear tid:Tid)
+    left  [assert lock1 == tid;
+           lock1 := none;]
   {...}
   ...
 
@@ -59,11 +61,15 @@ module Lock2
     right [assume lock2 == none;
            lock2 := tid;]
   {...}
-  procedure Rel2()
-    left [lock2 := none;]
+  procedure Rel2(linear tid:Tid)
+    left  [assert lock2 == tid;
+           lock2 := none;]
   {...}
   ...
 \end{verbatim}
+\caption{Lock modules}
+\label{fig:lockModules}
+\end{figure}
 
 By defining $\own_{\Global}(\mathtt{lock1}) = \mathtt{Lock1}$ and $\own_{\Global}(\mathtt{lock2}) = \mathtt{Lock2}$,
 the \verb`Lock1` and \verb`Lock2` modules can be verified independently.
@@ -75,8 +81,9 @@ we verify \verb`Lock1` and \verb`Lock2`,
 replacing the \verb`Acq1`, \verb`Acq2`, \verb`Rel1`, and \verb`Rel2` procedures with \verb`Acq1`, \verb`Acq2`, \verb`Rel1`, and \verb`Rel2` actions,
 and hiding the implementations of the bodies of these procedures.
 Then suppose that in the second layer,
-we want to use \verb`Lock1` and \verb`Lock2` in a module \verb`Counter`:
+we want to use \verb`Lock1` and \verb`Lock2` in a module \verb`Counter` (Figure~\ref{fig:counterModule}).
 
+\begin{figure}
 \begin{verbatim}
 module Counter
   var x1:int, x2:int;
@@ -114,25 +121,28 @@ module Counter
     call Rel2();
     call Rel1(); }
 \end{verbatim}
+\caption{Counter module}
+\label{fig:counterModule}
+\end{figure}
 
 \verb`Counter` uses \verb`Lock1` and \verb`Lock2` to implement an atomic counter supporting increment and decrement,
 using only primitive increment operations \verb`Inc1` and \verb`Inc2` to access its variables \verb`x1` and \verb`x2`.
 Since \verb`Inc1` and \verb`Inc2` refer to \verb`lock1` and \verb`lock2`,
 the owner of \verb`Inc1` and \verb`Inc2` must also own \verb`lock1`, and \verb`lock2`.
 Fortunately, ownership is free to migrate between layers,
-so in the second layer we can define
+so in the second layer we define
 $\own_{\Global}(\mathtt{lock1}) = \mathtt{Counter}$ and $\own_{\ActionName}(\mathtt{Acq1}) = \mathtt{Counter}$ and so on.
 (Note that $\own_{\ProcName}(\mathtt{Acq1})$ doesn't matter in the second layer,
 since the procedure \verb`Acq1` was hidden in the first layer.)
 
 After verifying \verb`Counter` in the second layer,
-we can hide the \verb`lock1` and \verb`lock2` variables entirely,
+we hide the \verb`lock1` and \verb`lock2` variables entirely,
 along with the \verb`Inc1`, \verb`Inc2`, \verb`Acq1`, \verb`Acq2`, \verb`Rel1`, and \verb`Rel2` actions
 and the \verb`IncCnt`, \verb`DecCnt`, and \verb`ReadCnt` procedures.
 This leaves just the \verb`x1` and \verb`x2` variables
 and the \verb`IncCnt`, \verb`DecCnt`, and \verb`ReadCnt` atomic actions.
 
-We can then repeat this process, transferring ownership of
+We then repeat this process, transferring ownership of
 \verb`x1`, \verb`x2`, \verb`IncCnt`, \verb`DecCnt`, and \verb`ReadCnt`
 to another module in a third layer of refinement/abstraction:
 
@@ -148,7 +158,7 @@ For the sake of explicitness, the example above used two replicas of a lock modu
 and verified each replica separately.
 In practice, we only want to want to write and verify such modules once.
 Borrowing from Standard ML~\cite{StandardML},
-we can introduce a notion of {\it functors} that generate modules:
+we introduce a notion of {\it functors} that generate modules:
 
 \begin{verbatim}
 functor LockFunctor()
@@ -180,10 +190,7 @@ is useful for supporting dynamically allocated locks within a single module.
 
 \subsection{Module invariants}
 
-Modules often need to maintain invariants about their variables.
-For example, the following module maintains an invariant \verb`x >= 0`
-that is true after initialization:
-
+\begin{figure}
 \begin{verbatim}
 module X
   var x:int;
@@ -200,8 +207,13 @@ module X
     ensures  old(x) >= 0 ==> x >= 0;
   { yield old(x) >= 0 ==> x >= 0; }
 \end{verbatim}
+\caption{Module with invariant}
+\label{fig:moduleInvariant}
+\end{figure}
 
-\noindent
+Modules often need to maintain invariants about their variables.
+For example, the module in Figure~\ref{fig:moduleInvariant} maintains an invariant \verb`x >= 0`
+that is true after initialization.
 Other modules may need to maintain \verb`X`'s invariant to call \verb`X`'s procedures.
 However, if \verb`X` owns \verb`x`, mentioning \verb`x` from another module is prohibited:
 
@@ -219,7 +231,7 @@ module Y
 
 \noindent
 Instead, following the approach from Figure~\ref{fig:ex3},
-the other module can call a procedure in module \verb`X` that yields,
+the other module calls a procedure in module \verb`X` that yields,
 since that procedure can refer to \verb`x`:
 
 \begin{verbatim}
@@ -237,26 +249,23 @@ module Y
 \noindent
 Intuitively, module \verb`X` is responsible for declaring its invariants in \verb`Yield`,
 and these invariants are checked when verifying \verb`X`.
-Other modules can then maintain these invariants indirectly through \verb`Yield`.
-
+Other modules then maintain these invariants indirectly through \verb`Yield`.
 To maintain invariants from multiple modules (say, \verb`X1` and \verb`X2`),
-we can allow parallel calls to multiple yield procedures simultaneously:
+we use parallel calls to multiple yield procedures simultaneously,
+as in Figure~\ref{fig:ex4}:
 
 \begin{verbatim}
 module X1 ...
 module X2 ...
 
 module Y
-  procedure Yield12()
-    ensures old(x1) >= 0 ==> x1 >= 0;
-    ensures old(x2) >= 0 ==> x2 >= 0;
+  procedure P()
   {
+    call Init1();
+    ...
     // parallel call:
     call Yield1() | Yield2();
+    ...
+    call Inc2();
   }
 \end{verbatim}
-
-\noindent
-(Before a parallel call, the preconditions of all the calls must hold.
-After the parallel call, the postconditions of the all calls hold.)
-
