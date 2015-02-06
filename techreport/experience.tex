@@ -137,10 +137,11 @@ Ultimately, the phases are built on trusted CPU-level atomic actions, such as re
 
 \begin{verbatim}
 procedure PrimitiveWriteRoot(i:idx, v:int)
-  atomic [assert rootAddr(i); root[i] := v;];
+  atomic [assert rootAddr(i); root[i] := v;]
 
-procedure PrimitiveReadRoot(i:idx) returns (v:int)
-  atomic [assert rootAddr(i); v := root[i];];
+procedure PrimitiveReadRoot(i:idx)
+  returns (v:int)
+  atomic [assert rootAddr(i); v := root[i];]
 \end{verbatim}
 
 We write the highest-level action specifications in terms of an abstract view of memory,
@@ -169,17 +170,23 @@ For example, Initialize establishes a global mapping toAbs:[int]obj from physica
 
 \begin{verbatim}
 (forall x:int, f:fld ::
-   memAddr(x) && toAbs[x] != nil && fieldIndex(f)
-  ==> toAbs[mem[x][f]] == memAbs[toAbs[x]][f])
+      memAddr(x)
+   && toAbs[x] != nil
+   && fieldIndex(f)
+  ==>    toAbs[mem[x][f]]
+     == memAbs[toAbs[x]][f])
 \end{verbatim}
 
 and Mark maintains the no-black-to-white invariant:
 
 \begin{verbatim}
 (forall x:int, f:fld ::
-  memAddr(x) && Black(Color[x]) && fieldIndex(f)
-             && memAddr(mem[x][f]) ==>
-  Gray(Color[mem[x][f]]) || Black(Color[mem[x][f]]))
+      memAddr(x)
+   && Black(Color[x])
+   && fieldIndex(f)
+   && memAddr(mem[x][f])
+  ==> Gray(Color[mem[x][f]])
+   || Black(Color[mem[x][f]]))
 \end{verbatim}
 
 Finally, linearity plays a key role in establishing mutual exclusion.
