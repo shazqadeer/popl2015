@@ -74,7 +74,7 @@ refinement in our setting.
 \civl can be used for mechanical
 verification of linearizability, as we did for the Treiber stack. 
 Tools and techniques specific to verifying linearizability
-cannot, however, be easily generalized for stepwise refinement proofs
+cannot be easily generalized for stepwise refinement proofs
 through multiple levels. 
 
 Refinement proofs
@@ -87,8 +87,7 @@ been investigated in this context.
 Modular refinement proofs for hardware systems have been investigated extensively
 (e.g.,~\cite{Henzinger1999,Eiriksson2000}) using the SMV~\cite{McMillan00} and Mocha~\cite{AlurHMQRT98} 
 model checking tools.
-To verify a concurrent, shared-memory program using Mocha, SMV or
-TLA+, one must encode
+To verify a concurrent, shared-memory program using such tools, one must encode
 the program semantics as a state-transition system and express
 verification goals in terms of this system. 
 For concurrent, shared-memory
@@ -98,13 +97,12 @@ program's state-transition relation.
  
 
 \subsection{Reasoning about concurrency}
-In this section, we briefly discuss foundational techniques
+In this section, we discuss foundational techniques
 for combating the complexity of concurrent program verification. 
-\civl as well as atomicity refinement verification discussed in the previous
+\civl and refinement techniques discussed in the previous
 section have common ideas with tools and formalisms
-discussed in this section, however, the latter primarily target verification of a {\em single} concurrent program rather than refinement. 
-Refinement in \civl is orthogonal to these techniques and can potentially be combined with them.
-Conversely, these techniques can be aided by \civl's 
+discussed in this section, however, the latter primarily target verification of a {\em single} program rather than refinement. 
+Refinement in \civl is orthogonal to these techniques, which can be aided by \civl's 
 ability to connect a complex concurrent program to a simpler abstraction.
 
 VCC~\cite{VCC} is a tool for verifying concurrent C programs.  
@@ -119,7 +117,8 @@ Neither VCC nor Chalice support movers and reduction reasoning.
 
 Concurrent separation logic~\cite{OHearn07} reasons about concurrency without 
 explicitly checking for non-interference between threads. 
-Recently, tools based on this logic that blend in explicit non-interference reasoning have been developed~\cite{SAGL,RGSep}. 
+Recently, tools based on this logic that blend in explicit
+non-interference reasoning (but without support for reduction and mover reasoning) have been developed~\cite{SAGL,RGSep}. 
 \civl's combination of interference checking and linear variables is
 an extreme example of this trend, is very general and technique-agnostic. 
 We supply very primitive abstractions and let programmers mix and
