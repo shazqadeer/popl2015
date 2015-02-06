@@ -273,7 +273,7 @@ and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following hold:
 $\jl \Prog$.
 \item
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
-$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ \\ and $\InterferenceSafe(\Prog)$.
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
 \item
 $\jy \Prog$ and $\CommutativitySafe(\Prog)$.
 \end{enumerate}
@@ -313,11 +313,14 @@ Let $\Prog \in \Program$ such that $\jl \Prog$.
 If $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
 then $\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))$.
 \end{lemma}
+{\em Proof Sketch}:
+The proof follows immediately from rule \textsc{Program}.
 
 \begin{lemma}
 Let $Prog_1, \Prog_2 \in \Program$ such that $\jl \Prog_1$ and $\Prog_1 \trans \Prog_2$.
 Then, we have $\jl \Prog_2$.
 \end{lemma}
+{\em Proof Sketch}:
 
 \subsection{Reasoning about cooperative semantics}
 In this section, we attack the first sub-goal discussed earlier.
