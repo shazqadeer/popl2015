@@ -27,7 +27,7 @@ procedure q() { x := x + 3; }
 We present an overview of the \civl language and verifier through a sequence of examples.
 Figure~\ref{fig:ex1} shows Program~1 containing a procedure {\tt p}
 executing concurrently with another procedure {\tt q}. 
-As explained earlier, a \civl program is verified on its cooperative semantics; a thread explicitly yields control to the
+As explained earlier, a \civl program is verified with respect to its cooperative semantics; a thread explicitly yields control to the
 scheduler via the {\tt yield} statement following which execution continues on a 
 nondeterministically chosen thread.
 The {\tt yield} statement has a predicate $\varphi$ attached to it.
@@ -282,7 +282,6 @@ while the {\tt Combine} procedures combines two fractions into a single linear m
 
 \begin{figure}
 \begin{verbatim}
-<<<<<<< HEAD
 type lmap = LMap(dom:[int]bool,
                  map:[int]int,
                  fraction:real);
@@ -302,27 +301,6 @@ procedure Combine(linear_in l1:lmap,
   ensures l.dom == l1.dom && l.map == l1.map;
   ensures l.fraction == l1.fraction
                       + l2.fraction;
-=======
-type lmap = LMap(dom:[int]bool,
-                 map:[int]int,
-                 fraction:real);
-
-procedure Split(linear_in l:lmap, f1:real)
-  returns(linear l1:lmap, linear l2:lmap)
-  requires 0.0 < f1 && f1 < l.fraction;
-  ensures l1.dom == l.dom && l1.map == l.map;
-  ensures l2.dom == l.dom && l2.map == l.map;
-  ensures l1.fraction == f1;
-  ensures l2.fraction == l.fraction - f1;
-
-procedure Combine(linear_in l1:lmap,
-                  linear_in l2:lmap)
-  returns (linear l:lmap)
-  requires l1.dom == l2.dom;
-  ensures l.dom == l1.dom && l.map == l1.map;
-  ensures l.fraction == l1.fraction
-                      + l2.fraction;
->>>>>>> 4f7ebca2390670a65f0fc3d3ec3f0f663fb24723
 
 procedure Load(linear l:lmap, i:int) 
   ...
@@ -369,7 +347,6 @@ in order to aid verification of non-interference.
 
 \begin{figure}
 \begin{verbatim}
-<<<<<<< HEAD
 type lmap = LMap(dom:[int]bool,
                  map:[int]int,
                  fraction:[real]bool);
@@ -390,28 +367,6 @@ procedure Combine(linear_in l1:lmap,
   ensures l.dom == l1.dom && l.map == l1.map;
   ensures l.fraction == l1.fraction
                       + l2.fraction;
-=======
-type lmap = LMap(dom:[int]bool,
-                 map:[int]int,
-                 fraction:[real]bool);
-
-procedure Split(linear_in l:lmap, f1:set)
-  returns(linear l1:lmap, linear l2:lmap)
-  requires f1 != {} && f1 != l.fraction;
-  requires f1 isSubsetOf l.fraction;
-  ensures l1.dom == l.dom && l1.map == l.map;
-  ensures l2.dom == l.dom && l2.map == l.map;
-  ensures l1.fraction == f1;
-  ensures l2.fraction == l.fraction - f1;
-
-procedure Combine(linear_in l1:lmap,
-                  linear_in l2:lmap)
-  returns (linear l:lmap)
-  requires l1.dom == l2.dom;
-  ensures l.dom == l1.dom && l.map == l1.map;
-  ensures l.fraction == l1.fraction
-                      + l2.fraction;
->>>>>>> 4f7ebca2390670a65f0fc3d3ec3f0f663fb24723
 \end{verbatim}
 \caption{Subset permissions}
 \label{fig:subperm}
