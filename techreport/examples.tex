@@ -102,7 +102,7 @@ entered.
 \begin{figure}
 \begin{verbatim}
 type Tid;
-const nil: Tid;
+const nil:Tid;
 procedure Allocate() 
   returns (linear tid:Tid);
   ensures tid != nil;
@@ -154,38 +154,39 @@ the \civl verifier exploits this invariant while checking for non-interference.
 
 \begin{figure}
 \begin{verbatim}
-type lmap;
-function dom(lmap): [int]bool;
-function map(lmap): [int]int;
-const empty: lmap;
-axiom domain(empty) == {};
+type lmap = LMap(dom:[int]bool,
+                 map:[int]int);
+const empty:lmap;
+axiom empty.dom == {};
 \end{verbatim}
 \begin{verbatim}
-procedure Load(linear l_in:lmap, i:int) 
-  returns(linear l:lmap, v:int);
-  requires dom(l_in)[i];
-  ensures l == l_in && v == map(l_in)[i];
+procedure Load(linear l:lmap, i:int) 
+  returns(v:int);
+  requires l.dom[i];
+  ensures v == l.map[i];
 \end{verbatim}
 \begin{verbatim}
-procedure Store(linear l_in:lmap, i:int, v:int) 
+procedure Store(linear_in l_in:lmap,
+                i:int, v:int) 
   returns(linear l:lmap);
-  requires dom(l_in)[i];
-  ensures dom(l) == dom(l_in) 
-          && map(l) == map(l_in)[i := v];
+  requires l_in.dom[i];
+  ensures l.dom == l_in.dom;
+  ensures l.map == l_in.map[i := v];
 \end{verbatim}
 \begin{verbatim}
-procedure Move(linear l1_in:lmap) 
+procedure Move(linear_in l1_in:lmap) 
   returns(linear l1:lmap, linear l2:lmap);
   ensures l1 == empty && l2 == l1_in;
 \end{verbatim}
 \begin{verbatim}
-procedure Transfer(linear l1_in:lmap, 
-                   linear l2_in:lmap, i:int) 
+procedure Transfer(linear_in l1_in:lmap, 
+                   linear_in l2_in:lmap,
+                   i:int) 
   returns(linear l1:lmap, linear l2:lmap);
-  ensures dom(l1) == dom(l1_in) - {i};
-  ensures map(l1) == map(l1_in);
-  ensures dom(l2) == dom(l2_in) + {i};
-  ensures map(l2) == map(l2_in)[i := map(l1)[i]];
+  ensures l1.dom == l1_in.dom - {i};
+  ensures l1.map == l1_in.map;
+  ensures l2.dom == l2_in.dom + {i};
+  ensures l2.map == l2_in.map[i:=l1.map[i]];
 \end{verbatim}
 \caption{Encoding linear maps}
 \label{fig:linear-maps}
@@ -193,20 +194,20 @@ procedure Transfer(linear l1_in:lmap,
 
 \begin{figure}
 \begin{verbatim}
-var linear g: lmap;
-var b: bool;
+var linear g:lmap;
+var b:bool;
 \end{verbatim}
 \begin{verbatim}
 procedure P()
 {
   var t: int;
-  var linear l: lmap;
+  var linear l:lmap;
   while (b) { call Yield(); }
                 b := true;
                 call g, l := Move(g);
-  call Yield(); call l, t := Load(l, p);
+  call Yield(); call t := Load(l, p);
   call Yield(); call l := Store(l, p, t+1);
-  call Yield(); call l, t := Load(l, p+4);
+  call Yield(); call t := Load(l, p+4);
   call Yield(); call l := Store(l, p+4, t+1);
   call Yield(); call l, g := Move(l);
                 b := false;
@@ -216,8 +217,8 @@ procedure P()
 \begin{verbatim}
 procedure Yield() 
 {
-  yield b || (dom(g) == {p,p+4} && 
-              map(g)[p] == map(g)[p+4]);
+  yield b || (g.dom == {p,p+4} && 
+              g.map[p] == g.map[p+4]);
 }
 \end{verbatim}
 \caption{Program 6}
@@ -226,12 +227,15 @@ procedure Yield()
 
 {\bf Linear maps.}
 Figure~\ref{fig:linear-maps} illustrates how linear maps~\cite{LahiriQW11} can be encoded in \civl.
-A linear map {\tt l} is a pair comprising {\tt map(l)}, an array of integers, 
-and {\tt dom(l)}, a set of integers representing the locations where it is legal to access {\tt map(l)}.
+A linear map {\tt l} is a pair comprising {\tt l.map)}, an array of integers, 
+and {\tt l.dom}, a set of integers representing the locations where it is legal to access {\tt l.map}.
 In the parlance of separation logic, a linear map can be thought of as a collection of
 {\em points-to} facts partitioned by separating conjunction; 
 furthermore, there is an implicit separating conjuction between the values contained in two distinct linear maps.
 Figure~\ref{fig:linear-maps} shows the primitive operations on linear maps.
+(The notation {\tt linear\_in} indicates that a procedure consumes an argument,
+making it unavailable to the caller after the call,
+while a parameter marked {\tt linear} is only borrowed from the caller and remains available to the caller after the call.)
 If a program is written using only these primitive operations, it is guaranteed all 
 occurrences of {\tt Load} and {\tt Store} can be erased to loads and stores, respectively, 
 to a single global memory.  
@@ -252,5 +256,118 @@ This program captures the essence of programming with monitors~\cite{Hoare74} an
 can be encoded easily in \civl.
 
 {\bf Permissions.}
+Because linear variables cannot be duplicated,
+linear variables can safely express exclusive access to a resource, such as a section of memory.
+Boyland~\cite{boyland:03fractions} generalized linear type systems with a notion of fractional permissions:
+although linear variables still cannot be duplicated,
+fractions of a linear resource may be shared among multiple linear variables,
+as long as the fractions are all greater than 0 and always add up to 100\%.
+For example, two variables could possess 50\% of a resource,
+or one variable could possess 100\% of a resource.
+The latter case (100\%) corresponds to the exclusive access in traditional linear type systems.
+Fractional permissions are useful for distinguishing exclusive access,
+such as exclusive read-write access to memory,
+from shared access, such as shared read-only access to memory.
 
+\civl's linear variables can encode fractional permissions.
+As an example of this encoding,
+Figure~\ref{fig:fracperm} extends Figure~\ref{fig:linear-maps}'s linear map type
+with a fraction indicating partial access to the linear map.
+For soundness, the {\tt Store} operation still requires exclusive access ({\tt fraction} = 100\%),
+as in Figure~\ref{fig:linear-maps},
+but {\tt Load} now allows shared access ({\tt fraction} may be anything),
+since multiple concurrent loads do not interfere with each other.
+The {\tt Split} procedure splits a single linear map into two subfractions,
+while the {\tt Combine} procedures combines two fractions into a single linear map.
 
+\begin{figure}
+\begin{verbatim}
+type lmap = LMap(dom:[int]bool,
+                 map:[int]int,
+                 fraction:real);
+
+procedure Split(linear_in l:lmap, f1:real)
+  returns(linear l1:lmap, linear l2:lmap)
+  requires 0.0 < f1 && f1 < l.fraction;
+  ensures l1.dom == l.dom && l1.map == l.map;
+  ensures l2.dom == l.dom && l2.map == l.map;
+  ensures l1.fraction == f1;
+  ensures l2.fraction == l.fraction - f1;
+
+procedure Combine(linear_in l1:lmap,
+                  linear_in l2:lmap)
+  returns (linear l:lmap)
+  requires l1.dom == l2.dom;
+  ensures l.dom == l1.dom && l.map == l1.map;
+  ensures l.fraction == l1.fraction
+                      + l2.fraction;
+
+procedure Load(linear l:lmap, i:int) 
+  ...
+
+procedure Store(linear_in l_in:lmap,
+                i:int, v:int) 
+  ...
+  requires l_in.fraction == 1.0;
+  ...
+
+procedure Move(linear_in l1_in:lmap) 
+  ...
+
+procedure Transfer(linear_in l1_in:lmap, 
+                   linear_in l2_in:lmap,
+                   i:int) 
+  ...
+  requires l1_in.fraction == l2_in.fraction;
+  ...
+\end{verbatim}
+\caption{Fractional permissions}
+\label{fig:fracperm}
+\end{figure}
+
+Rather than using real-number or rational-number fractions,
+as in \cite{boyland:03fractions},
+we can also use sets in place of fractions,
+as shown in Figure~\ref{fig:subperm}.
+Set union then replaces numerical addition,
+and set difference replaces numerical subtraction.
+The domain of the set doesn't matter much;
+Figure~\ref{fig:subperm} uses sets of real numbers.
+With sets of real numbers,
+we can use the real interval [0, 1) to indicate exclusive access,
+in analogy to the 100\% fraction, and subintervals like [0, 0.5) and [0.5, 1)
+to indicate shared access, in analogy to 50\% fractions.
+
+This extra level of detail allows \civl to exploit disjointness of the subintervals:
+we know that two threads can't both contain a linear map with the same domain and the same subinterval
+(one thread might have subinterval [0, 0.5) and another [0.5, 1), but they can't both have [0, 0.5)).
+Section~\ref{sec:gc-verify} describes how the GC verification uses this strategy
+to transfer fractions of thread identifiers between threads and global variables
+in order to aid verification of non-interference.
+
+\begin{figure}
+\begin{verbatim}
+type lmap = LMap(dom:[int]bool,
+                 map:[int]int,
+                 fraction:[real]bool);
+
+procedure Split(linear_in l:lmap, f1:set)
+  returns(linear l1:lmap, linear l2:lmap)
+  requires f1 != {} && f1 != l.fraction;
+  requires f1 isSubsetOf l.fraction;
+  ensures l1.dom == l.dom && l1.map == l.map;
+  ensures l2.dom == l.dom && l2.map == l.map;
+  ensures l1.fraction == f1;
+  ensures l2.fraction == l.fraction - f1;
+
+procedure Combine(linear_in l1:lmap,
+                  linear_in l2:lmap)
+  returns (linear l:lmap)
+  requires l1.dom == l2.dom;
+  ensures l.dom == l1.dom && l.map == l1.map;
+  ensures l.fraction == l1.fraction
+                      + l2.fraction;
+\end{verbatim}
+\caption{Subset permissions}
+\label{fig:subperm}
+\end{figure}
