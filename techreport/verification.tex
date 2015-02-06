@@ -1277,9 +1277,9 @@ the second thread preempts the first thread and changes {\tt x} to $1$;
 the first thread preempts the second thread and fails the assert {\tt x == 0}. 
 However, the program does not fail if the second thread is executed without preemption,
 even though the code of the second thread satisfies the yield sufficiency check described earlier.
-To address this problem, we require additionally 
-that the program is cooperative, that is, it yields infinitely often in any infinite execution.
-The program in the example above is not cooperative.
+Our verification method is applicable to a program $\Prog$ only if $\Cooperative^*(\Prog)$ holds,
+which is false for the program in the example above.
+Verifying this condition is similar to proving termination and is orthogonal to the contribution of this paper.
 
 Of course, the judgment $\jy \Prog$ depends on the mover annotations on the atomic actions being correct.
 We capture this requirement in the judgmen $\CommutativitySafe(\Prog)$.
