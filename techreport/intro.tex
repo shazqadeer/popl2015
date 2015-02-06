@@ -2,7 +2,7 @@
 \label{sec:introduction}
 
 We present a technique for verifying a refinement relation between two concurrent, shared-memory multithreaded programs. 
-Our work is inspired by stepwise refinement~\cite{Wirth1971}, an approach in which a high-level description is systematically refined, 
+Our work is inspired by stepwise refinement~\cite{Wirth1971}, where a high-level description is systematically refined, 
 potentially via several intermediate descriptions, down to a detailed implementation. 
 Refinement checking is a classical problem in verification and has been investigated in many contexts, 
 including hardware verification~\cite{Eiriksson2000} and verification of cache-coherence protocols and distributed algorithms~\cite{Lamport2004}.
@@ -22,16 +22,17 @@ the \civl verifier manipulates multiple operational descriptions of a program, i
 several layers of refinement are specified and verified at once. 
 
 To prove refinement in \civl, a simulation relation between a program and its abstraction is inferred 
-from checks on each procedure with an atomic specification.
-The computation inside each such procedure must be partitioned into ``steps''
-such that one step behaves like the atomic specification and all other steps have no effect on the visible state.
-To carry out this reasoning, the \civl verifier needs to address two problems.
+from checks on each procedure, thus decomposing a whole-program refinement problem into per-procedure verification obligations. 
+The computation inside each such procedure is partitioned into ``steps'' 
+such that one step behaves like the atomic specification and all other steps have no effect on the visible state. 
+This partitioning follows the syntactic structure of the code in a way similar in spirit to Floyd-Hoare reasoning. 
+To be able to express the per-procedure verification obligation in terms of a collection of per-step verification tasks, the \civl verifier needs to address two issues.
 First, the notion of a ``step'' in the implementation must be defined.
 The definition of a step can deeply affect the number of checks that need to be performed and the number of user annotations.
 Second, it is typically not possible to show the correctness of a step from an arbitrary state.
 A precondition for the step in terms of shared variables must be supplied by the programmer and mechanically checked by the verifier.
 
-To address the first problem, \civl lets the programmer define the granularity of a step.
+To address the first problem, \civl lets the programmer define the granularity of a step, allowing the user to specify a semantics with larger atomic actions. 
 A {\em cooperative\/} semantics for the program is explicitly introduced by the programmer 
 through the use of a new primitive {\em yield\/} statement;
 in this semantics a thread can be scheduled out only when it is about to execute a yield statement.
@@ -44,9 +45,9 @@ This verification is done by computing an automata-theoretic simulation check~\c
 on an abstraction of $P$ in which each atomic action of $P$ is represented by only its mover type~\cite{Lipton75,FlanaganFLQ08}. 
 The mover types themselves are verified separately and automatically using an automated theorem prover~\cite{MouraB08}.
 
-To address the second problem that refinement verification typically requires invariants about the program execution, 
+To address the second problem that refinement verification for each step requires invariants about the program execution, 
 \civl allows the programmer to specify location invariants, attached either to a yield statement
-or to a procedure as its precondition or postcondition.
+or to a procedure as its pre- or post-condition. 
 Each location invariant must be correct for all executions and must continue to hold in spite of potential interference from concurrently executing threads.
 We build upon classical work~\cite{OwickiG76,Jones83} on reasoning about non-interference
 with two distinct innovations.
@@ -58,17 +59,31 @@ The correctness of an atomic action specification gives us a simple frame rule--
 by providing a linear type system~\cite{Wadler90lineartypes} that enables logical encoding of thread identifiers, permissions~\cite{boyland:03fractions}, 
 and disjoint memory~\cite{LahiriQW11}.
 
+Finally, \civl provides a simple module system. Modules can be
+verified separately, in parallel or at different times,
+since the module system soundly does away with checks that pertain to cross-module interactions. 
+This feature is significant since commutativity checks and non-interference checks for location invariants are quadratic, whole program checks involving all pairs of yield locations and atomic blocks, or all pairs of actions from a program. 
+Using the module system, the number of checks is reduced; they become quadratic in the number of yields and atomic blocks within each module rather than the entire program. 
+
 We have implemented \civl as a conservative extension of the \boogie verifier.  
 We have used it to verify a collection of microbenchmarks and benchmarks from the 
 literature~\cite{Blumofe1999,ElmasQT09,ElmasTQ05,FarzanKP14,FlanaganQ03,Herlihy2008}. 
 The most challenging case study with \civl was carried out concurrently with \civl's development and served as a design driver. 
-We verified a concurrent garbage collector, through six levels of refinement, 
+We verified a concurrent garbage collector, through six layers of refinement, 
 down to atomic actions corresponding to individual memory accesses. 
 The level of granularity of the lowest-level implementation distinguishes this verification effort from previous attempts in the literature. 
 
-We conclude this section by summarizing the novel features of the \civl verifier:
+In conclusion, \civl is the first automated verifier for shared-memory multithreaded programs that 
+provides the capability to establish a multi-layered refinement proof.
+This novel capability is enabled by two important innovations in core verification techniques
+for reducing the complexity of invariants supplied by the programmer and the verification conditions solved by the prover.
 \begin{itemize}
-\item Automated refinement checking of atomic action specifications against imperative code.
-\item A combination of automata-theoretic checking based on simulation relations and logical checking based on verification conditions.
-\item Powerful and flexible invariant reasoning based on location invariants and linear variables.
+\item
+Reasoning about preemptive semantics is replaced by simpler reasoning about cooperative operational semantics by exploiting 
+automata-theoretic simulation checking.
+We are not aware of any other verifier that combines automata-based and logic-based reasoning in this style.
+\item 
+A linear type system establishes invariants about disjointness of permission sets associated with values contained in program variables.
+These invariants, communicated to the prover as free assumptions, significantly reduce the overhead of program annotations.
+We are not aware of any other verifier that combines type-based and logic-based reasoning in this style.
 \end{itemize}
