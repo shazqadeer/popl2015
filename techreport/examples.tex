@@ -27,7 +27,7 @@ procedure q() { x := x + 3; }
 We present an overview of the \civl language and verifier through a sequence of examples.
 Figure~\ref{fig:ex1} shows Program~1 containing a procedure {\tt p}
 executing concurrently with another procedure {\tt q}. 
-An execution of a \civl program is non-preemptive; a thread explicitly yields control to the
+As explained earlier, a \civl program is verified on its cooperative semantics; a thread explicitly yields control to the
 scheduler via the {\tt yield} statement following which execution continues on a 
 nondeterministically chosen thread.
 The {\tt yield} statement has a predicate $\varphi$ attached to it.

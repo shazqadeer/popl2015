@@ -250,9 +250,10 @@ In this paper, we will formalize our verification method on a core concurrent pr
 In this section, we present the syntax and operational semantics of our language.
 Figure~\ref{fig:definitions} contains basic definitions.
 Figure~\ref{fig:syntax} uses these definitions to define the syntax of a \civl program.
-
 Informally, a \civl program is comprised of threads each of which has a stack, global variables shared across threads, 
 thread-local variables that are shared across procedures, and local variables inside a procedure.
+Thus, a program contains all information to represent not only the static program 
+written by the programmer but also the dynamic state of the program as it executes.
 The sets $\Global$, $\ThreadLocal$, and $\Local$ are the names of global, thread-local, and procedure-local variables 
 respectively.
 These sets are mutually disjoint and $\Var$ denotes their union.
@@ -285,15 +286,16 @@ and $N$ for non mover~\cite{FlanaganFLQ08}.
 
 \noindent
 {\bf Linear interfaces.}
-$\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface 
+$\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface~\cite{Wadler90lineartypes}
 $(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
-The procedure (or action) requires that the set $\lins$ be available at the beginning of its invocation 
-and makes available the set $\lins'$ at the end of its invocation; 
-we refer to $\lins$ and $\lins'$ as the input and output linear permissions respectively.
-The programmer provides a function $\Perm$ from $\Value$ to $2^\Value$
-and the linear type checker (Section~\ref{sec:linearity}) enforces the invariant that 
-different available variables contain distinct values and 
-the sets $\Perm(v)$ for values $v$ contained in available variables are always pairwise disjoint.
+To exploit linearity during verification, the programmer provides a function $\Perm$ from $\Value$ to $2^\Value$.
+The set $\Perm(v)$ is the set of {\em permissions\/} associated with a value $v \in \Value$.
+The \civl type checker (Section~\ref{sec:linearity}) computes a set of {\em available\/} linear variables at each control location such that
+the multiset union of the permissions associated with the available variables is guaranteed to be a set, i.e., 
+permissions are never duplicated among linear variables.
+The linear interface $(\lins, \lins')$ of a procedure (or action) indicates the available sets
+at its beginning ($\lins$) and end ($\lins'$), respectively.
+Linear interfaces allow \civl to reason about each procedure separately.
 
 \noindent
 {\bf Global store.}
@@ -378,27 +380,39 @@ The expression $e$ is a loop invariant and the expression $\alpha$ is a summary 
 through a yield statement (Section~\ref{sec:refinement}).
 The conditional expression $\locExpr$ in $\mathit{if}$ and $\mathit{while}$ statements cannot refer to global variables.
 
-A finite $\trans$-execution from $\Prog$ is a sequence of programs $\Prog_0,\Prog_1,\ldots,\Prog_n$ such that $\Prog_0 = \Prog$ 
-and $\Prog_i \trans \Prog_{i+1}$ for all $0 \leq i < n$.
-An infinite $\trans$-execution from $\Prog$ is defined similarly.
-We write $\Safe(\Prog)$ if $\Prog$ cannot fail in one step (by executing the rule \textsc{Fail}).
-We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
+We formalize the preemptive operational semantics of \civl as a relation $\trans$ with domain $\Program$ and 
+codomain $\Program \cup \{\error\}$.
+We use four contexts---$\StmtCtxt$, $\FrameCtxt$, $\ThreadCtxt$, and $\ProgCtxt$---to formalize $\trans$
+as a structured operational semantics~\cite{WrightF94}.
+In this semantics, a thread is chosen nondeterministically to execute a single statement.
+The statement $\skipstmt$ has no side effect.
+The statement $\yield{e,\lins}$ contains a predicate $e$ and a set $\lins$ comprising global and thread-local variables.
+The yield predicate $e$ is expected to be established by the executing thread and preserved by other threads;
+the variables $\lins$ are expected to be available at the yield statement.
+The yield statement is the mechanism by which the programmer specifies the cooperative semantics (described later) over which 
+the refinement check is performed.
+In \civl, yield predicates, preconditions, and postconditions are the three sources of location invariants~\cite{OwickiG76}.
+The statement $\call{A}$ invokes the action $A$.
+Suppose $\actions(A) = (\rho, \alpha, m)$.
+If $\rho$ does not hold, the statement $\call{A}$ fails and the program evolves to $\error$, 
+otherwise the store is updated according to the transition relation $\alpha$.
+The statement $\call{P}$ invokes the procedure $P$.
+Suppose $\procs(P) = (\phi, \mods, \psi, \stmt)$.
+It is expected that the precondition $\phi$ holds, then statement $\stmt$ executes, and finally the postcondition $\psi$ holds.
+The predicates $\phi$ and $\psi$ are expected to be preserved by other threads in the environment. 
+The statement $\async{P}$ creates a new thread that begins by invoking the procedure $P$.
+The statement $\ablock{e,\lins}{\stmt}$ is useful only for compactly encoding non-interference checks;
+the predicate $e$ is expected to hold and the set $\lins$ is expected to be available at the beginning of $\stmt$.
+Finally, we have the standard primitives for sequencing, conditional execution, and looping.
 
-\subsection{Definitions}
-\label{sec:definitions}
-We conclude this section by presenting a few definitions of concepts that are used in Section~\ref{sec:verification} to formalize
-our verification method.
-Figure~\ref{fig:syntax} defines the subset $\mathit{YieldingThread}$ of threads and subsets 
-$\YProgram$ and $\CProgram$ of $\Program$.
-A yielding thread in $\mathit{YieldingThread}$ is one that is waiting to execute at a yield statement.
+We now define the cooperative operational semantics induced by the presence of yield statements in the program.
+A {\em yielding thread\/} ($\mathit{YieldingThread}$ in Figure~\ref{fig:syntax}) is one that is waiting to execute at a yield statement.
 A program in $\YProgram$ is one in which all threads except at most one thread are yielding threads.
 A program in $\CProgram$ is one in which all threads are yielding threads.
-Let $\ytrans$ be the relation $\trans$ whose domain and codomain are restricted to $\YProgram$.
-A $\ytrans$-execution from a program $\Prog \in \YProgram$ is defined similarly to a $\trans$-execution.
-In such an execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches 
-a yield statement and becomes a yielding thread.
-At that point, all threads are yielding and any one can be picked for execution.
-
+Thus, we have $\CProgram \subseteq \YProgram \subseteq \Program$.
+Let $\ytrans$ be the relation obtained by restricting the domain and codomain of $\trans$ to $\YProgram$.
+In a $\ytrans$-execution, the one (possibly) non-yielding thread is the only one allowed to execute until it reaches 
+a yield statement and becomes a yielding thread; at that point, all threads are yielding and any one can be picked for execution.
 We define the relation $\ctrans$ with domain $\CProgram$ and codomain $\CProgram \cup \{\error\}$ as follows:
 \begin{enumerate}
 \item 
@@ -410,12 +424,18 @@ except for $\Prog$ is not in $\CProgram$.
 \end{enumerate}
 
 Consider a program $\Prog \in \CProgram$.
+We write $\Safe(\Prog)$ if it is not the case that $\Prog \trans \error$.
+We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
 We write $\CSafe(\Prog)$ if it is not the case that $\Prog \ctrans \error$.
 We write $\CSafe^*(\Prog)$ if $\CSafe(\Prog')$ for all $\Prog'$ such that $\Prog \ctrans^* \Prog'$.
 We write $\Cooperative(\Prog)$ if for each infinite $\ytrans$-execution $\Prog \ytrans \Prog_0 \ytrans \Prog_1 \ytrans \cdots$ 
 starting from $\Prog$, there is some $i \geq 0$ such that $\Prog_i \in \CProgram$.
 We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
 
+\subsection{Definitions}
+\label{sec:definitions}
+We conclude this section by presenting a few definitions of concepts that are used in Section~\ref{sec:verification} to formalize
+our verification method.
 A predicate $\rho$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma \in \Store$
 and $v \in \Value$, if $\sigma \in \rho$ then $\sigma[x \rightarrow v] \in \rho$.
 A transition relation $\alpha$ is {\em independent\/} of a variable $x \in \Var$ if for all $\sigma,\sigma' \in \Store$

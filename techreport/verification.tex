@@ -1,6 +1,337 @@
 \section{Verification}
 \label{sec:verification}
 
+\begin{figure*}[t]
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+}
+{
+\lins \jl \skipstmt : \lins
+}
+{\textsc{Skip}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\ProcLins(A) = (\lins,\lins')
+}
+{
+\lins \jl \call{A} : \lins'
+}
+{\textsc{Atomic}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins_y \subseteq \lins
+}
+{
+\lins \jl \yield{e,\lins_y} : \lins
+}
+{\textsc{Yield}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins \jl \stmt : \lins' \\
+\lins_a \subseteq \lins
+}
+{
+\lins \jl \ablock{e,\lins_a}{\stmt} : \lins'
+}
+{\textsc{Ablock}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\ProcLins(P) = (\lins,\lins') \\
+}
+{
+\lins \jl \call{P} : \lins'
+}
+{\textsc{Call}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins_G \subseteq \Global \\
+\lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocal \\
+\ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
+}
+{
+\lins_G,\lins,\lins_P \jl \async{P} : \lins_G,\lins
+}
+{\textsc{Async}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins \jl \stmt_1 : \lins' \\
+\lins' \jl \stmt_2 : \lins''
+}
+{
+\lins \jl \stmt_1;\stmt_2 : \lins''
+}
+{\textsc{Seq}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins \jl \stmt_1 : \lins' \\
+\lins \jl \stmt_2 : \lins'
+}
+{
+\lins \jl \ite{\locExpr}{\stmt_1}{\stmt_2} : \lins'
+}
+{\textsc{Ite}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins \jl \stmt : \lins
+}
+{
+\lins \jl \while{e,\alpha}{\locExpr}{\stmt} : \lins
+}
+{\textsc{While}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\ProcLins(P) = (\lins,\lins') \\
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\lins \jl \stmt : \lins'
+}
+{
+\jl P
+}
+{\textsc{Procedure}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\ProcLins(A) = (\lins,\lins') \\
+\lins \cap \Global = \lins' \cap \Global \\
+\actions(A) = (\rho, \alpha, m) \\\\
+\forall (\sigma,\sigma') \in \rho \circ \alpha.\ 
+  \Collect(\sigma', \lins') \subseteq \Collect(\sigma, \lins)
+}
+{
+\jl A
+}
+{\textsc{Action}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\lins \jl \stmt : \lins'
+}
+{
+\lins \jl (P, \varsL, \stmt) : \lins'
+}
+{\textsc{StackFrame}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\forall 1 \le i \le n.\ \lins_i \jl F_i : \lins_{i+1}
+}
+{
+\lins_1 \jl (\varsTL, F_1 \ldots F_n)
+}
+{\textsc{Thread}}
+$
+\medskip\\
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\forall P \in \ProcName.\ \jl P \\
+\forall A \in \ActionName.\ \jl A \\
+\lins_G \subseteq \Global \\
+\forall 1 \le i \le n.\ \lins_i \subseteq \ThreadLocal \\
+\forall 1 \le i \le n.\ \lins_G,\lins_i \jl T_i \\
+\forall 1 \le i \le n.\ T_i = (\varsTL_i, \ldots) \\
+\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))
+}
+{
+\jl (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+}
+{\textsc{Program}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Linear variables}
+\label{fig:linearity}
+\end{figure*}
+
+Suppose a program $\Prog'$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
+invocation $\call{P}$ of a procedure that is implemented using low-level actions.
+The main contribution of this paper is a verification method that allows us to safely refine
+program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
+safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
+
+The safety of the program $\Prog$, defined in Section~\ref{sec:language} as $\Safe^*(\Prog)$, depends on 
+the preemptive semantics of $\Prog$.
+Our overall goal is to conclude $\Safe^*(\Prog)$ from $\Safe^*(\Prog')$;
+we decompose this goal into two sub-goals:
+\begin{enumerate}
+\item
+We establish a simulation relation from the cooperative semantics of $\Prog$ 
+to the preemptive semantics of $\Prog'$, which ensures that $\Safe^*(Prog')$ is sufficient for $\CSafe^*(\Prog)$.
+\item
+We exploit commutativity reasoning to compute a simulation relation from $\Prog$ to $\YSA$ (Figure~\ref{fig:ysa}),
+which ensures that $\CSafe^*(\Prog)$ is sufficient for $\Safe^*(\Prog)$
+\end{enumerate}
+Both sub-goals depend on the auxiliary judgment $\jl \Prog$ for checking that $\Prog$ uses linear variables appropriately.
+This judgment computes available linear variables at each program location;
+this information is encoded logically as free disjointness assumptions that increase precision of non-interference
+and commutativity reasoning at low annotatation overhead.
+
+The first sub-goal is discharged by 
+the judgments $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, and $\InterferenceSafe(\Prog)$.
+The first judgment performs a rewrite of $\Prog$ to $\Prog'$;
+the second judgment checks each procedure separately against location invariants and atomic action specifications;
+the third judgment checks that the location invariants are stable against interference from concurrently-executing threads.
+The map $\Refines \in \ProcName \pf \ActionName$ indicates for a procedure $P \in \dom(\Refines)$ 
+the action $\Refines(P)$ that abstracts it;
+in $\Prog'$, every occurrence of $\call{P}$ is replaced by $\call{\Refines(P)}$.
+The sets $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^\Global$, and $\HiddenActions \in 2^{\ActionName}$ 
+are, respectively, the procedure, the global variables, and atomic actions 
+that are introduced for refining $\Prog'$ to $\Prog$;
+we can also think that these entities are hidden in the abstract program $\Prog'$.
+The set $\HiddenProcs$ includes $\dom(\Refines)$ but may also contain other procedures whose invocations 
+are replaced by $\skipstmt$ in $\Prog'$.
+The vector $\bs{b}$ contains a $\Boolean$ value $b_i$ for each thread $T_i$ in $\Prog$.
+If $b_i$ is true, it indicates that there is a partially executed procedure on the stack of $T_i$ 
+such that $P \in \dom(\Refines)$ but the code inside $P$ that corresponds to the execution of the atomic action $\Refines(P)$
+has yet to be executed.
+The value of $b_i$ is used to rewrite the stack of $T_i$ while transforming $\Prog$ to $\Prog'$.
+
+The validity of the transformation from $\Prog$ to $\Prog'$ depends on establishing a simulation relation between them.
+The base case of the simulation must check that $\CSafe(\Prog)$;
+The inductive case must check that if $\Prog$ can evolve to $\Prog_1$ (via cooperative semantics)
+by executing from the current yield statement to the next yield statement, 
+then there is $\Prog'_1$ and $b_1$ such that $\Prog'$ can evolve in zero or more steps to $\Prog'_1$ 
+and $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$.
+The judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$ 
+establish this property via a collection of verification conditions, one for each procedure and 
+one for each pair of yield statement and atomic block in the program.
+
+The second sub-goal is discharged by the two judgments $\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
+Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$.
+To justify that $\CSafe^*(\Prog)$ is sufficient for $\Safe^*(\Prog)$,
+we exploit commutativity information available from the mover types of atomic actions.
+The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
+all sequences of atomic actions and yields for which reasoning about cooperative semantics is sufficient.
+For example, the $\YSA$ automaton indicates that a yield after a right mover or a yield before a left mover is unnecessary.
+The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by $\YSA$;
+it depends on the judgment $\CommutativitySafe(\Prog)$ which checks that all mover annotations are correct.
+
+\begin{theorem}
+\label{thm:correctness}
+Let $\Prog,\Prog' \in \CProgram$ be such that $\Cooperative^*(\Prog)$ and $\Safe^*(\Prog')$.
+Let $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, 
+$\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
+and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following hold:
+\begin{enumerate}
+\item
+$\jl \Prog$.
+\item
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ \\ and $\InterferenceSafe(\Prog)$.
+\item
+$\jy \Prog$ and $\CommutativitySafe(\Prog)$.
+\end{enumerate}
+Then, we have $\Safe^*(\Prog)$.
+\end{theorem}
+
+Theorem~\ref{thm:correctness} is our main soundness theorem;
+it concludes the safety of $\Prog$ from the safety of $\Prog'$.
+In general, the correctness proof of a large program is obtained by chaining together
+multiple instances of this theorem connecting a sequence of programs.  
+
+\subsection{Using linear variables}
+\label{sec:linearity}
+
+In this section, we formalize the judgment $\jl \Prog$.
+The goal of this judgment is to check that
+linear variables and atomic blocks are used appropriately in $\Prog$.
+The judgment $\jl \Prog$ enforces that linear permissions are never duplicated during the 
+execution of $\Prog$.
+Rule \textsc{Program} checks that the disjointness invariant holds in the initial state of $\Prog$.
+Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
+Consequently, the invariant holds throughout the execution of $\Prog$.
+There are three conditions being checked by rule \textsc{Action}.
+First, the set of global linear permissions does not change.
+Second, if the disjointness invariant holds for input permissions it also holds for output permissions.
+Finally, the union of the sets constructed from output permissions is a subset of the union of sets
+constructed from input permissions.  
+This last condition is important because it allows via local checking to conclude that the disjointness invariant holds globally
+for linear permissions held by all threads.
+The rule \textsc{Async} splits the thread-local permissions $\lins$ of the caller of $\async{P}$ into $\lins$ 
+and $\lins_P$, passing $\lins_P$ to the new thread and continuing with $\lins$.
+Note that all global permissions in $\lins_G$ are also made available to the new thread;
+there is no duplication because all threads refer to the same set of global variables.
+
+\begin{lemma}
+Let $\Prog \in \Program$ such that $\jl \Prog$.
+If $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
+then $\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))$.
+\end{lemma}
+
+\begin{lemma}
+Let $Prog_1, \Prog_2 \in \Program$ such that $\jl \Prog_1$ and $\Prog_1 \trans \Prog_2$.
+Then, we have $\jl \Prog_2$.
+\end{lemma}
+
+\subsection{Reasoning about cooperative semantics}
+In this section, we attack the first sub-goal discussed earlier.
+We establish a simulation relation from the cooperative semantics of $\Prog$ 
+to the preemptive semantics of $\Prog'$, which ensures that $\Safe^*(Prog')$ is sufficient for $\CSafe^*(\Prog)$.
+This verification depends on three judgments.
+The judgment $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$ is discussed in 
+Section~\ref{sec:program-transformation}.
+The judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$
+are discussed in Section~\ref{sec:refinement}.
+
+\subsubsection{Program transformation}
+\label{sec:program-transformation}
+
 \begin{figure*}
 \scriptsize{
 \medskip
@@ -231,65 +562,6 @@ $
 \label{fig:program-transformation}
 \end{figure*}
 
-Suppose a program $\Prog'$ has been proved to be safe.
-However, it is implemented using atomic actions that are too coarse to be directly implementable.  
-To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
-these coarse atomic actions must be refined down to lower-level actions.
-During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
-invocation $\call{P}$ of a procedure that is implemented using low-level actions.
-The main contribution of this paper is a verification method that allows us to safely refine
-program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
-safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
-
-We formalize the program transformation connecting $\Prog$ to $Prog'$ as a judgment
-$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$ 
-(see rules in Figure~\ref{fig:program-transformation}).
-The goal of this judgment is to establish a simulation relation between 
-the cooperative semantics of $\Prog$ and the preemptive semantics of $\Prog'$.
-The two judgments, $\InterferenceSafe(\Prog)$ and $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$,
-described in Section~\ref{sec:refinement}, check the validity of this simulation relation,
-allowing us to conclude the safety of the cooperative semantics of $\Prog$ from 
-the safety of the preemptive semantics of $\Prog'$.
-The two judgments $\CommutativitySafe(\Prog)$ and $\Refines \jy \Prog$,
-described in Section~\ref{sec:yield-sufficiency}, go further 
-and allow us to conclude the safety of preemptive semantics of $\Prog$ from the 
-safety of its cooperative semantics.
-Together, these judgments allow us to conclude the safety of preemptive semantics of $\Prog$
-from the safety of the preemptive semantics of $\Prog'$.
-
-The auxiliary judgment $\jl \Prog$, described in Section~\ref{sec:linearity}, 
-checks that $\Prog$ uses linear variables appropriately.
-This check is important because appropriate use of linear variables gives our verifier access to free disjointness
-assumptions that are important for commutativity reasoning (Section~\ref{sec:yield-sufficiency})
-and precise non-interference (Section~\ref{sec:refinement}).
-
-\begin{theorem}
-\label{thm:correctness}
-Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
-Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, 
-$\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
-and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following conditions hold:
-\begin{enumerate}
-\item
-$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
-\item
-$\jy \Prog$ and $\CommutativitySafe(\Prog)$.
-\item
-$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
-\end{enumerate}
-If $\Cooperative^*(\Prog)$ and $\Safe^*(\Prog')$, then $\Safe^*(\Prog)$.
-\end{theorem}
-
-Our soundness theorem, stated above, concludes the safety of $\Prog$ from the safety of $\Prog'$ 
-and the responsiveness of $\Prog$.
-In general, the correctness proof of a large program is obtained by chaining together
-multiple instances of this theorem connecting a sequence of programs.  
-As we discuss later, the $\leadsto$ relation constrains the code and state of adjacent programs in this chain 
-to create a simulation but leaves the annotations unconstrained to allow as much flexibility in verification as possible.
-
-\subsection{Program transformation}
-\label{sec:program-transformation}
-
 In this section, we take a closer look at the judgment
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$.
 In this judgment, 
@@ -394,582 +666,7 @@ Rule \textsc{Procedure} rewrites the body of a procedure recursively and allows 
 specifications to be rewritten arbitrarily.
 Rules \textsc{StackFrame} rewrites only the statement in the stack frame and leaves other components unchanged.
 
-\subsection{Using linear variables}
-\label{sec:linearity}
-
-\begin{figure*}[t]
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{
-\lins \jl \skipstmt : \lins
-}
-{\textsc{Skip}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\ProcLins(A) = (\lins,\lins')
-}
-{
-\lins \jl \call{A} : \lins'
-}
-{\textsc{Atomic}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\lins_y \subseteq \lins
-}
-{
-\lins \jl \yield{e,\lins_y} : \lins
-}
-{\textsc{Yield}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\lins \jl \stmt : \lins' \\
-\lins_a \subseteq \lins
-}
-{
-\lins \jl \ablock{e,\lins_a}{\stmt} : \lins'
-}
-{\textsc{Ablock}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\ProcLins(P) = (\lins,\lins') \\
-}
-{
-\lins \jl \call{P} : \lins'
-}
-{\textsc{Call}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\lins_G \subseteq \Global \\
-\lins \cup \lins_P \cup \lins_P' \subseteq \ThreadLocal \\
-\ProcLins(P) = ((\lins_G,\lins_P),(\lins_G,\lins_P')) \\
-}
-{
-\lins_G,\lins,\lins_P \jl \async{P} : \lins_G,\lins
-}
-{\textsc{Async}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\lins \jl \stmt_1 : \lins' \\
-\lins' \jl \stmt_2 : \lins''
-}
-{
-\lins \jl \stmt_1;\stmt_2 : \lins''
-}
-{\textsc{Seq}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\lins \jl \stmt_1 : \lins' \\
-\lins \jl \stmt_2 : \lins'
-}
-{
-\lins \jl \ite{\locExpr}{\stmt_1}{\stmt_2} : \lins'
-}
-{\textsc{Ite}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\lins \jl \stmt : \lins
-}
-{
-\lins \jl \while{e,\alpha}{\locExpr}{\stmt} : \lins
-}
-{\textsc{While}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\ProcLins(P) = (\lins,\lins') \\
-\procs(P) = (\phi, \mods, \psi, \stmt) \\
-\lins \jl \stmt : \lins'
-}
-{
-\jl P
-}
-{\textsc{Procedure}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\ProcLins(A) = (\lins,\lins') \\
-\lins \cap \Global = \lins' \cap \Global \\
-\actions(A) = (\rho, \alpha, m) \\\\
-\forall (\sigma,\sigma') \in \rho \circ \alpha.\ 
-  \Collect(\sigma', \lins') \subseteq \Collect(\sigma, \lins)
-}
-{
-\jl A
-}
-{\textsc{Action}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\lins \jl \stmt : \lins'
-}
-{
-\lins \jl (P, \varsL, \stmt) : \lins'
-}
-{\textsc{StackFrame}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\forall 1 \le i \le n.\ \lins_i \jl F_i : \lins_{i+1}
-}
-{
-\lins_1 \jl (\varsTL, F_1 \ldots F_n)
-}
-{\textsc{Thread}}
-$
-\medskip\\
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\forall P \in \ProcName.\ \jl P \\
-\forall A \in \ActionName.\ \jl A \\
-\lins_G \subseteq \Global \\
-\forall 1 \le i \le n.\ \lins_i \subseteq \ThreadLocal \\
-\forall 1 \le i \le n.\ \lins_G,\lins_i \jl T_i \\
-\forall 1 \le i \le n.\ T_i = (\varsTL_i, \ldots) \\
-\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))
-}
-{
-\jl (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
-}
-{\textsc{Program}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Linear variables}
-\label{fig:linearity}
-\end{figure*}
-
-In this section, we formalize the judgment $\jl \Prog$.
-The goal of this judgment is to check that
-linear variables and atomic blocks are used appropriately in $\Prog$.
-The judgment $\jl \Prog$ enforces that linear permissions are never duplicated during the 
-execution of $\Prog$.
-Rule \textsc{Program} checks that the disjointness invariant holds in the initial state of $\Prog$.
-Rule \textsc{Action} checks that each action $A$ preserves the disjointness invariant.
-Consequently, the invariant holds throughout the execution of $\Prog$.
-There are three conditions being checked by rule \textsc{Action}.
-First, the set of global linear permissions does not change.
-Second, if the disjointness invariant holds for input permissions it also holds for output permissions.
-Finally, the union of the sets constructed from output permissions is a subset of the union of sets
-constructed from input permissions.  
-This last condition is important because it allows via local checking to conclude that the disjointness invariant holds globally
-for linear permissions held by all threads.
-The rule \textsc{Async} splits the thread-local permissions $\lins$ of the caller of $\async{P}$ into $\lins$ 
-and $\lins_P$, passing $\lins_P$ to the new thread and continuing with $\lins$.
-Note that all global permissions in $\lins_G$ are also made available to the new thread;
-there is no duplication because all threads refer to the same set of global variables.
-
-\begin{lemma}
-Let $\Prog \in \Program$ such that $\jl \Prog$.
-If $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
-then $\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))$.
-\end{lemma}
-
-\begin{lemma}
-Let $Prog_1, \Prog_2 \in \Program$ such that $\jl \Prog_1$ and $\Prog_1 \trans \Prog_2$.
-Then, we have $\jl \Prog_2$.
-\end{lemma}
-
-\subsection{From preemptive to cooperative semantics}
-\label{sec:yield-sufficiency}
-
-\begin{figure*}
-\scriptsize{
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \jy \skipstmt : (x, x)}
-{\textsc{Skip}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions(A) = (\rho, \alpha, B)
-}
-{\actions \jy \call{A} : (x, x)}
-{\textsc{Both}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions(A) = (\rho, \alpha, R)
-}
-{\actions \jy \call{A} : (\RM, \RM)}
-{\textsc{Right}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions(A) = (\rho, \alpha, L)
-}
-{\actions \jy \call{A} : (x, \LM)}
-{\textsc{Left}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions(A) = (\rho, \alpha, N)
-}
-{\actions \jy \call{A} : (\RM, \LM)}
-{\textsc{Non}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \jy \yield{e,\lins} : (x, \RM)}
-{\textsc{Yield}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \jy \stmt : (x, y)
-}
-{\actions \jy \ablock{e,\lins}{\stmt} : (x, y)}
-{\textsc{Ablock}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \jy \call{P} : (x, \RM)}
-{\textsc{Call}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-}
-{\actions \jy \async{P} : (x, \LM)}
-{\textsc{Async}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \jy \stmt_1 : (x, y) \\ \actions \jy \stmt_2 : (y, z)
-}
-{\actions \jy \stmt_1;\stmt_2 : (x, z)}
-{\textsc{Seq}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \jy \stmt_1 : (x, y) \\ \actions \jy \stmt_2 : (x, y)
-}
-{\actions \jy \ite{\locExpr}{\stmt_1}{\stmt_2} : (x, y)}
-{\textsc{Ite}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \jy \stmt : (x, x)
-}
-{\actions \jy \while{e,\alpha}{\locExpr}{\stmt} : (x, x)}
-{\textsc{While}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\procs(P) = (\phi, \mods, \psi, \stmt) \\
-\actions \jy \stmt : (x, y)
-}
-{
-\actions \jy P
-}
-{\textsc{Procedure}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\actions \jy \stmt : (x,y)
-}
-{
-\actions \jy (P, \varsL, \stmt) : (x,y)
-}
-{\textsc{StackFrame}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\forall 1 \le i \le n.\ \actions \jy F_i : (x_i, x_{i+1})
-}
-{
-\actions \jy (\varsTL, F_1 \ldots F_n)
-}
-{\textsc{Thread}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-\forall P \in \ProcName.\ \actions \jy P \\
-\forall 1 \le i \le n.\ \actions \jy T_i
-}
-{
-\jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
-}
-{\textsc{Program}}
-$
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-}
-\caption{Yield sufficiency}
-\label{fig:yield-sufficiency}
-\end{figure*}
-
-Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program.
-In this section, we outline the verification required for justifying that it suffices to reason about
-the cooperative semantics of $\Prog$.
-The map $\actions$ maps each atomic action to a triple $(\rho, \alpha, m)$, the last component of which 
-denotes type of atomic action---$B$ for {\em both mover}, $R$ for {\em right mover}, $L$ for {\em left mover},
-and $N$ for {\em non mover}.
-Informally, an action labeled $N$ does not commute with other concurrent actions,
-an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
-an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
-and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
-The ability to commute past actions in the environment is the essence of the justification 
-for reasoning about cooperative semantics.
-For example, a yield after a right mover or a yield before a left mover is unnecessary.
-The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
-all sequences of atomic actions and yields to capture all behaviors.
-The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by $\YSA$.
-
-The essence of the rules in Figure~\ref{fig:yield-sufficiency}
-is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\LM\}$;
-the meaning is that to simulate the computation the automaton moves from state $x$ to state $y$.
-Rule \textsc{Program} performs checking for all threads and for all procedures.
-Rules \textsc{Thread}, \textsc{StackFrame}, and \textsc{Procedure} are straightforward.
-Rule \textsc{While} checks that the body of the loop leaves the state of the automaton unchanged.
-Rule \textsc{Ite} checks that the effect both branches is the same.
-Rule \textsc{Seq} composes the effect of $\stmt_1$ with the effect of $\stmt_2$.
-Rule \textsc{Async} is interesting because it treats an asynchronous call as a left mover.
-Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
-Rule \textsc{Ablock} calculates the effect of the body of the block.
-Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, and \textsc{Non} essentially 
-examine the available edges in the automaton to validate the statement and calculate its effect.
-Rule \textsc{Skip} leave the state of the automaton unchanged.
-
-The judgment $\jy \Prog$ is not quite enough to check the sufficiency of yields soundly.
-Consider the following program with a global variable {\tt x} and two threads.
-\begin{tabular}{l@{}l@{}l}
-\begin{tabular}[t]{l}
-{\tt [ x := 0 ];} \\
-{\tt [ assert x == 0 ];} \\
-\end{tabular} 
-&
-{\tt ||}
-&
-\begin{tabular}[t]{l}
-{\tt ~~[ x := x + 1 ];} \\
-{\tt ~~while (true) ;} \\
-\end{tabular} 
-\end{tabular}
-This program violates the assertion in it.
-The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0]};
-the second thread preempts the first thread and changes {\tt x} to $1$;
-the first thread preempts the second thread and fails the assert {\tt x == 0}. 
-However, the program does not fail if the second thread is executed without preemption,
-even though the code of the second thread satisfies the yield sufficiency check described earlier.
-To address this problem, we require additionally 
-that the program is cooperative, that is, it yields infinitely often in any infinite execution.
-The program in the example above is not cooperative.
-
-Of course, the judgment $\jy \Prog$ depends on the mover annotations on the atomic actions being correct.
-We capture this requirement in the judgmen $\CommutativitySafe(\Prog)$.
-Formally, the program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
-if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
-$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
-then all of the following conditions are satisfied:
-\begin{itemize}
-\item {\bf Commutativity.}
-This condition checks that if action $A_1$ is a right mover or action $A_2$ is a left mover,
-then the effect of executing $A_1$ followed by $A_2$ in two different threads can be achieved by executing $A_2$ followed by $A_1$.
-Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
-\[
-\scriptsize{
-\begin{array}{l}
-\forall \varsG^-,\varsG,\varsG^+,\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2,\varsTL'_2,\varsL'_2.\ \exists \varsG'. \\
-\mathit{let}\ \Lambda =
-\begin{array}[t]{ll}
-\cup & \Collect(\varsG^-, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
-\end{array} \\
-\mathit{in} \\
-\begin{array}{ll}
-\wedge & \IsSet(\Lambda) \\
-\wedge & \MakeStore{\varsG^-}{\varsTL_1}{\varsL_1} \in \rho_1 \\
-\wedge & \MakeStore{\varsG^-}{\varsTL_2}{\varsL_2} \in \rho_2 \\
-\wedge & (\MakeStore{\varsG^-}{\varsTL_1}{\varsL_1},\MakeStore{\varsG}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\wedge & (\MakeStore{\varsG}{\varsTL_2}{\varsL_2},\MakeStore{\varsG^+}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
-\end{array} \\
-\Rightarrow \\
-\begin{array}{ll}
-\wedge & (\MakeStore{\varsG^-}{\varsTL_2}{\varsL_2},\MakeStore{\varsG'}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
-\wedge & (\MakeStore{\varsG'}{\varsTL_1}{\varsL_1},\MakeStore{\varsG^+}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\end{array}
-\end{array}
-}
-\]
-
-\item {\bf Forward preservation.}
-This condition checks that if $A_1$ is a right mover or $A_2$ is a left mover,
-the failure of $A_2$ immediately after the execution of $A_1$ is sufficient to imply 
-that $A_2$ must also fail before the exection of $A_1$.
-This condition is equivalent to forward preservation of the gate of $A_2$ by the execution of $A_1$.
-Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
-\[
-\scriptsize{
-\begin{array}{l}
-\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
-\mathit{let}\ \Lambda =
-\begin{array}[t]{ll}
-\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
-\end{array} \\
-\mathit{in} \\
-\begin{array}{ll}
-\wedge & \IsSet(\Lambda) \\
-\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
-\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\wedge & \MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 \\
-\end{array} 
-\Rightarrow 
-\begin{array}{l}
-\MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 
-\end{array}
-\end{array}
-}
-\]
-
-\item {\bf Backward preservation.}
-This condition checks that if $A_1$ is a left mover and $A_2$ 
-is an arbitrary action, then the failure of $A_2$ immediately before the execution of $A_1$ 
-is sufficient to imply that $A_2$ must also fail immediately after the execution of $A_1$.
-This condition is equivalent to backward preservation of the gate of $A_2$ by the execution of $A_1$.
-Formally, if $m_1 \in \{B,L\}$, then 
-\[
-\scriptsize{
-\begin{array}{l}
-\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
-\mathit{let}\ \Lambda =
-\begin{array}[t]{ll}
-\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
-\end{array} \\
-\mathit{in} \\
-\begin{array}{ll}
-\wedge & \IsSet(\Lambda) \\
-\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
-\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
-\wedge & \MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 \\
-\end{array} 
-\Rightarrow 
-\begin{array}{l}
-\MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 
-\end{array}
-\end{array}
-}
-\]
-
-\item {\bf Nonblocking.}
-This condition checks that if $A_1$ is a left mover, then it must be non-blocking.
-If $m_1 \in \{B, L\}$, then
-$\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
-\end{itemize}
-
-Finally, we summarize the results of this section in the following lemma connecting the safety
-of preemptive and cooperative semantics of $\Prog$.
-\begin{lemma}
-Let $\Prog \in \CProgram$ be such that $\jl \Prog$, $\CommutativitySafe(\Prog)$, and $\jy \Prog$.
-If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
-\end{lemma}
-
-\subsection{Refinement}
+\subsubsection{Refinement}
 \label{sec:refinement}
 
 In this section, we formalize the judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
@@ -1350,3 +1047,349 @@ $\Refines;\HiddenProcs;\HiddenVars;\bs{b_2} \jr \Prog_2$, and $\InterferenceSafe
 \end{lemma}
 
 
+\subsection{From preemptive to cooperative semantics}
+\label{sec:yield-sufficiency}
+
+\begin{figure*}
+\scriptsize{
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+}
+{\actions \jy \skipstmt : (x, x)}
+{\textsc{Skip}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions(A) = (\rho, \alpha, B)
+}
+{\actions \jy \call{A} : (x, x)}
+{\textsc{Both}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions(A) = (\rho, \alpha, R)
+}
+{\actions \jy \call{A} : (\RM, \RM)}
+{\textsc{Right}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions(A) = (\rho, \alpha, L)
+}
+{\actions \jy \call{A} : (x, \LM)}
+{\textsc{Left}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions(A) = (\rho, \alpha, N)
+}
+{\actions \jy \call{A} : (\RM, \LM)}
+{\textsc{Non}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+}
+{\actions \jy \yield{e,\lins} : (x, \RM)}
+{\textsc{Yield}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions \jy \stmt : (x, y)
+}
+{\actions \jy \ablock{e,\lins}{\stmt} : (x, y)}
+{\textsc{Ablock}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+}
+{\actions \jy \call{P} : (x, \RM)}
+{\textsc{Call}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+}
+{\actions \jy \async{P} : (x, \LM)}
+{\textsc{Async}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions \jy \stmt_1 : (x, y) \\ \actions \jy \stmt_2 : (y, z)
+}
+{\actions \jy \stmt_1;\stmt_2 : (x, z)}
+{\textsc{Seq}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions \jy \stmt_1 : (x, y) \\ \actions \jy \stmt_2 : (x, y)
+}
+{\actions \jy \ite{\locExpr}{\stmt_1}{\stmt_2} : (x, y)}
+{\textsc{Ite}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions \jy \stmt : (x, x)
+}
+{\actions \jy \while{e,\alpha}{\locExpr}{\stmt} : (x, x)}
+{\textsc{While}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\procs(P) = (\phi, \mods, \psi, \stmt) \\
+\actions \jy \stmt : (x, y)
+}
+{
+\actions \jy P
+}
+{\textsc{Procedure}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\actions \jy \stmt : (x,y)
+}
+{
+\actions \jy (P, \varsL, \stmt) : (x,y)
+}
+{\textsc{StackFrame}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\forall 1 \le i \le n.\ \actions \jy F_i : (x_i, x_{i+1})
+}
+{
+\actions \jy (\varsTL, F_1 \ldots F_n)
+}
+{\textsc{Thread}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+$
+\srule
+{
+\forall P \in \ProcName.\ \actions \jy P \\
+\forall 1 \le i \le n.\ \actions \jy T_i
+}
+{
+\jy (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)
+}
+{\textsc{Program}}
+$
+\medskip
+%%%%%%%%%%%%%%%%%%%%
+}
+\caption{Yield sufficiency}
+\label{fig:yield-sufficiency}
+\end{figure*}
+
+In this section, we outline the verification required for justifying that it suffices to reason about
+the cooperative semantics of $\Prog$, which ensures that $\CSafe^*(\Prog)$ is sufficient for $\Safe^*(\Prog)$
+Let $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$ be a program.
+The map $\actions$ maps each atomic action to a triple $(\rho, \alpha, m)$, the last component of which 
+denotes type of atomic action---$B$ for {\em both mover}, $R$ for {\em right mover}, $L$ for {\em left mover},
+and $N$ for {\em non mover}.
+Informally, an action labeled $N$ does not commute with other concurrent actions,
+an action labeled $L$ commutes to the left (or earlier in time) of other concurrent actions,
+an action labeled $R$ commutes to the right (or later in time) of other concurrent actions,
+and an action labeled $B$ commutes both to the left and the right of other concurrent actions.
+The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
+all sequences of atomic actions and yields for which reasoning about cooperative semantics is sufficient.
+For example, the $\YSA$ automaton indicates that a yield after a right mover or a yield before a left mover is unnecessary.
+The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by $\YSA$;
+it depends on the judgment $\CommutativitySafe(\Prog)$ which checks that all mover annotations are correct.
+
+The essence of the rules in Figure~\ref{fig:yield-sufficiency}
+is to capture the effect of a computation as a pair $(x,y)$ where $x,y \in \{\RM,\LM\}$;
+the meaning is that to simulate the computation the automaton moves from state $x$ to state $y$.
+Rule \textsc{Program} performs checking for all threads and for all procedures.
+Rules \textsc{Thread}, \textsc{StackFrame}, and \textsc{Procedure} are straightforward.
+Rule \textsc{While} checks that the body of the loop leaves the state of the automaton unchanged.
+Rule \textsc{Ite} checks that the effect both branches is the same.
+Rule \textsc{Seq} composes the effect of $\stmt_1$ with the effect of $\stmt_2$.
+Rule \textsc{Async} is interesting because it treats an asynchronous call as a left mover.
+Rules \textsc{Yield} and \textsc{Call} treat their statements as a yield.
+Rule \textsc{Ablock} calculates the effect of the body of the block.
+Rules \textsc{Both}, \textsc{Right}, \textsc{Left}, and \textsc{Non} essentially 
+examine the available edges in the automaton to validate the statement and calculate its effect.
+Rule \textsc{Skip} leave the state of the automaton unchanged.
+
+The judgment $\jy \Prog$ is not quite enough to check the sufficiency of yields soundly.
+Consider the following program with a global variable {\tt x} and two threads.
+\begin{tabular}{l@{}l@{}l}
+\begin{tabular}[t]{l}
+{\tt [ x := 0 ];} \\
+{\tt [ assert x == 0 ];} \\
+\end{tabular} 
+&
+{\tt ||}
+&
+\begin{tabular}[t]{l}
+{\tt ~~[ x := x + 1 ];} \\
+{\tt ~~while (true) ;} \\
+\end{tabular} 
+\end{tabular}
+This program violates the assertion in it.
+The first thread sets {\tt x} to $0$ in the atomic action indicated {\tt [x := 0]};
+the second thread preempts the first thread and changes {\tt x} to $1$;
+the first thread preempts the second thread and fails the assert {\tt x == 0}. 
+However, the program does not fail if the second thread is executed without preemption,
+even though the code of the second thread satisfies the yield sufficiency check described earlier.
+To address this problem, we require additionally 
+that the program is cooperative, that is, it yields infinitely often in any infinite execution.
+The program in the example above is not cooperative.
+
+Of course, the judgment $\jy \Prog$ depends on the mover annotations on the atomic actions being correct.
+We capture this requirement in the judgmen $\CommutativitySafe(\Prog)$.
+Formally, the program $\Prog$ is commutativity-safe, denoted by $\CommutativitySafe(\Prog)$,
+if for all $A_1,A_2 \in \ActionName$ such that $\actions(A_1) = (\rho_1,\alpha_1,m_1)$, $\actions(A_2) = (\rho_2,\alpha_2,m_2)$,
+$\ProcLins(A_1) = (\lins_1,\lins'_1)$, and $\ProcLins(A_2) = (\lins_2,\lins'_2)$, 
+then all of the following conditions are satisfied:
+\begin{itemize}
+\item {\bf Commutativity.}
+This condition checks that if action $A_1$ is a right mover or action $A_2$ is a left mover,
+then the effect of executing $A_1$ followed by $A_2$ in two different threads can be achieved by executing $A_2$ followed by $A_1$.
+Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG^-,\varsG,\varsG^+,\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2,\varsTL'_2,\varsL'_2.\ \exists \varsG'. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG^-, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in} \\
+\begin{array}{ll}
+\wedge & \IsSet(\Lambda) \\
+\wedge & \MakeStore{\varsG^-}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & \MakeStore{\varsG^-}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\wedge & (\MakeStore{\varsG^-}{\varsTL_1}{\varsL_1},\MakeStore{\varsG}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_2}{\varsL_2},\MakeStore{\varsG^+}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
+\end{array} \\
+\Rightarrow \\
+\begin{array}{ll}
+\wedge & (\MakeStore{\varsG^-}{\varsTL_2}{\varsL_2},\MakeStore{\varsG'}{\varsTL'_2}{\varsL'_2}) \in \alpha_2 \\
+\wedge & (\MakeStore{\varsG'}{\varsTL_1}{\varsL_1},\MakeStore{\varsG^+}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\end{array}
+\end{array}
+}
+\]
+
+\item {\bf Forward preservation.}
+This condition checks that if $A_1$ is a right mover or $A_2$ is a left mover,
+the failure of $A_2$ immediately after the execution of $A_1$ is sufficient to imply 
+that $A_2$ must also fail before the exection of $A_1$.
+This condition is equivalent to forward preservation of the gate of $A_2$ by the execution of $A_1$.
+Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in} \\
+\begin{array}{ll}
+\wedge & \IsSet(\Lambda) \\
+\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & \MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\end{array} 
+\Rightarrow 
+\begin{array}{l}
+\MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 
+\end{array}
+\end{array}
+}
+\]
+
+\item {\bf Backward preservation.}
+This condition checks that if $A_1$ is a left mover and $A_2$ 
+is an arbitrary action, then the failure of $A_2$ immediately before the execution of $A_1$ 
+is sufficient to imply that $A_2$ must also fail immediately after the execution of $A_1$.
+This condition is equivalent to backward preservation of the gate of $A_2$ by the execution of $A_1$.
+Formally, if $m_1 \in \{B,L\}$, then 
+\[
+\scriptsize{
+\begin{array}{l}
+\forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
+\mathit{let}\ \Lambda =
+\begin{array}[t]{ll}
+\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
+\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
+\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\end{array} \\
+\mathit{in} \\
+\begin{array}{ll}
+\wedge & \IsSet(\Lambda) \\
+\wedge & \MakeStore{\varsG}{\varsTL_1}{\varsL_1} \in \rho_1 \\
+\wedge & (\MakeStore{\varsG}{\varsTL_1}{\varsL_1},\MakeStore{\varsG'}{\varsTL'_1}{\varsL'_1}) \in \alpha_1 \\
+\wedge & \MakeStore{\varsG'}{\varsTL_2}{\varsL_2} \in \rho_2 \\
+\end{array} 
+\Rightarrow 
+\begin{array}{l}
+\MakeStore{\varsG}{\varsTL_2}{\varsL_2} \in \rho_2 
+\end{array}
+\end{array}
+}
+\]
+
+\item {\bf Nonblocking.}
+This condition checks that if $A_1$ is a left mover, then it must be non-blocking.
+If $m_1 \in \{B, L\}$, then
+$\forall \sigma \in \rho_1.\ \exists \sigma'.\ (\sigma, \sigma') \in \alpha_1$.
+\end{itemize}
+
+Finally, we summarize the results of this section in the following lemma connecting the safety
+of preemptive and cooperative semantics of $\Prog$.
+\begin{lemma}
+Let $\Prog \in \CProgram$ be such that $\jl \Prog$, $\CommutativitySafe(\Prog)$, and $\jy \Prog$.
+If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
+\end{lemma}

@@ -4,7 +4,8 @@
 We have implemented the method described in this section as a conservation extension 
 of the Boogie~\cite{BarnettCDJL05} language and verifier.
 Our implementation provides new language primitives for linear variables, asynchronous and parallel procedure calls, 
-yields, and atomic actions as procedure specifications.
+yields, atomic actions as procedure specifications, expressing refinement layers, and hiding of global variables and procedures.
+
 At its core, Boogie is an unstructured language comprising code blocks and goto statements.
 Our implementation handles the complexity of unstructured control flow.
 To simplify the exposition, our formalization uses Floyd-Hoare triples to present sequential correctness and 
@@ -13,8 +14,12 @@ However, our implementation is considerably more automated.
 All the annotations, except those at yields, loops, and procedure boundaries, are automatically generated 
 using the technique of verification conditions~\cite{BL05}.
 Annotated atomic code blocks are also inferred automatically.
-Non-interference checks are collected as inlined procedures
-invoked at appropriate places within the code of a procedure for increased precision.
+
+Unlike the formalization in which non-interference checks are performed separately,
+our implementation inserts the non-interference checks for all yield statements inside the body 
+of each source procedure.
+This strategy increases the precision of the verification since
+the entire context of the source procedure is available in the verification condition.
 
 The judgment $\jy \Prog$ from Section~\ref{sec:yield-sufficiency} is fully automated.
 We adapted an algorithm by Henzinger et al.\cite{HenzingerHK95} for computing the similarity relation of 
@@ -30,6 +35,6 @@ version $i$ of the program is constructed from annotations labeled $i$ and proce
 We have implemented a type checker to make sure that layer numbers are used appropriately, e.g., 
 it is illegal for a procedure with layer $i$ to call a procedure with layer $j$ greater than $i$.
 
-Our verifier also supports hiding of global variables.
-Hiding global variables is particularly useful because simple summaries can be written for complicated procedures
-once enough variables relevant to their implementation have been hidden.
+Our implementation also provides knobs for selectively verifying certain refinement layers or only the commutativity checks.
+The verification is fast in general; the presence of these knobs further reduces verification time to facilitate 
+interactive program verification and development.
