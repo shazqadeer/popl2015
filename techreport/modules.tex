@@ -4,7 +4,7 @@
 Section~\ref{sec:examples} used many small examples to illustrate various verification techniques supported by \civl.
 Nevertheless, it's also important to show that \civl's features can scale up to larger programs in a modular way:
 we should be able to check a large program by breaking it into smaller pieces and checking the pieces independently.
-Many languages built on Boogie, including Dafny [CITE] and BoogieX86 [CITE Ironclad], encode modules in Boogie,
+Many languages built on Boogie, including Dafny~\cite{Dafny10} and BoogieX86~\cite{IronClad14}, encode modules in Boogie,
 so it's important that concurrent extensions to Boogie continue to support modular programming.
 This section describes a simple module system built on \civl that allows separate verification of modules,
 allowing programmers to make changes to the private implementation of one module
