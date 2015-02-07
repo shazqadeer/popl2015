@@ -2,34 +2,32 @@
 \section{Related work}
 \label{sec:related}
 
-Our work is the first to provide tool and theory to support automated,
+Our work is the first to provide a tool and theory to support automated,
 modular whole-program refinement through multiple layers, as distinct from existing work on
 single-layer atomicity refinement between procedure implementations and
 specifications. 
-While many of the verification techniques used within \civl appear in
-the literature, \civl is the first to make sound, joint use of them to
+\civl combines a number of techniques in a novel manner to 
 decompose the refinement task following the syntactic structure of a
-program. In the following, we first contrast \civl with refinement
+program. Below, we first contrast \civl with refinement
 verification techniques, and then with tools and
 techniques for reasoning about concurrent programs in general. 
 
 \subsection{Refinement-oriented verification}
 Atomic action specifications have been explored by the
-\calvin~\cite{FlanaganFQS05,FreundQ04} verifier previously. 
-\civl makes a distinction between preemptive and cooperative
-semantics, and carries out refinement verification on a procedure body
+\calvin~\cite{FlanaganFQS05,FreundQ04} verifier. 
+\civl carries out refinement verification on a procedure body
 with cooperative semantics as enabled by movers types and reduction.
 \calvin attempts to verify refinement directly on the preemptive
 semantics, making only limited use of movers at the lowest-level
 representation. 
-\calvin, unlike \civl, does not support location invariants and linear
+\calvin, unlike does not support location invariants and linear
 variables but incorporates rely-guarantee reasoning. 
-The same non-interference reasoning can be carried out using location
-invariants or rely-guarantee reasoning, and \civl supports both.  
+\civl supports both location
+invariants or rely-guarantee reasoning, and either technique can be
+used to prove non-interference.
 However, in certain cases, rely-guarantee reasoning
 requires use of auxiliary (shared) variables and makes interactive
-proofs difficult as was the case in our GC proof. We find location
-invariants to be a powerful verification device.  
+proofs difficult as was the case in our GC proof. 
 
 \QED~\cite{ElmasQT09} is a simplifier for concurrent programs and is close in spirit to the 
 refinement-oriented approach of \civl.
@@ -81,8 +79,7 @@ Refinement proofs
 between implementations and specifications of protocols have been
 investigated using the TLA+~\cite{Lamport2004} specification
 language. 
-Compositional proofs between specifications and
-implementations consisting of modules~\cite{AbadiAssumeGuarantee} have
+Compositional refinement proofs~\cite{AbadiAssumeGuarantee} have
 been investigated in this context. 
 Modular refinement proofs for hardware systems have been investigated extensively
 (e.g.,~\cite{Henzinger1999,Eiriksson2000}) using the SMV~\cite{McMillan00} and Mocha~\cite{AlurHMQRT98} 
