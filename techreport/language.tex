@@ -462,6 +462,6 @@ Given a relation $R$ (over a pair of sets), we denote the domain of $R$ by $\dom
 
 It is often convenient to collect the permissions in a set of available variables.
 To that end, we define the function $\Collect$.
-Given a partial map $\pi$ from $\VarName$ to $\Value$ and a set $X \subseteq \dom(\pi)$,
-let $\Collect(\pi,X)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X\}$.
+Given a partial map $\pi$ from $\VarName$ to $\Value$ and a set $X \subseteq \VarName$,
+let $\Collect(\pi,X)$ be the multiset $\bigcup \{\Perm(\pi(x)) \mid x \in X \wedge \dom(\pi)\}$.
 For any multiset $\Lambda$ over $\Value$, we also define $\IsSet(\Lambda)$ be true iff $\Lambda$ is a set.

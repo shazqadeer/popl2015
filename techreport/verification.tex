@@ -272,8 +272,8 @@ and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following hold:
 \item
 $\jl \Prog$.
 \item
-$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
-$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$.
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,\\
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$,\\ and $\InterferenceSafe(\Prog)$.
 \item
 $\jy \Prog$ and $\CommutativitySafe(\Prog)$.
 \end{enumerate}
@@ -308,19 +308,65 @@ and $\lins_P$, passing $\lins_P$ to the new thread and continuing with $\lins$.
 Note that all global permissions in $\lins_G$ are also made available to the new thread;
 there is no duplication because all threads refer to the same set of global variables.
 
+The following lemma states that if a program is well-typed it remains remains well-typed after executing a step.
+By induction over execution steps, this lemma indirectly ensures that all programs reaachable from a well-typed program 
+are well-typed.
+\begin{lemma}
+\label{lemma:linear-preservation}
+Let $Prog, \Prog_1 \in \Program$ such that $\jl \Prog$ and $\Prog \trans \Prog_1$.
+Then, we have $\jl \Prog_1$.
+\end{lemma}
+{\em Proof Sketch}:
+Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
+$T_i = (\varsTL_i,(P_i,\varsL_i,\StmtCtxt[s])\cdot\MakeFrames{F_i})$,
+and thread $T_i$ takes a step in going from $\Prog$ to $\Prog_1$.
+Suppose the judgment $\jl \Prog$ used available sets $\lins_G$ and $\lins_1,\ldots,\lins_i,\ldots,\lins_n$
+to check $\Prog$.
+To type check $\Prog_1$ only the available set $\lins_i$ for the thread $T_i$ that took the step needs to change.
+To pick $\lins_i$, we perform a case analysis on $s$.
+Let us consider a few cases.
+Suppose $\stmt = \call{A}$ and $\ProcLins(A) = (\lins,\lins')$.
+By rule \textsc{Atomic}, we have $\lins = \lins_i$ and we pick $\lins'$ for typing $\Prog_1$.
+Suppose $\stmt = \call{P}$, $\ProcLins(P) = (\lins,\lins')$, and $\procs(P) = (\phi, \mods, \psi, \stmt')$.
+Then we push the stack frame $(P,L,\yield{\phi,\lins};\stmt')$ onto the stack of $T_i$.
+By rule \textsc{Call}, we have $\lins = \lins_i$,
+We exploit the proof of $\jl P$ (rule \textsc{Procedure}) to construct the proof for the new stack.
+Suppose $s = \async{P}$, $\ProcLins(P) = (\lins,\lins')$, and $\procs(P) = (\phi, \mods, \psi, \stmt')$.
+Then we create a new thread with a single stack frame $(P,L,\yield{\phi,\lins};\stmt')$.
+By rule \textsc{Async}, we have $\lins \subseteq \lins_i$;
+we pick $\lins$ for the new thread and $\lins_i \setminus \lins$ for thread $T_i$.
+Other cases are handled similarly.$\blacksquare$
+
+The following lemma states that in a well-typed program that if two different threads 
+are about to execute a yield statement and an atomic block statement, respectively,
+the available linear variables annotating these statements have disjoint permissions.
+Together with Lemma~\ref{lemma:linear-preservation}, this lemma ensures the soundness of the judgment $\InterferenceSafe(\Prog)$.
 \begin{lemma}
 Let $\Prog \in \Program$ such that $\jl \Prog$.
-If $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$, 
-then $\IsSet(\cup_{1 \le i \le n} \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsG, \lins_G))$.
+Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$
+and $i,j \in [1,n]$ such that 
+$T_i = (\varsTL_i,(P_i,\varsL_i,\StmtCtxt[\ablock{e_i,\lins_i}])\cdot\MakeFrames{F_i})$ and
+$T_j = (\varsTL_j,(P_j,\varsL_j,\StmtCtxt[\yield{e_j,\lins_j}])\cdot\MakeFrames{F_j})$.
+Then $\IsSet(\Collect(\varsG, \lins_i) \cup \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsTL_j, \lins_j))$.
 \end{lemma}
 {\em Proof Sketch}:
-The proof follows immediately from rule \textsc{Program}.
+The proof follows immediately from rule \textsc{Program}.$\blacksquare$
 
+The following lemma states that in a well-typed program that if two different threads 
+are each about to execute an atomic action,
+the available linear variables at the input of these actions have disjoint permissions.
+Together with Lemma~\ref{lemma:linear-preservation}, this lemma ensures the soundness of the judgment $\CommutativitySafe(\Prog)$.
 \begin{lemma}
-Let $Prog_1, \Prog_2 \in \Program$ such that $\jl \Prog_1$ and $\Prog_1 \trans \Prog_2$.
-Then, we have $\jl \Prog_2$.
+Let $\Prog \in \Program$ such that $\jl \Prog$.
+Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$
+and $i,j \in [1,n]$ such that 
+$T_i = (\varsTL_i,(P_i,\varsL_i,\StmtCtxt[\call{A_i}])\cdot\MakeFrames{F_i})$, $\ProcLins(A_i) = (\lins_i,\lins'_i)$,
+$T_j = (\varsTL_j,(P_j,\varsL_j,\StmtCtxt[\call{A_j}])\cdot\MakeFrames{F_j})$, and $\ProcLins(A_j) = (\lins_j,\lins'_j)$.
+Then $\IsSet(\Collect(\varsG, \lins_i) \cup \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsTL_j, \lins_j))$.
 \end{lemma}
 {\em Proof Sketch}:
+The proof follows immediately from rule \textsc{Program}.$\blacksquare$
+
 
 \subsection{Reasoning about cooperative semantics}
 In this section, we attack the first sub-goal discussed earlier.
@@ -1012,9 +1058,9 @@ for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, we have
 \forall \varsG,\varsTL,\varsL,\varsG',\varsTL',\varsL',\varsTL_y,\varsL_y.\\ 
 \mathit{let}\ \Lambda =
 \begin{array}[t]{ll}
-\cup & \Collect(\varsG, \lins \cap \Global) \\
-\cup & \Collect(\varsTL, \lins \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_y, \lins_y \cap \ThreadLocal) 
+\cup & \Collect(\varsG, \lins) \\
+\cup & \Collect(\varsTL, \lins) \\
+\cup & \Collect(\varsTL_y, \lins_y) 
 \end{array} \\
 \mathit{in}\
 \begin{array}{ll}
@@ -1030,23 +1076,24 @@ for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, we have
 
 We summarize the contributions of the judgments discussed in this section in the following two lemmas.
 \begin{lemma}
-Let $\Prog \in \CProgram$ be such that $\jl \Prog$.
-Let $\Prog' \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
+Let $\Prog,\Prog' \in \CProgram$,
+$\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\Boolean}$ be such that 
+$\jl \Prog$, $\Safe^*(\Prog')$,
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, and
 $\InterferenceSafe(\Prog)$.
-If $\Safe^*(\Prog')$, then $\CSafe(\Prog)$.
+Then, we have $\CSafe(\Prog)$.
 \end{lemma}
 
 \begin{lemma}
-Let $\Prog_1,\Prog_2 \in \CProgram$ be such that $\jl \Prog_1$ and $\Prog_1 \ctrans \Prog_2$.
-Let $\Prog'_1 \in \CProgram$, $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
-and $\bs{b_1} \in \overrightarrow{\Boolean}$ be such that 
-$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog_1$, and
-$\InterferenceSafe(\Prog_1)$.
-If $\Safe^*(\Prog'_1)$, then there exists $\Prog'_2 \in \CProgram$ and $\bs{b_2} \in \overrightarrow{\Boolean}$ such that 
-$\Prog'_1 \trans^* \Prog'_2$, $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_2} \vdash \Prog_2 \leadsto \Prog'_2$, 
-$\Refines;\HiddenProcs;\HiddenVars;\bs{b_2} \jr \Prog_2$, and $\InterferenceSafe(\Prog_2)$.
+Let $\Prog,\Prog',\Prog_1 \in \CProgram$,
+$\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
+and $\bs{b} \in \overrightarrow{\Boolean}$ be such that $\jl \Prog$, $\Safe^*(\Prog')$, 
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, 
+$\InterferenceSafe(\Prog)$, and $\Prog \ctrans \Prog_1$.
+Then, there exists $\Prog'_1 \in \CProgram$ and $\bs{b_1} \in \overrightarrow{\Boolean}$ such that 
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, 
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b_1} \jr \Prog_1$, $\InterferenceSafe(\Prog_1)$, and $\Prog' \trans^* \Prog'_1$.
 \end{lemma}
 
 
@@ -1301,9 +1348,9 @@ Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \forall \varsG^-,\varsG,\varsG^+,\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2,\varsTL'_2,\varsL'_2.\ \exists \varsG'. \\
 \mathit{let}\ \Lambda =
 \begin{array}[t]{ll}
-\cup & \Collect(\varsG^-, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\cup & \Collect(\varsG^-, \lins_1) \\
+\cup & \Collect(\varsTL_1, \lins_1) \\
+\cup & \Collect(\varsTL_2, \lins_2) 
 \end{array} \\
 \mathit{in} \\
 \begin{array}{ll}
@@ -1334,9 +1381,9 @@ Formally, if $m_1 \in \{B,R\}$ or $m_2 \in \{B,L\}$, then
 \forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
 \mathit{let}\ \Lambda =
 \begin{array}[t]{ll}
-\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\cup & \Collect(\varsG, \lins_1) \\
+\cup & \Collect(\varsTL_1, \lins_1) \\
+\cup & \Collect(\varsTL_2, \lins_2) 
 \end{array} \\
 \mathit{in} \\
 \begin{array}{ll}
@@ -1365,9 +1412,9 @@ Formally, if $m_1 \in \{B,L\}$, then
 \forall \varsG,\varsG',\varsTL_1,\varsL_1,\varsTL'_1,\varsL'_1,\varsTL_2,\varsL_2. \\
 \mathit{let}\ \Lambda =
 \begin{array}[t]{ll}
-\cup & \Collect(\varsG, \lins_1 \cap \Global) \\
-\cup & \Collect(\varsTL_1, \lins_1 \cap \ThreadLocal) \\
-\cup & \Collect(\varsTL_2, \lins_2 \cap \ThreadLocal) 
+\cup & \Collect(\varsG, \lins_1) \\
+\cup & \Collect(\varsTL_1, \lins_1) \\
+\cup & \Collect(\varsTL_2, \lins_2) 
 \end{array} \\
 \mathit{in} \\
 \begin{array}{ll}
