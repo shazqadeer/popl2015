@@ -72,7 +72,6 @@ the multiset union of the permissions associated with the available variables is
 permissions are never duplicated among linear variables.
 The linear interface $(\lins, \lins')$ of a procedure (or action) indicates the available sets
 at its beginning ($\lins$) and end ($\lins'$), respectively.
-Linear interfaces allow \civl to reason about each procedure separately.
 
 \noindent
 {\bf Global store.}
@@ -134,8 +133,9 @@ We write $\Safe(\Prog)$ if it is not the case that $\Prog \trans \error$.
 We write $\Safe^*(\Prog)$ if $\Safe(\Prog')$ for all $\Prog'$ such that $\Prog \trans^* \Prog'$.
 We write $\CSafe(\Prog)$ if it is not the case that $\Prog \ctrans \error$.
 We write $\CSafe^*(\Prog)$ if $\CSafe(\Prog')$ for all $\Prog'$ such that $\Prog \ctrans^* \Prog'$.
+
 We write $\Cooperative(\Prog)$ if for each infinite $\ytrans$-execution $\Prog \ytrans \Prog_0 \ytrans \Prog_1 \ytrans \cdots$ 
 starting from $\Prog$, there is some $i \geq 0$ such that $\Prog_i \in \CProgram$.
 We write $\Cooperative^*(\Prog)$ if $\Cooperative(\Prog')$ for all $\Prog' \in \CProgram$ such that $\Prog \ctrans^* \Prog'$.
-Our verification method is applicable to a program $\Prog$ only if $\Cooperative^*(\Prog)$ holds.
+Our verification method, described in the next section, is applicable to a program $\Prog$ only if $\Cooperative^*(\Prog)$ holds.
 Verifying this condition is similar to proving termination and is orthogonal to the contribution of this paper.

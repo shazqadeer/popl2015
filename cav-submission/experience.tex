@@ -14,7 +14,7 @@ The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a
 with no benchmark requiring more than a few seconds.
 
 \subsection{Garbage collector}
-We have used \civl to design and verify a realistic concurrent mark-sweep garbage collection (GC) algorithm.  
+We have used \civl to design and verify a realistic concurrent mark-sweep garbage collection (GC) algorithm (available at~\cite{GC}).  
 In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
 it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
 These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 

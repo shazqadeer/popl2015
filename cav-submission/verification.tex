@@ -18,10 +18,10 @@ we decompose this goal into two sub-goals:
 \begin{enumerate}
 \item
 We establish a simulation relation from the cooperative semantics of $\Prog$ 
-to the preemptive semantics of $\Prog'$, which ensures that $\Safe^*(Prog')$ is sufficient for $\CSafe^*(\Prog)$.
+to the preemptive semantics of $\Prog'$, which ensures that $\Safe^*(Prog')$ implies $\CSafe^*(\Prog)$.
 \item
 We exploit commutativity reasoning to compute a simulation relation from $\Prog$ to $\YSA$ (Figure~\ref{fig:ysa}),
-which ensures that $\CSafe^*(\Prog)$ is sufficient for $\Safe^*(\Prog)$
+which ensures that $\CSafe^*(\Prog)$ implies $\Safe^*(\Prog)$
 \end{enumerate}
 Both sub-goals depend on the auxiliary judgment $\jl \Prog$ for checking that $\Prog$ uses linear variables appropriately.
 This judgment computes available linear variables at each program location;
@@ -41,7 +41,7 @@ The sets $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^\Global$, and $\Hi
 are, respectively, the procedure, the global variables, and atomic actions 
 that are introduced for refining $\Prog'$ to $\Prog$;
 we can also think that these entities are hidden in the abstract program $\Prog'$.
-The set $\HiddenProcs$ includes $\dom(\Refines)$ but may also contain other procedures whose invocations 
+The set $\HiddenProcs$ includes $\dom(\Refines)$ but may also contain other helper procedures in $\Prog$ whose invocations 
 are replaced by $\skipstmt$ in $\Prog'$.
 The vector $\bs{b}$ contains a $\Boolean$ value $b_i$ for each thread $T_i$ in $\Prog$.
 If $b_i$ is true, it indicates that there is a partially executed procedure on the stack of $T_i$ 
@@ -61,7 +61,7 @@ one for each pair of yield statement and atomic block in the program.
 
 The second sub-goal is discharged by the two judgments $\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
 Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$.
-To justify that $\CSafe^*(\Prog)$ is sufficient for $\Safe^*(\Prog)$,
+To justify that $\CSafe^*(\Prog)$ implies $\Safe^*(\Prog)$,
 we exploit commutativity information available from the mover types of atomic actions.
 The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
 all sequences of atomic actions and yields for which reasoning about cooperative semantics is sufficient.
