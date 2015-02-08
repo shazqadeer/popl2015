@@ -563,6 +563,7 @@ $
 \srule
 {
 \forall 1 \le j \le n.\ F_j = (P_j, \varsL_j, \stmt_j) \\
+1 \le i \le n \\
 \forall 1 \le j \le n.\ P_j \in \HiddenProcs \Leftrightarrow j \le i \\
 \forall i < j \le n.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash F_j \leadsto F'_j
 }
@@ -576,11 +577,15 @@ $
 $
 \srule
 {
-P' \in \dom(\Refines) \\
-\forall 1 \le j \le i.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash F_j \leadsto F'_j
+\forall 1 \le j \le n.\ F_j = (P_j, \varsL_j, \stmt_j) \\
+1 < i \le n \\
+\forall 1 \le j \le n.\ P_j \in \HiddenProcs \Leftrightarrow j < i \\
+\forall i < j \le n.\ \Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash F_j \leadsto F'_j \\\\
+P_{i-1} \in \dom(\Refines) \\
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions \vdash \stmt_{i} \leadsto \stmt'_{i}
 }
 {
-\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\false \vdash (\varsTL, \Frames \cdot (P', \varsL', \stmt') \cdot (P, \varsL, \stmt) \cdot F_1 \ldots F_i) \leadsto (\varsTL, (P, \varsL, \yield{e,\lins}; \call{\Refines(P')};\stmt) \cdot F'_1 \ldots F'_i)
+\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\false \vdash (\varsTL, F_1 \ldots F_n) \leadsto (\varsTL, (P_{i}, \varsL_{i}, \call{\Refines(P_{i-1})}; \stmt'_{i}) \cdot F'_{i+1} \ldots F'_n)
 }
 {\textsc{Thread2}}
 $
@@ -1076,7 +1081,7 @@ for each atomic block $\ablock{e,\lins}{\stmt} \in \Ablocks(\Prog)$, we have
 
 We summarize the contributions of the judgments discussed in this section in the following two lemmas.
 \begin{lemma}
-Let $\Prog,\Prog' \in \CProgram$,
+Let $\Prog \in \CProgram$, $\Prog' \in \Program$,
 $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\Boolean}$ be such that 
 $\jl \Prog$, $\Safe^*(\Prog')$,
@@ -1086,12 +1091,12 @@ Then, we have $\CSafe(\Prog)$.
 \end{lemma}
 
 \begin{lemma}
-Let $\Prog,\Prog',\Prog_1 \in \CProgram$,
+Let $\Prog,\Prog_1 \in \CProgram$, $\Prog' \in \Program$,
 $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
 and $\bs{b} \in \overrightarrow{\Boolean}$ be such that $\jl \Prog$, $\Safe^*(\Prog')$, 
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$, $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, 
 $\InterferenceSafe(\Prog)$, and $\Prog \ctrans \Prog_1$.
-Then, there exists $\Prog'_1 \in \CProgram$ and $\bs{b_1} \in \overrightarrow{\Boolean}$ such that 
+Then, there exists $\Prog'_1 \in \Program$ and $\bs{b_1} \in \overrightarrow{\Boolean}$ such that 
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, 
 $\Refines;\HiddenProcs;\HiddenVars;\bs{b_1} \jr \Prog_1$, $\InterferenceSafe(\Prog_1)$, and $\Prog' \trans^* \Prog'_1$.
 \end{lemma}
