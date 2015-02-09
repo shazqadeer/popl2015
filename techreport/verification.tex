@@ -335,13 +335,15 @@ Suppose $s = \async{P}$, $\ProcLins(P) = (\lins,\lins')$, and $\procs(P) = (\phi
 Then we create a new thread with a single stack frame $(P,L,\yield{\phi,\lins};\stmt')$.
 By rule \textsc{Async}, we have $\lins \subseteq \lins_i$;
 we pick $\lins$ for the new thread and $\lins_i \setminus \lins$ for thread $T_i$.
-Other cases are handled similarly.$\blacksquare$
+Other cases are handled similarly.
+$\blacksquare$
 
 The following lemma states that in a well-typed program that if two different threads 
 are about to execute a yield statement and an atomic block statement, respectively,
 the available linear variables annotating these statements have disjoint permissions.
 Together with Lemma~\ref{lemma:linear-preservation}, this lemma ensures the soundness of the judgment $\InterferenceSafe(\Prog)$.
 \begin{lemma}
+\label{lemma:linear-non-interference}
 Let $\Prog \in \Program$ such that $\jl \Prog$.
 Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$
 and $i,j \in [1,n]$ such that 
@@ -350,13 +352,15 @@ $T_j = (\varsTL_j,(P_j,\varsL_j,\StmtCtxt[\yield{e_j,\lins_j}])\cdot\MakeFrames{
 Then $\IsSet(\Collect(\varsG, \lins_i) \cup \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsTL_j, \lins_j))$.
 \end{lemma}
 {\em Proof Sketch}:
-The proof follows immediately from rule \textsc{Program}.$\blacksquare$
+The proof follows from rules \textsc{Program}, \textsc{Ablock}, and \textsc{Yield}.
+$\blacksquare$
 
 The following lemma states that in a well-typed program that if two different threads 
 are each about to execute an atomic action,
 the available linear variables at the input of these actions have disjoint permissions.
 Together with Lemma~\ref{lemma:linear-preservation}, this lemma ensures the soundness of the judgment $\CommutativitySafe(\Prog)$.
 \begin{lemma}
+\label{lemma:linear-commutativity}
 Let $\Prog \in \Program$ such that $\jl \Prog$.
 Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, T_1 \ldots T_n)$
 and $i,j \in [1,n]$ such that 
@@ -365,7 +369,8 @@ $T_j = (\varsTL_j,(P_j,\varsL_j,\StmtCtxt[\call{A_j}])\cdot\MakeFrames{F_j})$, a
 Then $\IsSet(\Collect(\varsG, \lins_i) \cup \Collect(\varsTL_i, \lins_i) \cup \Collect(\varsTL_j, \lins_j))$.
 \end{lemma}
 {\em Proof Sketch}:
-The proof follows immediately from rule \textsc{Program}.$\blacksquare$
+This proof follows from rules \textsc{Program}, \textsc{Action}, and \textsc{Atomic}. 
+$\blacksquare$
 
 
 \subsection{Reasoning about cooperative semantics}
@@ -766,22 +771,21 @@ $
 $
 \srule
 {
-P \not \in \dom(\Refines)
 }
 {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b,e}{\yield{e,\lins}}{b,e};\{\}}
-{\textsc{Yield1}}
+{\textsc{Yield}}
 $
-\medskip
-%%%%%%%%%%%%%%%%%%%%
-$
-\srule
-{
-P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, m)
-}
-{\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b,e}{\yield{e,\lins}}{b, e \wedge (\rho \vee b)};\{\}}
-{\textsc{Yield2}}
-$
-\medskip
+\medskip\\
+%% %%%%%%%%%%%%%%%%%%%%
+%% $
+%% \srule
+%% {
+%% P \in \dom(\Refines) \\ \actions(\Refines(P)) = (\rho, \alpha, m)
+%% }
+%% {\Refines;\HiddenProcs;\HiddenVars;\procs;\actions;P;\ABlockOutside \jr \FH{b,e}{\yield{e,\lins}}{b, e \wedge (\rho \vee b)};\{\}}
+%% {\textsc{Yield2}}
+%% $
+%% \medskip
 %%%%%%%%%%%%%%%%%%%%
 $
 \srule
@@ -934,7 +938,7 @@ $
 \srule
 {
 \forall 1 \le i \le n.\ \accessVars(\phi_i) \cap \Local = \{\} \\
-\forall \varsL.\ \MakeStore{\varsG}{\varsTL}{\varsL} \in \phi_1 \\\\
+\forall \varsL'.\ \MakeStore{\varsG}{\varsTL}{\varsL'} \in \phi_1 \\\\
 \forall 1 \le i \le n.\ \Refines;\HiddenProcs;\HiddenVars;\procs;\actions \jr \FH{b_i, \phi_i}{F_i}{b_{i+1}, \phi_{i+1}};\mods_i
 }
 {
@@ -1024,14 +1028,15 @@ Rule \textsc{Ablock1} considers the case when $P \not \in \HiddenProcs$ and perf
 standard sequential correctness check.
 Rules \textsc{Ablock2} and \textsc{Ablock3} consider the two cases when $P \in \HiddenProcs$ and handle
 the refinement of $\Havoc{\HiddenVars \cup Local}$ and the atomic action $\Refines(P)$, respectively.
+Rule \textsc{Yield} handles the yield statement; only the yield predicate is available in the postcondition of the statement.
 
-Rules \textsc{Yield1} and \textsc{Yield2} handle the yield statement.
-Rule \textsc{Yield1} considers the case when $P \not \in \dom(\Refines)$ and is straightforward;
-only the yield predicate is available in the postcondition of the statement.
-Rule \textsc{Yield2} considers the case when $P \in \dom(\Refines)$ and makes available in the postcondition, in 
-addition to the yield predicate, the gate of the action being refined.
-This is safe because the simulation relation connecting the concrete program to the abstract program
-allows the abstract program to fail more often.
+%% Rules \textsc{Yield1} and \textsc{Yield2} handle the yield statement.
+%% Rule \textsc{Yield1} considers the case when $P \not \in \dom(\Refines)$ and is straightforward;
+%% only the yield predicate is available in the postcondition of the statement.
+%% Rule \textsc{Yield2} considers the case when $P \in \dom(\Refines)$ and makes available in the postcondition, in 
+%% addition to the yield predicate, the gate of the action being refined.
+%% This is safe because the simulation relation connecting the concrete program to the abstract program
+%% allows the abstract program to fail more often.
 
 Rule \textsc{Atomic} handles the call of an atomic action.
 It computes in $\mods$ the set of thread-local and procedure-local variables possibly modified by the action.
@@ -1089,6 +1094,19 @@ $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \
 $\InterferenceSafe(\Prog)$.
 Then, we have $\CSafe(\Prog)$.
 \end{lemma}
+{\em Proof idea}:
+Let us pick an arbitrary thread to execute from $\Prog$.
+Since $\Prog \in \CProgram$, this thread is waiting to execute at a yield point, i.e., yield statement or a call or a return.
+As it executes from the current yield point to the next yield point, it executes a sequence of atomic blocks,
+all which must be inside the same procedure, say $P$, by our definition of yield point.
+Since each invocation of an atomic action must reside inside an atomic block, failure can only occur
+during the execution of one of these atomic blocks.
+We need to prove that there is no failure during this execution.
+If $P \not in \HiddenProcs$, the execution in $\Prog$ can be simulated by an identical execution in $\Prog'$.
+Since $\Safe^*(\Prog')$, we conclude that $\CSafe(\Prog)$.
+If $P \in \HiddenProcs$, we note from rule \textsc{Atomic} for $\call{A}$ that the gate of $A$ is discharged.
+Therefore, in this case also we conclude that $\CSafe(\Prog)$.
+$\blacksquare$
 
 \begin{lemma}
 Let $\Prog,\Prog_1 \in \CProgram$, $\Prog' \in \Program$,
@@ -1100,7 +1118,41 @@ Then, there exists $\Prog'_1 \in \Program$ and $\bs{b_1} \in \overrightarrow{\Bo
 $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$, 
 $\Refines;\HiddenProcs;\HiddenVars;\bs{b_1} \jr \Prog_1$, $\InterferenceSafe(\Prog_1)$, and $\Prog' \trans^* \Prog'_1$.
 \end{lemma}
+{\em Proof idea}:
+Suppose thread $i$ executed from a yield point to the next yield point in moving from $\Prog$ to $\Prog_1$,
+executing a sequence of atomic blocks all which were in the same procedure, say $P$.
+We first show how to pick the values $\bs{b_1}$.
+For threads $j$ other than $i$, we pick $\bs{b}(j)$.
+For thread $i$, we perform a case analysis.
+If the next yield point is a yield statement, we pick the first component of the 
+precondition $(b,\phi)$ of the yield statement from the proof tree for $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$.
+If the next yield point is $\call{P'}$ and $P' \in \dom(\Refines)$, we pick $\false$.
+If the next yield point is $\call{P'}$ and $P' \not \in \dom(\Refines)$, we pick the first component of the 
+precondition $(b,\phi)$ of the call statement from the proof tree for $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$.
+If the next yield point is return from a procedure $P \in \dom(\Refines)$, we pick $\true$.
+If the next yield point is return from a procedure $P \not \in \dom(\Refines)$, we pick $\bs{b}(i)$.
 
+Next, we show how to simulate the execution from $\Prog$ to $\Prog_1$ with an execution from $\Prog'$ to $\Prog'_1$.
+Suppose $\bs{b}(i) = \true$.
+In this case, rule \textsc{Thread1} must have been used.
+Then it must be the case that in rule \textsc{Thread}, the precondition of all stack frames of thread $i$ must have the $\Boolean$ value $\true$.
+Suppose the topmost stack frame is $(P,\varsL,\stmt)$.
+If $P \in \HiddenProcs$, then the execution from $\Prog$ to $\Prog_1$ must not have modified any variables except those in $\Local$
+and $\HiddenVars$, $\Prog'$ does not have to move, and $\Prog' = \Prog'_1$.
+If $P \not\in \HiddenProcs$, then the stacks of thread $i$ in $\Prog$ and $\Prog'$ look the same except for the subsitution applied to calls;
+the execution from $\Prog$ to $\Prog_1$ can be simulated by an identical execution from $\Prog'$ to $\Prog'_1$.
+
+Suppose $\bs{b}(i) = \false$.
+In this case, rule \textsc{Thread2} must have been used.
+Suppose the topmost stack frame is $(P,\varsL,\stmt)$; we know that $P \in \HiddenProcs$.
+If $P \in \HiddenProcs \setminus \dom(\Refines)$, then the execution from $\Prog$ to $\Prog_1$ must not have modified any variables except those in $\Local$
+and $\HiddenVars$, $\Prog'$ does not have to move, and $\Prog' = \Prog'_1$.
+If $P \in \dom(\Refines)$, then there are two cases for picking the $\Boolean$ value for thread $i$ (see first paragraph). 
+If we picked $\false$, the execution from $\Prog$ to $\Prog_1$ must not have modified any variables except those in $\Local$
+and $\HiddenVars$, $\Prog'$ does not have to move, and $\Prog' = \Prog'_1$.
+If we picked $\true$, some atomic block in the execution must have behaved like the atomic action $\Refines(P)$.
+We can simulate this behavior by stepping through $\call{\Refines(P)}$ inserted in the stack frame just below the top.
+$\blacksquare$
 
 \subsection{From preemptive to cooperative semantics}
 \label{sec:yield-sufficiency}
@@ -1448,3 +1500,28 @@ of preemptive and cooperative semantics of $\Prog$.
 Let $\Prog \in \CProgram$ be such that $\jl \Prog$, $\CommutativitySafe(\Prog)$, and $\jy \Prog$.
 If $\Cooperative^*(\Prog)$ and $\CSafe^*(\Prog)$, then $\Safe^*(\Prog)$.
 \end{lemma}
+{\em Proof idea}:
+The proof of this lemma is similar to other such proofs done in the literature~\cite{FlanaganFLQ08,ElmasQT09}.
+We have to show that if $\Cooperative^*(\Prog)$ and a preemptive $\trans$-execution from $\Prog$ ends in $\error$,
+then there is a cooperative $\ctrans$-exection from $\Prog$ ending in $\error$.
+We know that every thread in $\Prog$ starts execution from a yield point (yield statement or call or return)
+By checking simulation against $\YSA$, it is also the case that any execution of a thread from a yield point to 
+another yield point is a (possibly empty) sequence of right movers and local actions, followed by zero or one non mover, 
+followed by a (possibly empty) sequence of left movers and local actions.
+A successful simulation check against $\YSA$ labels each statement with either $\RM$ or $\LM$.
+
+We pick a preemptive $\trans$-execution leading to $\error$ such that there is no shorter such execution.
+Starting from this execution, it is possible to swap adjacent steps by different threads while 
+preserving the failure at the end of the execution.
+Each swap is one of the following: 
+(1)~moving an $\RM$-labeled step by one thread after a step of another thread, or 
+(2)~moving an $\LM$-labeled step by one thread before a step of another thread.
+Eventually, when no more swaps are possible, the final execution is such that all context switches from thread $i$ to a different 
+thread $j$ happen at a yield point, but for the possible exception of the unique switch subsequent to which thread $i$ never executes.
+If there exists such an exceptional switch from thread $i$, then it is also the case that the statement at which the switch happened is labeled with $\LM$.
+This implies that it is possible to execute thread $i$ via a sequence of left-moving steps either infinitely or until a yield point occurs.
+Now, we patch these exceptional switches starting from the earliest one.
+To patch the switch from thread $i$, we extend the execution of thread $i$ at the end by a left mover and then commute it earlier by repeated swaps 
+until it reaches the exceptional context switch.
+We repeat this process until thread $i$ reaches a yield point; it is guaranteed to reach a yield point because of the $\Cooperative^*(\Prog)$ property.
+$\blacksquare$

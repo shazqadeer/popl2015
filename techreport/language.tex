@@ -51,7 +51,9 @@ $\FrameCtxt \in \mathit{FrameCtxt}$ &::= & $(P, []_{\StoreLocal}, \StmtCtxt)$ \\
 $\ThreadCtxt \in \mathit{ThreadCtxt}$ &::= &$([]_{\StoreThreadLocal}, \FrameCtxt\cdot\Frames)$ \\
 $\ProgCtxt \in \mathit{ProgCtxt}$ &::= & $(\procs, \actions, \ProcLins, []_{\StoreGlobal}, \TS \cdot \ThreadCtxt \cdot \TS)$ \\
 $\Prog \in \Program$ &::= & $\ProgCtxt[\varsG][\varsTL][\varsL][\stmt]$ \vspace{6pt} \\
-$\YieldingThread \in \mathit{YieldingThread}$ &::= &$\ThreadCtxt[\varsTL][\varsL][\yield{e,\lins}]$ \\
+$\YieldingThread \in \mathit{YieldingThread}$ &::= &$(\varsTL, (P,\varsL,\StmtCtxt[\yield{e,\lins}])\cdot\Frames) \mid$ \\
+                                              &::= &$(\varsTL, (P,\varsL,\StmtCtxt[\call{P'}])\cdot\Frames) \mid$ \\
+                                              &::= &$(\varsTL, (P,\varsL,\skipstmt)\cdot\Frames)$ \\
 $\YProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads \cdot T \cdot \YieldingThreads)$ \\
 $\CProgram$ &::= & $(\procs, \actions, \ProcLins, \varsG, \YieldingThreads)$
 \end{tabular}
@@ -120,7 +122,7 @@ $
 \procs(P) = (\phi, \mods, \psi,\stmt) \\
 \ProcLins(P) = (\lins, \lins') \\
 T = (\varsTL, (P', \varsL, \StmtCtxt[\call{P}]) \cdot \Frames) \\
-T' = (\varsTL, (P, \varsL, \yield{\phi,\lins};\stmt) \cdot (P', \varsL, \StmtCtxt[\yield{\psi,\lins'}]) \cdot \Frames)
+T' = (\varsTL, (P, \varsL, \stmt) \cdot (P', \varsL, \StmtCtxt[\skipstmt]) \cdot \Frames)
 }
 {(\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T \cdot \Vector{T'}) \trans (\procs, \actions, \ProcLins, \varsG, \Vector{T} \cdot T' \cdot \Vector{T'})}
 \;{(\textsc{Call})}
@@ -406,7 +408,8 @@ the predicate $e$ is expected to hold and the set $\lins$ is expected to be avai
 Finally, we have the standard primitives for sequencing, conditional execution, and looping.
 
 We now define the cooperative operational semantics induced by the presence of yield statements in the program.
-A {\em yielding thread\/} ($\mathit{YieldingThread}$ in Figure~\ref{fig:syntax}) is one that is waiting to execute at a yield statement.
+A {\em yielding thread\/} ($\mathit{YieldingThread}$ in Figure~\ref{fig:syntax}) is one that is waiting to execute at a yield statement,
+a call, or a return from a call.
 A program in $\YProgram$ is one in which all threads except at most one thread are yielding threads.
 A program in $\CProgram$ is one in which all threads are yielding threads.
 Thus, we have $\CProgram \subseteq \YProgram \subseteq \Program$.
