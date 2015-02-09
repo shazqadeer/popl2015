@@ -1109,7 +1109,7 @@ all which must be inside the same procedure, say $P$, by our definition of yield
 Since each invocation of an atomic action must reside inside an atomic block, failure can only occur
 during the execution of one of these atomic blocks.
 We need to prove that there is no failure during this execution.
-If $P \not in \HiddenProcs$, the execution in $\Prog$ can be simulated by an identical execution in $\Prog'$.
+If $P \not \in \HiddenProcs$, the execution in $\Prog$ can be simulated by an identical execution in $\Prog'$.
 Since $\Safe^*(\Prog')$, we conclude that $\CSafe(\Prog)$.
 If $P \in \HiddenProcs$, we note from rule \textsc{Atomic} for $\call{A}$ that the gate of $A$ is discharged.
 Therefore, in this case also we conclude that $\CSafe(\Prog)$.
@@ -1527,10 +1527,12 @@ Each swap is one of the following:
 (2)~moving an $\LM$-labeled step by one thread before a step of another thread.
 Eventually, when no more swaps are possible, the final execution is such that all context switches from thread $i$ to a different 
 thread $j$ happen at a yield point, but for the possible exception of the unique switch subsequent to which thread $i$ never executes.
-If there exists such an exceptional switch from thread $i$, then it is also the case that the statement at which the switch happened is labeled with $\LM$.
-This implies that it is possible to execute thread $i$ via a sequence of left-moving steps either infinitely or until a yield point occurs.
-Now, we patch these exceptional switches starting from the earliest one.
-To patch the switch from thread $i$, we extend the execution of thread $i$ at the end by a left mover and then commute it earlier by repeated swaps 
+If there exists such a switch from thread $i$, then it is also the case that the statement at which the switch happened is labeled with $\LM$.
+This implies that it is possible to continue executing thread $i$ via a sequence of left-moving steps.
+
+In the next step, we patch these exceptional switches one by one.
+To patch the switch from thread $i$, we extend the execution of thread $i$ at the end of the execution by a left mover and then commute it earlier by repeated swaps 
 until it reaches the exceptional context switch.
 We repeat this process until thread $i$ reaches a yield point; it is guaranteed to reach a yield point because of the $\Cooperative^*(\Prog)$ property.
+This process is continued until all switches are patched resulting in an execution in which all context switches happen at yield points.
 $\blacksquare$
