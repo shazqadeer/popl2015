@@ -1,4 +1,4 @@
-\section{Case study: a verified concurrent GC algorithm}
+\section{Case study: a verified concurrent garbage collector}
 \label{sec:experience}
 
 The \civl verifier has been under development for around two years.  
@@ -98,7 +98,7 @@ In a worst-case theoretical scenario we may need to run many root scans and disc
 But in practice we usually finish after a small number of scans,
 so we obtain correctness and termination in all scenarios and we obtain good performance in real-world scenarios. 
 
-\subsection{Collector Verification in Boogie}
+\subsection{Garbage collector verification}
 \label{sec:gc-verify}
 
 We have implemented and verified our algorithm in Boogie,
@@ -129,7 +129,7 @@ shown in their entirety in Figure~\ref{fig:VerifiedGC}'s dashed boxes.
 which serves only to set up the global GC invariant needed by the other high-level actions.)
 Crucially, ReadField, WriteField, Eq, and Alloc appear atomic to mutators, even though internally,
 WriteField and Alloc involve many interleaved operations on shared GC data structures.
-Figure~\ref{fig:VerifiedGC} shows only shows phases 5 and 6, the two most abstract phases of refinement;
+Figure~\ref{fig:VerifiedGC} shows only phases 5 and 6, the two most abstract phases of refinement;
 phases 1-4 fill in the implementation details,
 such as implementing the set of gray objects as an explicit stack (an array of elements with a pointer to the stack top, in phase 4),
 handshaking (phase 3), locks (phase 2), and wrapping the primitive CPU operations in left/right/non-moving atomic actions (phase 1).
@@ -213,13 +213,13 @@ and most other mutator operations).
 \subsection{Discussion}
 We now put atomicity refinement techniques from the literature and \civl in context.
 The refinement proof spans six levels of abstraction. 
-Each of refinement proof relating two consecutive levels is made feasible by a different
+Each refinement proof relating two consecutive levels is made feasible by a different
 blend of the techniques in \civl. 
 
 The topmost-level description of the garbage collector provides an
 idealized, abstract view of memory. 
 At this level, none of the lowest-level implementation variables are
-visible -- variable hiding has been used to project them away. 
+visible---variable hiding has been used to project them away. 
 In the top few levels of the garbage collector proof, invariant-based
 non-interference reasoning was our primary tool, while reduction
 simplified verification by enabling us to use coarser atomic actions and fewer
