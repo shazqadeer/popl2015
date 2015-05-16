@@ -1,0 +1,72 @@
+\documentclass{llncs}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{xspace}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage[latin1]{inputenc}
+\usepackage[noend]{algpseudocode}
+\usepackage{url}
+\usepackage{color}
+\usepackage{fancyvrb}
+\usepackage{mathpartir}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subfigure}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{shapes.symbols}
+\usetikzlibrary{shapes}
+
+\newcommand{\calvin}{{\sc calvin}\xspace}
+\newcommand{\QED}{{\sc qed}\xspace}
+\newcommand{\civl}{{\sc civl}\xspace}
+\newcommand{\boogie}{{\sc boogie}\xspace}
+\newcommand{\zthree}{{\sc Z3}\xspace}
+\newcommand{\casm}{{\sc casm}\xspace}
+\newcommand{\why}{{\sc why}\xspace}
+
+\renewcommand{\floatpagefraction}{0.75}
+
+\makeatletter
+\let\@copyrightspace\relax
+\makeatother
+
+\begin{document}
+
+\title{Automated and modular refinement reasoning for concurrent programs}
+\author{Chris Hawblitzel\inst{1} \and Erez Petrank\inst{2} \and Shaz Qadeer\inst{1} \and Serdar Tasiran\inst{3}}
+\institute{Microsoft \and Technion \and Ko\c{c} University}
+
+\maketitle
+
+\input{macros}
+
+\begin{abstract}
+We present \civl, a language and verifier for concurrent programs based on automated and modular refinement reasoning.  
+\civl supports reasoning about a concurrent program at many levels of abstraction. 
+Atomic actions in a high-level description are refined to fine-grain and optimized lower-level implementations. 
+A novel combination of automata theoretic and logic-based checks is used to verify refinement.   
+Modular specifications and proof annotations, such as location invariants and procedure pre- and post-conditions, 
+are specified separately, independently at each level in terms of the variables visible at that level. 
+We have implemented \civl as an extension to the \boogie language and verifier.
+We have used \civl to refine a realistic concurrent garbage collection algorithm
+from a simple high-level specification down to a highly-concurrent implementation described in terms of individual memory accesses.
+\end{abstract}
+
+\input{intro}
+\input{overview}
+\input{language}
+\input{verification}
+\input{modules}
+\input{implementation}
+\input{experience}
+\input{related}
+
+\bibliographystyle{abbrv}
+\bibliography{paper}
+
+\end{document}
+

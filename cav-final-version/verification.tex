@@ -1,0 +1,95 @@
+\section{Verification}
+\label{sec:verification}
+
+Suppose a program $\Prog'$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is transformed into an 
+invocation $\call{P}$ of a procedure that is implemented using low-level actions.
+The main contribution of this paper is a verification method that allows us to safely refine
+program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
+safety properties proved on $\Prog'$ continue to hold on $\Prog$ as well.
+
+The safety of the program $\Prog$, defined in Section~\ref{sec:language} as $\Safe^*(\Prog)$, depends on 
+the preemptive semantics of $\Prog$.
+Our overall goal is to conclude $\Safe^*(\Prog)$ from $\Safe^*(\Prog')$;
+we decompose this goal into two sub-goals:
+\begin{enumerate}
+\item
+We establish a simulation relation from the cooperative semantics of $\Prog$ 
+to the preemptive semantics of $\Prog'$, which ensures that $\Safe^*(Prog')$ implies $\CSafe^*(\Prog)$.
+\item
+We exploit commutativity reasoning to compute a simulation relation from $\Prog$ to $\YSA$ (Figure~\ref{fig:ysa}),
+which ensures that $\CSafe^*(\Prog)$ implies $\Safe^*(\Prog)$
+\end{enumerate}
+Both sub-goals depend on the auxiliary judgment $\jl \Prog$ for checking that $\Prog$ uses linear variables appropriately.
+This judgment computes available linear variables at each program location;
+this information is encoded logically as free disjointness assumptions that increase precision of non-interference
+and commutativity reasoning at low annotatation overhead.
+
+The first sub-goal is discharged by 
+the judgments $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$, and $\InterferenceSafe(\Prog)$.
+The first judgment performs a rewrite of $\Prog$ to $\Prog'$;
+the second judgment checks each procedure separately against location invariants and atomic action specifications;
+the third judgment checks that the location invariants are stable against interference from concurrently-executing threads.
+The map $\Refines \in \ProcName \pf \ActionName$ indicates for a procedure $P \in \dom(\Refines)$ 
+the action $\Refines(P)$ that abstracts it;
+in $\Prog'$, every occurrence of $\call{P}$ is replaced by $\call{\Refines(P)}$.
+The sets $\HiddenProcs \in 2^{\ProcName}$, $\HiddenVars \in 2^\Global$, and $\HiddenActions \in 2^{\ActionName}$ 
+are, respectively, the procedure, the global variables, and atomic actions 
+that are introduced for refining $\Prog'$ to $\Prog$;
+we can also think that these entities are hidden in the abstract program $\Prog'$.
+The set $\HiddenProcs$ includes $\dom(\Refines)$ but may also contain other helper procedures in $\Prog$ whose invocations 
+are replaced by $\skipstmt$ in $\Prog'$.
+The vector $\bs{b}$ contains a $\Boolean$ value $b_i$ for each thread $T_i$ in $\Prog$.
+If $b_i$ is true, it indicates that there is a partially executed procedure on the stack of $T_i$ 
+such that $P \in \dom(\Refines)$ but the code inside $P$ that corresponds to the execution of the atomic action $\Refines(P)$
+has yet to be executed.
+The value of $b_i$ is used to rewrite the stack of $T_i$ while transforming $\Prog$ to $\Prog'$.
+
+The validity of the transformation from $\Prog$ to $\Prog'$ depends on establishing a simulation relation between them.
+The base case of the simulation must check that $\CSafe(\Prog)$;
+The inductive case must check that if $\Prog$ can evolve to $\Prog_1$ (via cooperative semantics)
+by executing from the current yield statement to the next yield statement, 
+then there is $\Prog'_1$ and $b_1$ such that $\Prog'$ can evolve in zero or more steps to $\Prog'_1$ 
+and $\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b_1} \vdash \Prog_1 \leadsto \Prog'_1$.
+The judgments $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$ 
+establish this property via a collection of verification conditions, one for each procedure and 
+one for each pair of yield statement and atomic block in the program.
+
+The second sub-goal is discharged by the two judgments $\Refines \jy \Prog$ and $\CommutativitySafe(\Prog)$.
+Suppose $\Prog = (\procs, \actions, \ProcLins, \varsG, \TS)$.
+To justify that $\CSafe^*(\Prog)$ implies $\Safe^*(\Prog)$,
+we exploit commutativity information available from the mover types of atomic actions.
+The {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
+all sequences of atomic actions and yields for which reasoning about cooperative semantics is sufficient.
+For example, the $\YSA$ automaton indicates that a yield after a right mover or a yield before a left mover is unnecessary.
+The judgment $\jy \Prog$ checks that the code of $\Prog$ can be simulated by $\YSA$;
+it depends on the judgment $\CommutativitySafe(\Prog)$ which checks that all mover annotations are correct.
+
+\begin{theorem}
+\label{thm:correctness}
+Let $\Prog,\Prog' \in \CProgram$ be such that $\Cooperative^*(\Prog)$ and $\Safe^*(\Prog')$.
+Let $\Refines \in \ProcName \pf \ActionName$, $\HiddenProcs \in 2^{\ProcName}$, 
+$\HiddenVars \in 2^{\Global}$, $\HiddenActions \in 2^{\ActionName}$,
+and $\bs{b} \in \overrightarrow{\Boolean}$ be such that the following hold:
+\begin{enumerate}
+\item
+$\jl \Prog$.
+\item
+$\Refines;\HiddenProcs;\HiddenVars;\HiddenActions;\bs{b} \vdash \Prog \leadsto \Prog'$,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ \\ and $\InterferenceSafe(\Prog)$.
+\item
+$\jy \Prog$ and $\CommutativitySafe(\Prog)$.
+\end{enumerate}
+Then, we have $\Safe^*(\Prog)$.
+\end{theorem}
+
+Theorem~\ref{thm:correctness} is our main soundness theorem;
+it concludes the safety of $\Prog$ from the safety of $\Prog'$.
+In general, the correctness proof of a large program is obtained by chaining together
+multiple instances of this theorem connecting a sequence of programs.  
+Due to lack of space, we have only been able to provide a sketch of our formalization in this section.
+The full formalization including detailed rules for all verification judgments is available in a technical report~\cite{gc-techreport}.

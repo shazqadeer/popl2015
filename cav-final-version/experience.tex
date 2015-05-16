@@ -1,0 +1,78 @@
+\section{Experience}
+\label{sec:experience}
+
+The \civl verifier has been under development for around two years.  
+Over that period, we have developed a collection of 32 benchmarks, 
+ranging in size from 17 to 539 LOC, to illustrate various features of
+\civl and for regression testing as we evolved the verifier.
+In addition to microbenchmarks, this collection also includes
+standard benchmarks from the literature such as a multiset implementation~\cite{ElmasTQ05}, 
+the ticket algorithm~\cite{FarzanKP14}, 
+Treiber stack~\cite{Herlihy2008}, work-stealing queue~\cite{Blumofe1999},
+device cache~\cite{ElmasQT09}, and lock-protected increment~\cite{FlanaganQ03}. 
+The \civl verifier is fast; the entire benchmark set verifies in 20 seconds on a standard 4-core Windows PC (2.8GHz, 8GB)
+with no benchmark requiring more than a few seconds.
+
+\subsection{Garbage collector}
+We have used \civl to design and verify a realistic concurrent mark-sweep garbage collection (GC) algorithm (available at~\cite{GC}).  
+In particular, although our algorithm is based on an earlier algorithm by Dijkstra et al~\cite{dijk78}, 
+it extends the earlier algorithm with various modern optimizations and embellishments to improve generality and performance.  
+These extensions include lower write barrier overhead, phase-based synchronization and handshaking, 
+and coordination between the GC and mutator threads during root scanning; our use of linearity aids the proof of root scanning, 
+while our rely-guarantee encoding aids management of colors inside the write barrier
+(which is similar to the barrier in Section~\ref{sec:overview}).
+Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
+from low-level memory operations all the way up to high-level specifications; 
+we used six layers of refinement to help hide low-level details from the high-level portions of the verification.
+We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
+
+\civl's support for refinement enables concise specifications of the GC's correctness:
+a correct GC must implement Allocate, ReadField, and WriteField actions that appear to act atomically,
+even though the implementation of these operations actually executes concurrently with the GC thread and with other program threads.
+The specification states that Allocate atomically adds new objects to the heap,
+while ReadField and WriteField read and write heap object fields.
+Although the GC's Mark and Sweep code constitutes most of the GC code,
+they are hidden in the high-level specification;
+they have detailed correctness specifications in the middle layers of the proof,
+but the most important point at the high level is that their work not interfere with Allocate, ReadField, and WriteField.
+In particular, Mark must coordinate with WriteField's write barrier,
+and Sweep must not remove objects reachable by ReadField and WriteField.
+
+Overall, our GC implementation consists of about 2100 lines of Boogie code.
+The verification takes 60 seconds on the same PC used for microbenchmarks.
+The bulk of this time, 54 seconds, is taken by the verification of the two judgments,
+$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$, described in Section~\ref{sec:verification}.
+The checks for linear variables, yield sufficiency, and commutativity take the rest of the time and are insignificant in comparison.
+
+\subsection{Discussion}
+The GC verification demonstrates that stepwise refinement using \civl is a
+powerful verification approach. 
+Another important lesson learned is that a collection
+of techniques is needed to support stepwise refinement, and a different blend of
+techniques best serves the verification goals at different layers of refinement. 
+
+The primary purpose of the GC proof's lower layers was to enable
+reasoning with coarser atomic actions at higher layers. 
+Reduction was the primary proof method used in these layers, where
+concurrent data structures and synchronization primitives were proven
+to implement atomic operations on them correctly. 
+
+At the top few layers of the GC proof, invariant-based
+non-interference reasoning was our primary tool. 
+This reasoning was made simpler on a program with coarser
+atomic actions. 
+We observed that the use
+of location invariants made certain layers of the proof more
+manageable compared to an earlier effort verifying the same GC where we used
+rely-guarantee reasoning and auxiliary variables to reason about
+non-interference.  
+
+Linear variables were used throughout the proof to model the distinct
+thread identifiers for the garbage collector thread and mutator
+threads, but were most instrumental in encoding single-threaded
+execution in the initialization phase of the program.  
+Variable hiding was used throughout the proof. 
+
+Our experience with the GC verification indicates that 
+\civl's capability to use multiple verification techniques, soundly and cooperatively, is very valuable. 
+
