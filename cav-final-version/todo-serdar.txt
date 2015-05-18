@@ -1,0 +1,57 @@
+----------------------- REVIEW 2 ---------------------
+PAPER: 75
+TITLE: Automated and modular refinement reasoning for concurrent programs
+AUTHORS: Chris Hawblitzel, Erez Petrank, Shaz Qadeer and Serdar Tasiran
+
+OVERALL EVALUATION: 0 (borderline paper)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+For instance, the "Yield Sufficiency Automaton" is mentioned, one example is shown in Figure 2, and the reader is referred to [24] for details.
+
+Intro: everything is clear until this sentence:
+First, the notion of a “step” in the implementation must be defined.
+what is the "implementation" here?
+"implementation" is used for the first time here
+I guess it is the sequence of steps that partition computation inside each such procedure, but I don't want to be guessing.
+
+Chapter 2:  pretty hard to read.  Many points remain obscur.  Perhaps you could concentrate on few points instead of trying to be comprehensive (this is a suggestion which could be applied to the whole paper).
+
+in Figure 1, 
+yield Color >= cNoLock;
+the meaning of "Color >= cNoLock" gets defined rather late; how about adding a comment saying that this is a local invariant? ... or comment saying that it is explained in the text?
+
+Another thread sets Color to WHITE.
+this involves a lot of guessing ...  At this point, I can only guess that Color is a ghost variable and that it is set by SetColorLocked.
+
+>>> WRITE POST-CONDITION FOR WB
+
+yield-to-yield execution fragment
+?
+
+commutes later in time
+?
+
+Well-scoped location invariants ... are ... incomplete
+well-scoped? ill-scoped ones are complete? :-)
+
+terminology:
+Yield Sufficiency Automaton (YSA) vs. yield-sufficiency automaton vs. Yield sufficiency automaton (YSA)
+(in Fig 1, I suppose every state is initial and final, in Fig 2 the last node is a final state?)
+
+why simulation - why not language inclusion?
+
+separation of memory (in the style of separation logic [39]; see [31])
+"in the style of"?  isn't it exactly NOT in the style of separation logic?
+
+Chapters 6, 7 and 8: nothing to critizise :-)
+
+except, perhaps ... I agree with this part of the conclusion of your case study:
+The GC verification demonstrates that stepwise refinement using civl is a powerful verification approach.
+but this part seems just to be a feeling rather than a proven fact:
+... a collection of techniques is needed to support stepwise refinement, and a different blend of techniques best serves the verification goals at different layers of refinement.
+
+Related work:  In the Intro, you write:
+We are not aware of any other verifier that combines automata-based and logic-based reasoning in this style.
+That is true, but perhaps you want to mention trace abstraction (Heizmann etal., SAS'09 and CAV'13) which has a very similar flavor of separating concerns by combining automata-based reasoning about [sequential] control and logic-based reasoning about data, and so do proof spaces about concurrent/interleaving control (Arzan etal., POPL'13 and POPL'15).
+
