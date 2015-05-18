@@ -1,0 +1,52 @@
+Our tool \civl has been implemented as a conservative extension to the \boogie verifier~\cite{BarnettCDJL05}. 
+
+\boogie and \civl have been installed on the {\tt CAV\_AE.ova} virtual machine. The file {\tt CAV\_AE\_75.ova} at the following link has \civl and all of the other software it depends on installed. Please follow the instructions in {\tt ~/README.txt} to run the benchmarks. These instructions are repeated below for your convenience. 
+
+The \boogie codebase includes a directory named {\tt Test} which contains verification benchmarks in several directories. The collection of 32 benchmarks referred to in Section~7 of our paper, and the \civl file containing the concurrent garbage collector descriptions and proof ({\tt GC.bpl}) reside in the directory {\tt Test/civl}. To have \civl re-verify these benchmarks, run the following commands:
+
+\begin{verbatim}
+cd ~/boogie/Test/civl
+lit .
+\end{verbatim} 
+
+To run \civl only on a particular benchmark, e.g., on {\tt GC.bpl} do the following
+
+\begin{verbatim}
+cd ~/boogie/Test/civl
+lit GC.bpl
+\end{verbatim} 
+
+For each benchmark, the expected output of \civl is contained in a file with a {\tt bpl.expect} extension, e.g., {\tt GC.bpl.expect}. 
+
+\civl itself can be downloaded from the following URL:
+
+\vspace*{0.3cm}
+{\url{https://github.com/boogie-org/boogie}}
+\vspace*{0.3cm}
+
+Further instructions for running other tests with \boogie and \civl can be found at the following URL:
+
+\vspace*{0.3cm}
+{\url{https://github.com/boogie-org/boogie/tree/master/Test}}
+\vspace*{0.3cm}
+
+The standard benchmarks from the literature referred to in Section~7 are included in the following files:
+\begin{itemize}
+\item a multiset implementation~\cite{ElmasTQ05}: {\tt multiset.bpl}
+\item the ticket algorithm~\cite{FarzanKP14}: {\tt ticket.bpl}
+\item Treiber stack~\cite{Herlihy2008}: {\tt treiber-stack.bpl}
+\item a work-stealing queue~\cite{Blumofe1999}: {\tt wsq.bpl}
+\item a device cache~\cite{ElmasQT09}: {\tt DeviceCache.bpl}
+\item lock-protected increment~\cite{FlanaganQ03}: {\tt par-incr.bpl}
+\end{itemize}
+
+The following technical report~\cite{gc-techreport} contains a more in-depth explanation of the language features and usage of \civl, the theory and formalism behind \civl, and a description of the concurrent garbage collector and its proof. 
+
+\vspace*{0.3cm}
+{\url{http://research.microsoft.com/apps/pubs/?id=238907}}
+\vspace*{0.3cm}
+
+The language and verification features of \civl are illustrated in Section~6.1 of this technical report through a sequence of example programs (Figures~13-18, Programs1-5). The \civl files for these examples are {\tt ~/boogie/Test/civl/\-Program1.bpl} through {\tt ~/boogie/Test/civl/Program5.bpl}. 
+
+
+
