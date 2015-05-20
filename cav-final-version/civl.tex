@@ -1,0 +1,107 @@
+\section{Verification}
+\label{sec:verification}
+
+In this section, we present our verification method on a core concurrent programming language called \civl (Figure~\ref{fig:syntax}).
+Due to lack of space, we can only provide an overview of the design of the \civl verifier.
+The full formalization of the language and detailed rules for all verification judgments is available in a technical report~\cite{gc-techreport}.
+
+\begin{wrapfigure}[10]{l}{0.5\textwidth}
+\setlength{\tabcolsep}{3pt}
+\scriptsize{
+\begin{tabular}{rclcl}
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e,\lins} \mid \call{A} \mid$ \\
+                  & & $\call{P} \mid \async{P} \mid$ \\
+                  & & $\ablock{e,\lins}{\stmt} \mid \stmt;\;\stmt \mid$\\
+                  & & $\ite{\locExpr}{\stmt}{\stmt} \mid$ \\
+                  & & $\while{e,\alpha}{\locExpr}{\stmt}$ \\
+$F \in \Frame$ &::= & $(P, \varsL, \stmt)$ \\
+$T \in \Thread$ &::= & $(\varsTL, \Frames)$ \\
+$\Prog \in \Program$ &::= & $(\procs, \actions, \ProcLins, \varsG, \TS)$
+\end{tabular}
+}
+\caption{Syntax}
+\label{fig:syntax}
+\end{wrapfigure}
+A \civl program $\Prog$ contains procedures $\procs$, atomic actions $\actions$, linear interfaces of procedures and atomic actions $\ProcLins$,
+global state $G$, and threads $\TS$.
+Each thread $T$ in $\TS$ contains thread-local state $\varsTL$ and stack frames $\Frames$.
+Each stack frame $\Frame$ in $\Frames$ contains a procedure name $P$, procedure-local state $\varsL$, and a statement $\stmt$
+representing the code in $P$ that remains to be executed.
+Thus, $\Prog$ contains all information to represent not only the static program 
+written by the programmer but also the entire state of the program as it executes.
+The statements in \civl contain the usual constructs such as sequencing, conditional control flow, and looping.
+In addition, it contains invocation of procedures ($\call{P}$), execution of atomic actions ($\call{A})$, and thread creation ($\async{P}$).
+Each atomic action has a single-state {\em gate predicate\/} and a two-state {\em transition relation\/}.
+If a thread executes an atomic action in a state (disjoint union of global, thread-local, and procedure-local state) 
+where its gate predicate does not hold, the program fails;
+otherwise, the state is modified according to its transition relation.
+The execution of $\Prog$ is modeled as the usual {\em preemptive\/} semantics in which a
+nondeterministically chosen thread may execute any number of steps.
+$\Prog$ is {\em unsafe\/} if some execution fails the gate of an atomic action;
+otherwise, $\Prog$ is {\em safe\/}.
+
+Suppose a program $\Prog'$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is rewritten into an 
+invocation $\call{P}$ of a procedure that is implemented using low-level actions.
+The main contribution of this paper is a verification method that allows us to safely refine
+program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
+safety of $\Prog'$ implies the safety of $\Prog$ as well.
+
+While abstracting $\Prog$ to $\Prog'$, it is often not convenient to 
+reason about the preemptive semantics, which allows potential interference 
+at {\em every\/} control location in a thread from concurrently-executing threads.
+To make reasoning more convenient, \civl provides the yield statement ($\yield{e,\lins}$) which is an annotation 
+the programmer may use to specify a cooperative semantics in which a thread executes without 
+interference until it reaches a yield statement, at which point any thread is allowed to be scheduled.
+To further ensure that any reasoning performed on the cooperative semantics is also sound for the preemptive semantics,
+\civl exploits commutativity reasoning and allows the programmer to specify 
+the commutativity type of atomic actions in the program---$B$ for both mover, $R$ for right mover, $L$ for left mover, 
+and $N$ for non mover~\cite{FlanaganFLQ08}. 
+The \civl verifier checks the correctness of these commutativity types by verifying each atomic action pairwise against 
+every atomic action in the program.
+While it is sound to put a yield statement before and after every atomic action,
+it is also sound, for example, to omit a yield after a right mover or a yield before a left mover.
+In general, the {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
+all sequences of atomic actions and yields for which reasoning about cooperative semantics is sufficient.
+Given the commutativity types of atomic actions and the program code annotated with yield statements,
+the \civl verifier checks modularly for each procedure that its implementation is connected to $\YSA$
+via a simulation relation~\cite{HenzingerHK95}.
+
+In addition to introducing a control location where interference is allowed to occur, 
+a yield statement $\yield{e,\lins}$ also provides an invariant $e$ and a set $\lins$ of available linear variables
+to constrain the environment interference.
+The invariant $e$ is similar to the location invariant in the method of Owicki and Gries~\cite{OwickiG76}.
+It is expected to hold when the executing thread reaches the yield statement (sequential correctness) 
+and also be preserved by concurrently-executing threads (non-interference).
+
+
+Each procedure is equipped with a precondition, a postcondition,
+and a set of (potentially) modified thread-local variables.
+\civl uses these procedure annotations to verify the sequential correctness of location invariants for each
+procedure separately.
+The non-interference checks are 
+
+
+To exploit linearity during verification, the programmer provides a function $\Perm$ from $\Value$ to $2^\Value$.
+The set $\Perm(v)$ is the set of {\em permissions\/} associated with a value $v \in \Value$.
+The \civl type checker computes a set of {\em available\/} linear variables at each control location such that
+the multiset union of the permissions associated with the values in available variables is guaranteed to be a set, i.e., 
+permissions are never duplicated among linear variables.
+The linear interface $(\lins, \lins')$ of a procedure (or action) indicates the available sets
+at its beginning ($\lins$) and end ($\lins'$), respectively.
+
+
+\noindent
+{\bf Linear interfaces.}
+$\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface~\cite{Wadler90lineartypes}
+$(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
+
+
+In general, the correctness proof of a large program is obtained by chaining together
+multiple instances of this theorem connecting a sequence of programs.  
+
+
+
