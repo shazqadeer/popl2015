@@ -24,9 +24,31 @@ while our rely-guarantee encoding aids management of colors inside the write bar
 Furthermore, our encoding of the algorithm in \civl spans a wide range of abstraction, 
 from low-level memory operations all the way up to high-level specifications; 
 we used six layers of refinement to help hide low-level details from the high-level portions of the verification.
-We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction.
 
-\civl's support for refinement enables concise specifications of the GC's correctness:
+We believe that \civl's combination of features makes practical, for the first time, verification across such a wide range of abstraction:
+
+\begin{itemize}
+\item The GC's lowest layers relied primarily on reduction to
+prove that synchronization primitives and operations on
+concurrent data structures and synchronization appear atomic
+to higher layers.
+
+\item The GC's higher layers relied primarily on invariant-based non-interference reasoning.
+This reasoning was simplified because reduction already made lower-layer operations atomic,
+reducing the amount of interference between higher-layer operations.
+In addition, the use of location invariants made certain layers of the proof more
+manageable compared to an earlier effort verifying the same GC where we used
+rely-guarantee reasoning and auxiliary variables to reason about
+non-interference.  
+
+\item Linear variables were used throughout the proof to model the distinct
+thread identifiers for the garbage collector thread and mutator
+threads, but were most instrumental in encoding single-threaded
+execution in the initialization phase of the program.  
+Variable hiding was used throughout the proof. 
+\end{itemize}
+
+\civl's support for refinement also enabled concise specifications of the GC's correctness:
 a correct GC must implement Allocate, ReadField, and WriteField actions that appear to act atomically,
 even though the implementation of these operations actually executes concurrently with the GC thread and with other program threads.
 The specification states that Allocate atomically adds new objects to the heap,
@@ -44,35 +66,13 @@ The bulk of this time, 54 seconds, is taken by the verification of the two judgm
 $\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$, described in Section~\ref{sec:verification}.
 The checks for linear variables, yield sufficiency, and commutativity take the rest of the time and are insignificant in comparison.
 
-\subsection{Discussion}
-The GC verification demonstrates that stepwise refinement using \civl is a
-powerful verification approach. 
-Another important lesson learned is that a collection
-of techniques is needed to support stepwise refinement, and a different blend of
-techniques best serves the verification goals at different layers of refinement. 
+%\subsection{Discussion}
+%The GC verification demonstrates that stepwise refinement using \civl is a
+%powerful verification approach. 
+%Another important lesson learned is that a collection
+%of techniques is needed to support stepwise refinement, and a different blend of
+%techniques best serves the verification goals at different layers of refinement. 
 
-The primary purpose of the GC proof's lower layers was to enable
-reasoning with coarser atomic actions at higher layers. 
-Reduction was the primary proof method used in these layers, where
-concurrent data structures and synchronization primitives were proven
-to implement atomic operations on them correctly. 
-
-At the top few layers of the GC proof, invariant-based
-non-interference reasoning was our primary tool. 
-This reasoning was made simpler on a program with coarser
-atomic actions. 
-We observed that the use
-of location invariants made certain layers of the proof more
-manageable compared to an earlier effort verifying the same GC where we used
-rely-guarantee reasoning and auxiliary variables to reason about
-non-interference.  
-
-Linear variables were used throughout the proof to model the distinct
-thread identifiers for the garbage collector thread and mutator
-threads, but were most instrumental in encoding single-threaded
-execution in the initialization phase of the program.  
-Variable hiding was used throughout the proof. 
-
-Our experience with the GC verification indicates that 
-\civl's capability to use multiple verification techniques, soundly and cooperatively, is very valuable. 
+%Our experience with the GC verification indicates that 
+%\civl's capability to use multiple verification techniques, soundly and cooperatively, is very valuable. 
 
