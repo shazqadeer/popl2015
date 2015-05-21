@@ -182,11 +182,56 @@ separated by {\tt yield}s.
 This abstraction for \exC{WBSlow} is shown in Figure~\ref{fig:midwb}.
 \civl verifies that this automaton is simulated by the yield sufficiency automaton using an existing algorithm for computing simulation relations~\cite{HenzingerHK95}.
 
+
 {\bf Linear variables.}
-In Figure~\ref{fig:reft}, thread identifier (\exC{tid}) variables are declared \exC{linear} to indicate that two threads cannot possess the same thread identifier simultaneously.
-To enforce unique ownership of linear resources, the \civl type checker prohibits duplication of linear resources~\cite{Wadler90lineartypes}.
-Interference checking and commutativity checking leverage this linearity by automatically inserting assumptions about disjointness of linear resources into verification conditions,
-making it easier to prove non-interference and commutativity.
+In Figure~\ref{fig:reft}, thread identifier (\exC{tid}) variables are declared \exC{linear} 
+to indicate that two threads cannot possess the same thread identifier simultaneously.
+We now explain this feature of \civl in more details using the program in Figure~\ref{fig:ex5}.
+This example contains a shared global array {\tt a} indexed by an uninterpreted type {\tt Tid} 
+representing the set of thread identifiers.
+\begin{wrapfigure}[17]{l}{0.5\textwidth}
+\vspace*{-1cm}
+{\scriptsize
+\begin{verbatim}
+type Tid;
+procedure Allocate() 
+  returns (linear tid:Tid);
+
+var a:[Tid]int;
+
+procedure main()
+{
+  while (true) {
+    var linear tid:Tid := Allocate();
+    async call P(tid);
+    yield true;
+  }
+}
+procedure P(linear tid: Tid)
+  ensures a[tid] == old(a)[tid] + 1;
+{
+  var t:int := a[tid];
+  yield t == a[tid];
+  a[tid] := t + 1;
+}
+\end{verbatim}
+}
+\vspace*{-0.3cm}
+\caption{Encoding thread identifiers}
+\label{fig:ex5}
+\end{wrapfigure}
+A collection of threads are executing procedure {\tt P} concurrently.
+The identifier of the thread executing {\tt P} is passed in as the parameter {\tt tid}.
+A thread with identifier {\tt tid} owns {\tt a[tid]} and can increment it without danger of interference.
+The yield predicate {\tt t == a[tid]} in {\tt P} indicates this expectation, yet it is not possible to prove it 
+unless the reasoning engine knows that the value of {\tt tid} in one thread is distinct 
+its value in a different thread.
+
+Instead of building a notion of thread identifiers into \civl, we provide a more 
+primitive and general notion of linear variables.
+The \civl type system ensures that values contained in linear variables cannot be duplicated~\cite{Wadler90lineartypes}.
+Consequently, the parameter {\tt tid} of distinct concurrent calls to {\tt P} are known to be distinct;
+the \civl verifier exploits this invariant while checking for non-interference and commutativity.
 Linearity is general enough to support much more than just fixed thread identifiers:
 \civl also uses it to express separation of memory (as is done
 commonly in separation logic proofs~\cite{Reynolds02}; see \cite{LahiriQW11})
