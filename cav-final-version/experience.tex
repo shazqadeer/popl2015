@@ -43,9 +43,15 @@ non-interference.
 
 \item Linear variables were used throughout the proof to model the distinct
 thread identifiers for the garbage collector thread and mutator
-threads, but were most instrumental in encoding single-threaded
-execution in the initialization phase of the program.  
-Variable hiding was used throughout the proof. 
+threads, but were most instrumental in expressing mutual exclusion
+during initialization and during root scanning.
+In initialization and root scanning,
+the mutator threads temporarily donate a fraction of their linear permissions to the GC thread.
+The distinctness invariant from Section~\ref{sec:verification} guarantees
+that the mutator threads and GC threads cannot simultaneously possess the same linear permissions;
+we leverage this guarantee to prove non-interference of mutator and GC actions during initialization and root scanning.
+
+%Variable hiding was used throughout the proof.
 \end{itemize}
 
 \civl's support for refinement also enabled concise specifications of the GC's correctness:
@@ -62,8 +68,8 @@ and Sweep must not remove objects reachable by ReadField and WriteField.
 
 Overall, our GC implementation consists of about 2100 lines of Boogie code.
 The verification takes 60 seconds on the same PC used for microbenchmarks.
-The bulk of this time, 54 seconds, is taken by the verification of the two judgments,
-$\Refines;\HiddenProcs;\HiddenVars;\bs{b} \jr \Prog$ and $\InterferenceSafe(\Prog)$, described in Section~\ref{sec:verification}.
+The bulk of this time, 54 seconds, is taken by the verification of
+sequential correctness and non-interference.
 The checks for linear variables, yield sufficiency, and commutativity take the rest of the time and are insignificant in comparison.
 
 %\subsection{Discussion}
