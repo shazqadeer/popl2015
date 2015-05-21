@@ -40,18 +40,22 @@ nondeterministically chosen thread may execute any number of steps.
 $\Prog$ is {\em unsafe\/} if some execution fails the gate of an atomic action;
 otherwise, $\Prog$ is {\em safe\/}.
 
-Suppose a program $\Prog'$ has been proved to be safe.
-However, it is implemented using atomic actions that are too coarse to be directly implementable.  
-To carry over the safety of $\Prog'$ to a realizable implementation $\Prog$, 
-these coarse atomic actions must be refined down to lower-level actions.
-During this refinement, an invocation $\call{A}$ of a high-level atomic action $A$ is rewritten into an 
-invocation $\call{P}$ of a procedure that is implemented using low-level actions.
-The main contribution of this paper is a verification method that allows us to safely refine
-program $\Prog'$ to another program $\Prog$ (or abstract $\Prog$ to $\Prog'$) so that 
-safety of $\Prog'$ implies the safety of $\Prog$ as well.
+\newcommand{\hi}{\mathit{hi}}
+\newcommand{\lo}{\mathit{lo}}
 
-While abstracting $\Prog$ to $\Prog'$, it is often not convenient to 
-reason about the preemptive semantics, which allows potential interference 
+Suppose a program $\Prog^\hi$ has been proved to be safe.
+However, it is implemented using atomic actions that are too coarse to be directly implementable.  
+To carry over the safety of $\Prog^\hi$ to a realizable implementation $\Prog^\lo$, 
+these coarse atomic actions must be refined down to lower-level actions.
+During refinement, a high-level atomic action $A$ is implemented by a procedure $P$, which is itself implemented using lower-level atomic actions.
+In \civl, the programmer can simultaneously refine many atomic actions by specifying a partial function $\Refines$ from procedures to atomic actions;
+$\Prog^\hi$ is obtained from $\Prog^\lo$ by replacing each occurrence of $\call{P}$ for $P \in \dom(\Refines)$ with $\call{\Refines(P)}$.
+The main contribution of this paper is a verification method that allows us to validate such a refinement from 
+$\Prog^\hi$ to $\Prog^\lo$ (or abstraction from $\Prog^\lo$ to $\Prog^\hi$) so that 
+safety of $\Prog^\hi$ implies the safety of $\Prog^\lo$ as well.
+
+While abstracting $\Prog^\lo$ to $\Prog^\hi$, it is often inconvenient to 
+reason about $\Prog^\lo$ using its preemptive semantics, which allows potential interference 
 at {\em every\/} control location in a thread from concurrently-executing threads.
 To make reasoning more convenient, \civl provides the statement $\yield{e}$, an annotation 
 used to specify a cooperative semantics for the program.
@@ -89,20 +93,33 @@ The invariant $e$ annotating the atomic block is expected to hold when this stat
 The \civl type checker checks that the statement $\stmt$ inside this atomic block does not have any yield statement inside it.
 Thus, non-interference of a location invariant $e'$ against $\ablock{e}{\stmt}$ is achieved by proving the Floyd-Hoare triple $\{e \wedge e'\}\stmt\{e\}$.
 
-To exploit linearity during verification, the programmer provides a function $\Perm$ from $\Value$ to $2^\Value$.
-The set $\Perm(v)$ is the set of {\em permissions\/} associated with a value $v \in \Value$.
-The \civl type checker computes a set of {\em available\/} linear variables at each control location such that
-the multiset union of the permissions associated with the values in available variables is guaranteed to be a set, i.e., 
-permissions are never duplicated among linear variables.
-The linear interface $(\lins, \lins')$ of a procedure (or action) indicates the available sets
-at its beginning ($\lins$) and end ($\lins'$), respectively.
-$\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface~\cite{Wadler90lineartypes}
-$(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
+Often, commutativity and non-interference checks require knowledge about distinctness of local program variables in different threads.
+For example, in Figure~\ref{fig:reft}, to prove that {\tt AcquireLock} commutes to the right of {\tt ReleaseLock}, the verifier must know
+that the input parameter {\tt tid} to these atomic actions is different if they are being executed by different threads.
+A similar situation arises in Figure~\ref{fig:ex5}, when attempting to prove that the location invariant {\tt t == a[tid]} is preserved by the atomic 
+action {\tt a[tid] := t + 1}. 
+Information about distinctness of program variables in different threads is difficult to provide as a location invariant 
+whose scope is local to the context of the unique executing thread.
+As an alternative, we exploit reasoning based on a linear type system~\cite{Wadler90lineartypes}.
+The programmer declares certain variables as linear at input and output interfaces of procedures and actions.
+Using this interface information, the \civl type system computes a set of {\em available\/} linear variables at each control location 
+in a procedure.
+The availability of a variable may change at an assignment or a procedure call, e.g., 
+if {\tt y} is available just before {\tt x := y}, then {\tt y} is not available and {\tt x} is avaiable just afterwards.
+The \civl type checker guarantees that the values contained in available linear variables, across all threads at their respective control locations, are 
+distinct from each other.
+This fact is introduced as a logical assumption by the verifier when performing commutativity and non-interference checks.
+
+The interaction between the linear type system and logical reasoning in \civl is more general than that described in the preceding paragraph.
+In \civl, the programmer may specify an arbitrary function $\Perm$ from a value to a set of values;
+the set $\Perm(v)$ is the set of {\em permissions\/} associated with $v$.
+The example described in the preceding paragraph is obtained as the special case when $\Perm(v) = \{v\}$.
+The \civl type checker enforces a generalization of the distinctness invariant that 
+the multiset union of permissions associated with the values in available variables across all threads is guaranteed to be a set.
 
 Put down all requirements related to refinement checking in one place.
-
-In general, the correctness proof of a large program is obtained by chaining together
-multiple instances of this theorem connecting a sequence of programs.  
+Make the observation that the correctness proof of a large program is obtained by chaining together
+multiple instances of refinement connecting a sequence of programs.  
 
 
 
