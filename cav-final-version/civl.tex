@@ -105,7 +105,7 @@ The programmer declares certain variables as linear at input and output interfac
 Using this interface information, the \civl type system computes a set of {\em available\/} linear variables at each control location 
 in a procedure.
 The availability of a variable may change at an assignment or a procedure call, e.g., 
-if {\tt y} is available just before {\tt x := y}, then {\tt y} is not available and {\tt x} is avaiable just afterwards.
+if {\tt y} is available just before {\tt x := y}, then {\tt y} is not available and {\tt x} is available just afterwards.
 The \civl type checker guarantees that the values contained in available linear variables, across all threads at their respective control locations, are 
 distinct from each other.
 This fact is introduced as a logical assumption by the verifier when performing commutativity and non-interference checks.
@@ -117,9 +117,46 @@ The example described in the preceding paragraph is obtained as the special case
 The \civl type checker enforces a generalization of the distinctness invariant that 
 the multiset union of permissions associated with the values in available variables across all threads is guaranteed to be a set.
 
-Put down all requirements related to refinement checking in one place.
-Make the observation that the correctness proof of a large program is obtained by chaining together
-multiple instances of refinement connecting a sequence of programs.  
+\subsection{Safety guarantee}
 
+We can combine the verification techniques described above to verify the safety of a program $\Prog^\lo$.
+Specifically, we can guarantee that $\Prog^\lo$ is safe (i.e. all atomic actions will satisfy their gates when run)
+if the following conditions hold:
 
+\begin{enumerate}
+\item
+$\Prog^\hi$ is safe when executed with preemptive semantics.
+\item
+$\Prog^\lo$ is a valid refinement of $\Prog^\hi$, according to \civl's rules for refinement.
+In particular, for any for any atomic action $A$ in $\Prog^\hi$ implemented by a procedure $P$ in $\Prog^\lo$,
+the rules check that $P$ contains an atomic block $\ablock{e}{\stmt}$ that implements the action $A$.
+Furthermore, all calls to $A$ in $\Prog^\hi$ are replaced by calls to $P$ in $\Prog^\lo$.
+\item
+The invariants of $\Prog^\lo$ satisfy sequential correctness and non-interference,
+in the style of Owicki and Gries,
+for $\Prog^\lo$'s cooperative semantics.
+\item
+$\Prog^\lo$ is {\em well-typed} with respect to linearity.
+Specifically, $\Prog^\lo$ does not try to duplicate any linear variables,
+and linear variables passed to procedures calls and atomic actions are available
+as expected by the type checker.
+\item
+$\Prog^\lo$ is {\em responsive}:
+for any intermediate program state $\Prog'^\lo$ that $\Prog^\lo$ reaches during execution,
+$\Prog'^\lo$ will eventually either terminate or reach a yield statement.
+In other words, no infinite series of steps will occur without encountering a yield statement.
+\item
+The atomic actions in $\Prog^\lo$ satisfy the pairwise commutativity checks.
+\item
+The yields in $\Prog^\lo$ are sufficient, according to Figure~\ref{fig:ysa}'s yield sufficiency automaton.
+\end{enumerate}
+
+By themselves, conditions 1-4 guarantee that $\Prog^\lo$ will be safe when executed with cooperative semantics.
+Conditions 5-7 then additionally ensure that $\Prog^\lo$ will be safe when executed with preemptive semantics.
+The technical report~\cite{gc-techreport},
+which includes formal definitions of all the conditions for an extension of the language in Figure~\ref{fig:syntax},
+formalizes this safety guarantee into a soundness theorem by establishing a simulation relation between $\Prog^\lo$ and $\Prog^\hi$.
+Since the theorem connects the safety of one program's preemptive semantics to another program's preemptive semantics,
+multiple applications of the theorem can be chained together to establish the safety of a low-level program:
+the lowest level $\Prog^0$ is safe because $\Prog^1$ is safe, and $\Prog^1$ is safe because $\Prog^2$ is safe, and so on.
 
