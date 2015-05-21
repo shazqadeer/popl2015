@@ -9,20 +9,20 @@ The full formalization of the language and detailed rules for all verification j
 \setlength{\tabcolsep}{3pt}
 \scriptsize{
 \begin{tabular}{rclcl}
-$\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e,\lins} \mid \call{A} \mid$ \\
+$\stmt \in \Stmt$ &::= & $\skipstmt \mid \yield{e} \mid \call{A} \mid$ \\
                   & & $\call{P} \mid \async{P} \mid$ \\
-                  & & $\ablock{e,\lins}{\stmt} \mid \stmt;\;\stmt \mid$\\
+                  & & $\ablock{e}{\stmt} \mid \stmt;\;\stmt \mid$\\
                   & & $\ite{\locExpr}{\stmt}{\stmt} \mid$ \\
-                  & & $\while{e,\alpha}{\locExpr}{\stmt}$ \\
-$F \in \Frame$ &::= & $(P, \varsL, \stmt)$ \\
+                  & & $\while{e}{\locExpr}{\stmt}$ \\
+$F \in \mathit{Frame} $ &::= & $(P, \varsL, \stmt)$ \\
 $T \in \Thread$ &::= & $(\varsTL, \Frames)$ \\
-$\Prog \in \Program$ &::= & $(\procs, \actions, \ProcLins, \varsG, \TS)$
+$\Prog \in \Program$ &::= & $(\procs, \actions, \varsG, \TS)$
 \end{tabular}
 }
 \caption{Syntax}
 \label{fig:syntax}
 \end{wrapfigure}
-A \civl program $\Prog$ contains procedures $\procs$, atomic actions $\actions$, linear interfaces of procedures and atomic actions $\ProcLins$,
+A \civl program $\Prog$ contains procedures $\procs$, atomic actions $\actions$, 
 global state $G$, and threads $\TS$.
 Each thread $T$ in $\TS$ contains thread-local state $\varsTL$ and stack frames $\Frames$.
 Each stack frame $\Frame$ in $\Frames$ contains a procedure name $P$, procedure-local state $\varsL$, and a statement $\stmt$
@@ -53,37 +53,41 @@ safety of $\Prog'$ implies the safety of $\Prog$ as well.
 While abstracting $\Prog$ to $\Prog'$, it is often not convenient to 
 reason about the preemptive semantics, which allows potential interference 
 at {\em every\/} control location in a thread from concurrently-executing threads.
-To make reasoning more convenient, \civl provides the yield statement ($\yield{e,\lins}$) which is an annotation 
-the programmer may use to specify a cooperative semantics in which a thread executes without 
-interference until it reaches a yield statement, at which point any thread is allowed to be scheduled.
-To further ensure that any reasoning performed on the cooperative semantics is also sound for the preemptive semantics,
-\civl exploits commutativity reasoning and allows the programmer to specify 
+To make reasoning more convenient, \civl provides the statement $\yield{e}$, an annotation 
+used to specify a cooperative semantics for the program.
+In this semantics, a thread executes continuously until it reaches a yield statement, 
+at which point a different thread may be scheduled.
+To ensure that any reasoning performed on cooperative semantics is also sound for preemptive semantics,
+\civl exploits commutativity reasoning.
+It allows the programmer to specify 
 the commutativity type of atomic actions in the program---$B$ for both mover, $R$ for right mover, $L$ for left mover, 
 and $N$ for non mover~\cite{FlanaganFLQ08}. 
 The \civl verifier checks the correctness of these commutativity types by verifying each atomic action pairwise against 
 every atomic action in the program.
 While it is sound to put a yield statement before and after every atomic action,
-it is also sound, for example, to omit a yield after a right mover or a yield before a left mover.
-In general, the {\em Yield Sufficiency Automaton\/} ($\YSA$) from Figure~\ref{fig:ysa} encodes 
-all sequences of atomic actions and yields for which reasoning about cooperative semantics is sufficient.
+the programmer may omit certain yield statements, e.g., a yield after a right mover or a yield before a left mover.
+In general, the {\em Yield Sufficiency Automaton\/} from Figure~\ref{fig:ysa} encodes 
+all sequences of atomic actions and yields for which reasoning about cooperative semantics is sound.
 Given the commutativity types of atomic actions and the program code annotated with yield statements,
 the \civl verifier checks modularly for each procedure that its implementation is connected to $\YSA$
 via a simulation relation~\cite{HenzingerHK95}.
 
 In addition to introducing a control location where interference is allowed to occur, 
-a yield statement $\yield{e,\lins}$ also provides an invariant $e$ and a set $\lins$ of available linear variables
+a yield statement $\yield{e}$ also provides an invariant $e$ 
 to constrain the environment interference.
 The invariant $e$ is similar to the location invariant in the method of Owicki and Gries~\cite{OwickiG76}.
 It is expected to hold when the executing thread reaches the yield statement (sequential correctness) 
 and also be preserved by concurrently-executing threads (non-interference).
-
-
 Each procedure is equipped with a precondition, a postcondition,
 and a set of (potentially) modified thread-local variables.
 \civl uses these procedure annotations to verify the sequential correctness of location invariants for each
 procedure separately.
-The non-interference checks are 
-
+To verify non-interference, it would suffice to check that each location invariant is preserved by each atomic action in the program.
+\civl increases the precision of this check by allowing each location invariant to be preserved across 
+an atomic block, introduced as the statement $\ablock{e}{\stmt}$.
+The invariant $e$ annotating the atomic block is expected to hold when this statement begins execution and is verified as part of sequential correctness.
+The \civl type checker checks that the statement $\stmt$ inside this atomic block does not have any yield statement inside it.
+Thus, non-interference of a location invariant $e'$ against $\ablock{e}{\stmt}$ is achieved by proving the Floyd-Hoare triple $\{e \wedge e'\}\stmt\{e\}$.
 
 To exploit linearity during verification, the programmer provides a function $\Perm$ from $\Value$ to $2^\Value$.
 The set $\Perm(v)$ is the set of {\em permissions\/} associated with a value $v \in \Value$.
@@ -92,13 +96,10 @@ the multiset union of the permissions associated with the values in available va
 permissions are never duplicated among linear variables.
 The linear interface $(\lins, \lins')$ of a procedure (or action) indicates the available sets
 at its beginning ($\lins$) and end ($\lins'$), respectively.
-
-
-\noindent
-{\bf Linear interfaces.}
 $\ProcLins$ maps each procedure and action name in $\ProcName \cup \ActionName$ to a linear interface~\cite{Wadler90lineartypes}
 $(\lins,\lins')$, where each of $\lins$ and $\lins'$ is a set comprising global and thread-local variables.
 
+Put down all requirements related to refinement checking in one place.
 
 In general, the correctness proof of a large program is obtained by chaining together
 multiple instances of this theorem connecting a sequence of programs.  
