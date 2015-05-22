@@ -71,7 +71,7 @@ every atomic action in the program.
 While it is sound to put a yield statement before and after every atomic action,
 the programmer may omit certain yield statements, e.g., a yield after a right mover or a yield before a left mover.
 In general, the {\em Yield Sufficiency Automaton\/} from Figure~\ref{fig:ysa} encodes 
-all sequences of atomic actions and yields for which reasoning about cooperative semantics is sound.
+all sequences of atomic actions and yield statements for which reasoning about cooperative semantics is sound.
 Given the commutativity types of atomic actions and the program code annotated with yield statements,
 the \civl verifier checks modularly for each procedure that its implementation is connected to $\YSA$
 via a simulation relation~\cite{HenzingerHK95}.
@@ -90,8 +90,18 @@ To verify non-interference, it would suffice to check that each location invaria
 \civl increases the precision of this check by allowing each location invariant to be preserved across 
 an atomic block, introduced as the statement $\ablock{e}{\stmt}$.
 The invariant $e$ annotating the atomic block is expected to hold when this statement begins execution and is verified as part of sequential correctness.
-The \civl type checker checks that the statement $\stmt$ inside this atomic block does not have any yield statement inside it.
-Thus, non-interference of a location invariant $e'$ against $\ablock{e}{\stmt}$ is achieved by proving the Floyd-Hoare triple $\{e \wedge e'\}\stmt\{e\}$.
+The \civl type checker checks that the statement $\stmt$ inside this atomic block does not have any yield statement or other atomic blocks inside it.
+Thus, non-interference of a location invariant $e'$ against $\ablock{e}{\stmt}$ is achieved by proving the Floyd-Hoare triple $\{e \wedge e'\}\stmt\{e'\}$.
+
+Having verified sequential correctness and non-interference for location invariants, it remains to verify refinement,
+i.e., if $\Refines(P) = A$, then the atomic action $A$ is correctly refined by the procedure $P$.
+This requirement means that any path from entry to exit of $P$ must contain exactly one atomic block that implements the action $A$;
+all other atomic blocks on the path must leave global and thread-local variables unchanged.
+To perform this check, the \civl verifier introduces the following fresh local variables in $P$:
+(1)~a $\Boolean$ variable $b$ initialized to $\false$ to track whether an atomic block along the current execution has modified a global or thread-local variable,
+(2)~variables to capture snapshot of global and thread-local variables at the beginning of each atomic block.
+By updating these auxiliary variables appropriately, the refinement check is reduced to a collection of assertions introduced into the body of $P$
+at the end of atomic blocks and at the exit of $P$.
 
 Often, commutativity and non-interference checks require knowledge about distinctness of local program variables in different threads.
 For example, in Figure~\ref{fig:reft}, to prove that {\tt AcquireLock} commutes to the right of {\tt ReleaseLock}, the verifier must know
@@ -120,43 +130,39 @@ the permission sets corresponding to the values in available variables across al
 \subsection{Safety guarantee}
 
 We can combine the verification techniques described above to verify the safety of a program $\Prog^\lo$.
-Specifically, we can guarantee that $\Prog^\lo$ is safe (i.e. all atomic actions will satisfy their gates when run)
+Specifically, we can guarantee that $\Prog^\lo$ is safe (i.e., all atomic actions will satisfy their gates when run)
 if the following conditions hold:
 
 \begin{enumerate}
 \item
 $\Prog^\hi$ is safe when executed with preemptive semantics.
 \item
-$\Prog^\lo$ is a valid refinement of $\Prog^\hi$, according to \civl's rules for refinement.
-In particular, for any for any atomic action $A$ in $\Prog^\hi$ implemented by a procedure $P$ in $\Prog^\lo$,
-the rules check that $P$ contains an atomic block $\ablock{e}{\stmt}$ that implements the action $A$.
+$\Prog^\lo$ is a valid refinement of $\Prog^\hi$, according to the rules for refinement in \civl.
+Specifically, for any atomic action $A$ in $\Prog^\hi$ implemented by a procedure $P$ in $\Prog^\lo$,
+any path from entry to exit of $P$ must contain exactly one atomic block that implements the action $A$;
+all other atomic blocks on the path must leave the global and thread-local state unchanged.
 Furthermore, all calls to $A$ in $\Prog^\hi$ are replaced by calls to $P$ in $\Prog^\lo$.
 \item
-The invariants of $\Prog^\lo$ satisfy sequential correctness and non-interference,
-in the style of Owicki and Gries,
-for $\Prog^\lo$'s cooperative semantics.
+The invariants of $\Prog^\lo$ satisfy sequential correctness and non-interference with respect to cooperative semantics.
 \item
 $\Prog^\lo$ is {\em well-typed} with respect to linearity.
 Specifically, $\Prog^\lo$ does not try to duplicate any linear variables,
 and linear variables passed to procedures calls and atomic actions are available
 as expected by the type checker.
 \item
-$\Prog^\lo$ is {\em responsive}:
-for any intermediate program state $\Prog'^\lo$ that $\Prog^\lo$ reaches during execution,
-$\Prog'^\lo$ will eventually either terminate or reach a yield statement.
-In other words, no infinite series of steps will occur without encountering a yield statement.
-\item
 The atomic actions in $\Prog^\lo$ satisfy the pairwise commutativity checks.
 \item
-The yields in $\Prog^\lo$ are sufficient, according to Figure~\ref{fig:ysa}'s yield sufficiency automaton.
+The yield statements in $\Prog^\lo$ are sufficient, according to the yield sufficiency automaton in Figure~\ref{fig:ysa}.
+\item
+Any infinite execution of $\Prog^\lo$ must visit a yield statement infinitely often.
 \end{enumerate}
 
-By themselves, conditions 1-4 guarantee that $\Prog^\lo$ will be safe when executed with cooperative semantics.
-Conditions 5-7 then additionally ensure that $\Prog^\lo$ will be safe when executed with preemptive semantics.
+By themselves, conditions~1-4 guarantee that $\Prog^\lo$ will be safe when executed with cooperative semantics.
+Conditions~5-7 then additionally ensure that $\Prog^\lo$ will be safe when executed with preemptive semantics.
 The technical report~\cite{gc-techreport},
 which includes formal definitions of all the conditions for an extension of the language in Figure~\ref{fig:syntax},
 formalizes this safety guarantee into a soundness theorem by establishing a simulation relation between $\Prog^\lo$ and $\Prog^\hi$.
 Since the theorem connects the safety of one program's preemptive semantics to another program's preemptive semantics,
 multiple applications of the theorem can be chained together to establish the safety of a low-level program:
-the lowest level $\Prog^0$ is safe because $\Prog^1$ is safe, and $\Prog^1$ is safe because $\Prog^2$ is safe, and so on.
+the lowest level $\Prog^0$ is safe because $\Prog^1$ is safe, $\Prog^1$ is safe because $\Prog^2$ is safe, and so on.
 
