@@ -26,7 +26,7 @@ from checks on each procedure, thus decomposing a whole-program refinement probl
 The computation inside each such procedure is partitioned into ``steps'' 
 such that one step behaves like the atomic specification and all other steps have no effect on the visible state. 
 This partitioning follows the syntactic structure of the code in a way similar in spirit to Floyd-Hoare reasoning. 
-To be able to express the per-procedure verification obligation in terms of a collection of per-step verification tasks, the \civl verifier needs to address two issues.
+To express the per-procedure verification obligations in terms of a collection of per-step verification tasks, the \civl verifier needs to address two issues.
 First, the notion of a ``step'' in the code implementing a procedure must be defined.
 The definition of a step can deeply affect the number of checks that need to be performed and the number of user annotations.
 Second, it is typically not possible to show the correctness of a step from an arbitrary state.
