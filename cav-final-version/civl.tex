@@ -73,7 +73,7 @@ the programmer may omit certain yield statements, e.g., a yield after a right mo
 In general, the {\em Yield Sufficiency Automaton\/} from Figure~\ref{fig:ysa} encodes 
 all sequences of atomic actions and yield statements for which reasoning about cooperative semantics is sound.
 Given the commutativity types of atomic actions and the program code annotated with yield statements,
-the \civl verifier checks modularly for each procedure that its implementation is connected to $\YSA$
+the \civl verifier checks modularly for each procedure that its implementation is connected to the yield sufficiency automaton
 via a simulation relation~\cite{HenzingerHK95}.
 
 In addition to introducing a control location where interference is allowed to occur, 

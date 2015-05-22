@@ -54,8 +54,8 @@ procedure SetColorLocked(linear tid:Tid,
 \exC{WB} implements the write barrier.
 The write barrier is only invoked on allocated objects, thus, colors cannot be \exC{UNALLOC} when \exC{WB} is called.
 To simplify exposition, we consider a single object whose color is stored in the shared variable \exC{Color}. 
-\exC{WB} first reads \exC{Color} without holding a lock, to avoid, when possible, the cost of acquiring and releasing a lock for each address encountered by a mutator. 
-If \exC{Color} is {\tt <= WHITE}, \exC{WB} calls the more expensive procedure \exC{WBSlow} to re-examine and possibly update \exC{Color} while holding the lock. 
+\exC{WB} first reads \exC{Color} without holding a lock, to avoid when possible, the cost of acquiring and releasing a lock for each address encountered by a mutator. 
+If \exC{Color <= WHITE}, \exC{WB} calls the more expensive procedure \exC{WBSlow} to re-examine and possibly update \exC{Color} while holding the lock. 
 The annotation \exC{yield} \exC{Color >= cNoLock} is a local invariant expected to be preserved by the environment of \exC{WB}. 
 \civl simplifies reasoning about \exC{WBSlow} by allowing us to express its specification as the following atomic action:\\
 \begin{footnotesize}
@@ -63,7 +63,7 @@ The annotation \exC{yield} \exC{Color >= cNoLock} is a local invariant expected 
 [if (Color <= WHITE)  Color := GRAY]
 \end{tt}
 \end{footnotesize}\\
-This specification indicates that regardless how the environment interferes with its execution, to its caller it appears as if \exC{WBSlow} atomically executes the code above. 
+This specification indicates that regardless of how the environment interferes with its execution, to its caller it appears as if \exC{WBSlow} atomically executes the code above. 
 
 {\bf Per-procedure simulation, non-interference via invariants.}
 The verification of \exC{WB} illustrates a combination of techniques. 
@@ -72,25 +72,24 @@ To see that this task is not trivial, consider a scenario in which \exC{WB}, not
 Another thread sets {\tt Color} to {\tt WHITE}. 
 \exC{WB} resumes, but because the local variable \exC{cNoLock} is \exC{GRAY}, does nothing and exits with {\tt Color} being {\tt WHITE}, violating \exC{WB}'s postcondition. 
 But, in the GC this scenario is not possible. 
-The yield predicate (location invariant) {\tt Color >= cNoLock} expresses the fact that other threads can only modify {\tt Color} to a higher (darker) value -- 
+The yield predicate (location invariant) {\tt Color >= cNoLock} expresses the fact that other threads can only modify {\tt Color} to a higher (darker) value. 
 \civl verifies the correctness of this location invariant and rules out this undesirable scenario. 
 Using this location invariant, \exC{WB}'s pre-condition, and \exC{WBSlow}'s atomic specification, \civl is able to verify \exC{WB}'s post-condition. 
 
 To verify that the implementation of \exC{WB} refines its atomic specification, \civl critically relies on the fact that {\tt Color} is never {\tt UNALLOC} during \exC{WB}'s execution. 
 This is important because otherwise \exC{WBSlow} would set {\tt Color} to {\tt GRAY} whereas \exC{WB} would leave it unmodified, leading to a refinement violation. 
-\exC{WB}'s precondition {\tt Color >=  WHITE}, its post-condition and the location invariant {\tt Color >= cNoLock} all imply that {\tt Color} is never {\tt UNALLOC} during the execution of \exC{WB}. 
+\exC{WB}'s precondition {\tt Color >=  WHITE} and the location invariant {\tt Color >= cNoLock} imply that {\tt Color} is never {\tt UNALLOC} during the execution of \exC{WB}. 
 In the environment thus constrained, \civl checks atomicity refinement for {\tt WB} by verifying the existence of a particular simulation-relation. 
 Each control path through \exC{WB} is analyzed as a sequence of code fragments, from one {\tt yield} statement to the next\footnote{Procedure entry and exit points are treated as {\tt yield} statements annotated by the procedure pre- and post-conditions.}.
 For each control path through a procedure, exactly one code fragment must be simulated by the atomic action specification while others do not modify global state.
-This refinement proof for \exC{WB} makes use of (i) correct modeling of environment interference by the pre- and post-conditions, and the yield predicate, and (ii) the atomic action specification for the called procedure \exC{WBSlow}. 
+This refinement proof for \exC{WB} makes use of (1) correct modeling of environment interference by the pre- and post-conditions, and the yield predicate, and (2) the atomic action specification for the called procedure \exC{WBSlow}. 
 The \civl verifier automatically computes a logical verification condition capturing the proof obligations from the body and specification of \exC{WB}.
 
 Just as the verification of \exC{WB} builds on the specification of \exC{WBSlow}, the verification of \exC{WBSlow} builds on other refinement proofs (not shown) of the procedures called in \exC{WBSlow}; these procedures are shown at the bottom of the figure. 
 This example shows only one procedure at this layer. In programs with many procedures with atomic specifications at each layer, \civl combines the per-procedure refinement proofs soundly into a whole-program refinement proof. 
 
-{\bf Reduction, preemptive vs cooperative semantics.}
-The verification of \exC{WBSlow} highlights reduction-related features
-in \civl. 
+{\bf Preemptive vs cooperative semantics.}
+The verification of \exC{WBSlow} highlights another important feature in \civl. 
 Refinement checking is performed on cooperative semantics in which a 
 {\tt yield}-to-{\tt yield} execution fragment of code is executed atomically.
 However, in a real execution, control can switch between threads at any point in the code. 
@@ -106,59 +105,48 @@ environment actions.
 % \exC{GetColorLocked} has mover type {\tt both} and it commutes both earlier and later in time.
 These mover types are checked by constructing verification conditions from each pair of atomic actions.
 
-The use of movers is entirely optional in \civl, but very beneficial
-in our experience. One can avoid 
-mover and commutativity reasoning, simply
-annotating atomic action specifications with the mover type {\tt atomic}.
-\begin{wrapfigure}[8]{l}{0.5\textwidth}
+Given verified mover types for actions, \civl verifies the correctness of the placement of {\tt yield} statements using a novel approach.
+\begin{wrapfigure}[7]{l}{0.5\textwidth}
 \vspace*{-1cm}
 \begin{center}
 \includegraphics[scale=0.25]{YieldTypeCheckingAutomaton.pdf}
 \end{center} 
 \vspace*{-0.3cm}
-\caption{Yield sufficiency automaton ($YSA$)}
+\caption{Yield sufficiency automaton}
 \label{fig:ysa}
 \end{wrapfigure}
-However, without mover reasoning,  a yield statement and an
-accompanying predicate
-must be inserted before every invocation of an atomic action.
-It has been demonstrated in work in the literature that mover
-reasoning simplifies many proofs~\cite{ElmasQT09}. 
-In our experience with \civl, we have observed that using more yield
-predicates rather than mover reasoning can make proofs difficult in two ways.
-First, the annotation burden goes up because sophisticated ghost variables may need to be introduced in the 
-program semantics.\footnote{Location invariants that cannot refer to the state of other threads are known to be incomplete, 
-both in theory and in practice.}
-Second, the computational cost of the pairwise mover reasoning is replaced by the cost of pairwise non-interference checks between yield predicates 
-and concurrently executing atomic actions. 
-\civl does not force the use of mover
-reasoning but provides automation for this important verification
-feature and its use in conjunction with other techniques illustrated in
-this section. 
-
-Given verified mover types for actions, \civl verifies reduction, i.e., the correctness of the placement of {\tt yield}s using a novel  approach.
-A {\em yield sufficiency automaton\/} ($\YSA$ in Figure~\ref{fig:ysa})
+A {\em yield sufficiency automaton\/} (Figure~\ref{fig:ysa})
 encodes all sequences of atomic actions (of {\bf R}ight, 
-\begin{wrapfigure}[8]{l}{0.5\textwidth}
-\vspace*{-1cm}
-\begin{center}
-\includegraphics[scale=0.25]{WBSlow.pdf}
-\end{center}
-\vspace*{-0.5cm}
-\caption{Abstraction of \exC{WBSlow}}
-\label{fig:midwb}
-\end{wrapfigure}
 {\bf L}eft,
 {\bf B}oth and
 {\bf N}on-mover types)  and yields for which safety of cooperative semantics is sufficient 
 for safety of preemptive semantics. 
 Each ``transaction'' starts with a sequence of right movers (or both movers) and ends with a sequence of left movers (or both movers).
 In the middle, it can have at most one non mover. Transactions must be
-separated by {\tt yield}s.
+separated by {\tt yield} statements.
 \civl then interprets the control-flow graph of each procedure as an automaton with mover types as edge labels. 
 This abstraction for \exC{WBSlow} is shown in Figure~\ref{fig:midwb}.
 \civl verifies that this automaton is simulated by the yield sufficiency automaton using an existing algorithm for computing simulation relations~\cite{HenzingerHK95}.
 
+The use of commutativity reasoning is optional in \civl, but beneficial in our experience. 
+Commutativity reasoning may be avoided by annotating atomic action specifications with the mover type {\tt atomic}
+\begin{wrapfigure}[7]{l}{0.5\textwidth}
+\vspace*{-1cm}
+\begin{center}
+\includegraphics[scale=0.25]{WBSlow.pdf}
+\end{center}
+\vspace*{-0.8cm}
+\caption{Abstraction of \exC{WBSlow}}
+\label{fig:midwb}
+\end{wrapfigure}
+and inserting a yield statement before every invocation of an atomic action.
+In our experience with \civl, using more yield statements,
+each with an accompanying location invariant, can make proofs difficult in two ways.
+First, the annotation burden goes up because sophisticated ghost variables may need to be introduced in the 
+program semantics.\footnote{Location invariants that cannot refer to the state of other threads are known to be incomplete, 
+both in theory and in practice.}
+Second, the computational cost of the pairwise mover reasoning is replaced by the cost of pairwise non-interference checks between yield predicates 
+and concurrently executing atomic actions. 
 
 {\bf Linear variables.}
 In Figure~\ref{fig:reft}, thread identifier (\exC{tid}) variables are declared \exC{linear} 
