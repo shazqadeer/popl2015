@@ -1,31 +1,24 @@
 \section{Modules}
 \label{sec:modules}
 
-This section describes a simple module system built on \civl that allows separate verification of modules,
+The technical report\cite{gc-techreport} describes a simple module system built on \civl that allows separate verification of modules,
 allowing programmers to check a large program by breaking it into smaller pieces and checking the pieces independently.
-A key challenge for modular verification in \civl is the $\CommutativitySafe$ and $\InterferenceSafe$ judgments.
+A key challenge for modular verification in \civl is the checking of non-interference and commutativity.
 Naively, these are whole-program judgments,
 quadratically checking all pairs of actions or all pairs of yields and atomic blocks from an entire program.
-To check these judgments on a per-module basis rather for a whole-program,
-we observe that $\CommutativitySafe$ and $\InterferenceSafe$ are trivially true for operations that act on disjoint sets of global variables.
-If an atomic block modifies only variables $g_1$ and $g_2$, it will not interfere with a yield that refers only to variables $g_3$ and $g_4$.
+To check these judgments on a per-module basis rather for a whole program,
+we observe that commutativity and non-interference are trivially satisfied for operations that act on disjoint sets of global variables.
+If an atomic block modifies only variables $g_1$ and $g_2$, it will not interfere with a location invariant that refers only to variables $g_3$ and $g_4$.
 More generally, let each module $M$ own a set of global variables, such that each global variable is owned by exactly one module,
 and decree that only $M$'s procedures and actions can access $M$'s global variables.
-Formally, define ownership for global variables, procedures and actions as:
+Statements in $M$'s procedures can only read and write $M$'s own global variables,
+and $M$'s actions and location invariants can only refer to $M$'s own global variables.
+(On the other hand, procedure assertions that are not checked for non-interference,
+such as the $e$ in $\ablock{e}{\stmt}$,
+may mention global variables from other modules,
+since these assertions can neither interfere with other modules' location invariants nor be interfered with by other modules' statements.)
 
-\hspace{30mm}\begin{tabular}{rclcl}
-$M$ & $\in$ & $\Module$ \\
-$\own_{\Global}$ & $\in$ & $\Global \rightarrow \Module$ \\
-$\own_{\ProcName}$ & $\in$ & $\ProcName \rightarrow \Module$ \\
-$\own_{\ActionName}$ & $\in$ & $\ActionName \rightarrow \Module$ \\
-\end{tabular}
-
-\noindent
-If $\own_{\ProcName}(P) = M$, then $P$'s preconditions, postconditions, and statements only refer to global $g$ where $\own_{\Global}(g) = M$.
-Similarly, if $\own_{\ProcName}(A) = M$, then $A$'s gate and transition relation can depend only on $g$ where $\own_{\Global}(g) = M$.
-With this restriction, $\CommutativitySafe$ and $\InterferenceSafe$ can be checked for each module $M$ in isolation;
-no other module $M'$ can interfere with the global variables owned by $M$.
-Note that $\own_{\Global}$, $\own_{\ProcName}$, and $\own_{\ActionName}$ can change across refinement layers.
+Note that ownership can change across refinement layers.
 For example, a library module implementing locks may define a variable to represent the abstract state of a lock;
 after the lock module is verified at a low layer,
 another module can take ownership of the lock variable in a higher layer
