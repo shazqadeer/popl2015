@@ -110,12 +110,12 @@ The \civl type checker guarantees that the values contained in available linear 
 distinct from each other.
 This fact is introduced as a logical assumption by the verifier when performing commutativity and non-interference checks.
 
-The interaction between the linear type system and logical reasoning in \civl is more general than that described in the preceding paragraph.
+The interaction between the linear type system and logical reasoning in \civl is more general than the description above.
 In \civl, the programmer may specify an arbitrary function $\Perm$ from a value to a set of values;
 the set $\Perm(v)$ is the set of {\em permissions\/} associated with $v$.
-The example described in the preceding paragraph is obtained as the special case when $\Perm(v) = \{v\}$.
+The example described in the previous paragraph corresponds to the special case when $\Perm(v) = \{v\}$.
 The \civl type checker enforces a generalization of the distinctness invariant that 
-the multiset union of permissions associated with the values in available variables across all threads is guaranteed to be a set.
+the permission sets corresponding to the values in available variables across all threads are mutually disjoint.
 
 \subsection{Safety guarantee}
 
