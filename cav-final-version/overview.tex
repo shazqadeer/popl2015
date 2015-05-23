@@ -140,7 +140,8 @@ This abstraction for \exC{WBSlow} is shown in Figure~\ref{fig:midwb}.
 \civl verifies that this automaton is simulated by the yield sufficiency automaton using an existing algorithm for computing simulation relations~\cite{HenzingerHK95}.
 
 The use of commutativity reasoning is optional in \civl, but beneficial in our experience. 
-Commutativity reasoning may be avoided by annotating atomic action specifications with the mover type {\tt atomic}
+Commutativity reasoning may be avoided by annotating atomic action
+specifications with the mover type {\tt atomic} and inserting a yield 
 \begin{wrapfigure}[7]{l}{0.5\textwidth}
 \vspace*{-1cm}
 \begin{center}
@@ -150,7 +151,7 @@ Commutativity reasoning may be avoided by annotating atomic action specification
 \caption{Abstraction of \exC{WBSlow}}
 \label{fig:midwb}
 \end{wrapfigure}
-and inserting a yield statement before every invocation of an atomic action.
+statement before every invocation of an atomic action.
 In our experience with \civl, using more yield statements,
 each with an accompanying location invariant, can make proofs difficult in two ways.
 First, the annotation burden goes up because sophisticated ghost variables may need to be introduced in the 

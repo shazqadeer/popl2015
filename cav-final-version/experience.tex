@@ -29,8 +29,8 @@ We believe that \civl's combination of features makes practical, for the first t
 
 \begin{itemize}
 \item The GC's lowest layers relied primarily on reduction to
-prove that synchronization primitives and operations on
-concurrent data structures and synchronization appear atomic
+prove that operations on
+concurrent data structures and synchronization operations appear atomic
 to higher layers.
 
 \item The GC's higher layers relied primarily on invariant-based non-interference reasoning.
@@ -56,7 +56,7 @@ we leverage this guarantee to prove non-interference of mutator and GC actions d
 
 \civl's support for refinement also enabled concise specifications of the GC's correctness:
 a correct GC must implement Allocate, ReadField, and WriteField actions that appear to act atomically,
-even though the implementation of these operations actually executes concurrently with the GC thread and with other program threads.
+even though the implementations of these operations actually execute concurrently with the GC thread and with other program threads.
 The specification states that Allocate atomically adds new objects to the heap,
 while ReadField and WriteField read and write heap object fields.
 Although the GC's Mark and Sweep code constitutes most of the GC code,
