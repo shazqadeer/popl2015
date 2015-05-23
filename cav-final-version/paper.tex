@@ -1,4 +1,5 @@
 \documentclass{llncs}
+\usepackage[firstpage]{draftwatermark}
 \usepackage[latin1]{inputenc}
 \usepackage{amsmath}
 \usepackage{xspace}
@@ -29,7 +30,8 @@
 \newcommand{\why}{{\sc why}\xspace}
 
 \renewcommand{\floatpagefraction}{0.75}
-
+\SetWatermarkText{\hspace*{5.5in}\raisebox{5in}{\includegraphics[scale=0.1]{aec-badge-cav}}}
+\SetWatermarkAngle{0}
 \makeatletter
 \let\@copyrightspace\relax
 \makeatother
